@@ -72,9 +72,24 @@ final class ReadOnlyQuery {
             long providerStart=SystemClock.elapsedRealtime();
             if(intent.getBooleanExtra("cancel_before_provider",false)) {cancel.cancel();log("cancel_test=before_provider_query");}
             String[] projection=intent.getBooleanExtra("invalid_projection",false)?new String[]{"_id","map002_nonexistent_column"}:new String[]{"_id","latitude","longitude","media_type","origin_date_taken","origin_date_taken_exif","mime_type"};
-            try(Cursor c=resolver.query(Uri.parse("content://"+PROVIDER+"/mediaextra"),projection,selection.toString(),args,null,cancel)) {
+            Cursor providerCursor=resolver.query(Uri.parse("content://"+PROVIDER+"/mediaextra"),projection,selection.toString(),args,null,cancel);
+            try(Cursor c=providerCursor) {
                 if(c==null){log("provider_sample=null_cursor");return;}
-                while(c.moveToNext()) {
+                while(true) {
+                    cancel.throwIfCanceled();
+                    if(!c.moveToNext())break;
+                    if(intent.getBooleanExtra("exit_during_iteration",false)) {
+                        log("exit_test=cursor_open");
+                        try { Thread.sleep(3000); } catch(InterruptedException e) { Thread.currentThread().interrupt(); }
+                        cancel.throwIfCanceled();
+                        log("exit_test=no_cancellation_observed");
+                        return;
+                    }
+                    if(intent.getBooleanExtra("cancel_during_iteration",false)) {
+                        log("cancel_test=cursor_iteration");
+                        cancel.cancel();
+                        cancel.throwIfCanceled();
+                    }
                     long id=c.getLong(0);
                     if(!selected.containsKey(id)){ mismatch++; break; }
                     if(!seen.add(id))duplicate++;
@@ -88,6 +103,9 @@ final class ReadOnlyQuery {
                     if(mimes.get(id)!=null && mimes.get(id).equalsIgnoreCase(c.getString(6)))mimeMatch++;
                     if(rows>=limit*2){log("sample_stopped=row_limit");break;}
                 }
+            } finally {
+                if(intent.getBooleanExtra("cancel_during_iteration",false) || intent.getBooleanExtra("exit_during_iteration",false))
+                    log("provider_cursor_closed="+(providerCursor!=null && providerCursor.isClosed()));
             }
             log("provider_query_ms="+(SystemClock.elapsedRealtime()-providerStart));
             log("provider_sample_rows="+rows+" matched_unique="+seen.size()+" missing="+(selected.size()-seen.size())+" duplicates="+duplicate+" selection_mismatch="+mismatch);
