@@ -1,0 +1,50 @@
+MAP002Probe: permission_granted=true
+MAP002Probe: provider_exported=true
+MAP002Probe: read_permission=com.android.gallery3d.permission.GalleryDataProvider
+MAP002Probe: empty_query=success
+MAP002Probe: columns=_id,latitude,longitude,_data,mime_type,media_type,audioseek,group_id,group_index,fullview,camera_refocus,live_photo,image_type,facing,bucket_id,rotation,raw_sample_bit,fisheye,extra1,extra2,temp_file,media_special,func_switch,group_type,preferred_id,preferred_path,algo_flag,virtual_video_id,is_full_movie_effect,shooting_mode,video_extra_metadata,file_convert,real_picture_process_long,origin_date_taken,origin_date_modify,generation_modified,camera_model,origin_date_taken_exif
+MAP002Probe: empty_selection_count=0
+no such module: rtree
+MAP002Probe: sqlite_rtree=false fallback_btree=true wrap=true nonwrap=true boundary=true volume_key=true queue_rollback=true queue_reopen=true plan=SEARCH r USING INDEX spatial_lon (min_lon<?);SEARCH m USING INTEGER PRIMARY KEY (rowid=?);
+MAP002Probe: synthetic_no_gps=true
+MAP002Probe: synthetic_insert=success
+MAP002Probe: mediastore_id_matches=true
+MAP002Probe: mediastore_volume_name_present=true
+MAP002Probe: mediastore_mime_type_present=true
+MAP002Probe: mediastore_datetaken_present=true
+MAP002Probe: mediastore_date_modified_present=true
+MAP002Probe: mediastore__size_present=true
+MAP002Probe: mediastore_generation_added_present=true
+MAP002Probe: mediastore_generation_modified_present=true
+MAP002Probe: location_permission_granted=true
+MAP002Probe: androidx_original_gps_matches_known=true
+MAP002Probe: androidx_original_datetime_matches=true
+MAP002Probe: synthetic_same_id=true gps_matches_known=true timestamp_present=true
+MAP002Probe: synthetic_cleanup_rows=1
+MAP002Probe: deleted_uri_unavailable=true
+MAP002Probe: temporary_cleanup=true
+MAP002Probe: permission_granted=true
+MAP002Probe: provider_exported=true
+MAP002Probe: read_permission=com.android.gallery3d.permission.GalleryDataProvider
+MAP002Probe: empty_query=success
+MAP002Probe: columns=_id,latitude,longitude,_data,mime_type,media_type,audioseek,group_id,group_index,fullview,camera_refocus,live_photo,image_type,facing,bucket_id,rotation,raw_sample_bit,fisheye,extra1,extra2,temp_file,media_special,func_switch,group_type,preferred_id,preferred_path,algo_flag,virtual_video_id,is_full_movie_effect,shooting_mode,video_extra_metadata,file_convert,real_picture_process_long,origin_date_taken,origin_date_modify,generation_modified,camera_model,origin_date_taken_exif
+MAP002Probe: empty_selection_count=0
+no such module: rtree
+MAP002Probe: sqlite_rtree=false fallback_btree=true wrap=true nonwrap=true boundary=true volume_key=true queue_rollback=true queue_reopen=true plan=SEARCH r USING INDEX spatial_lon (min_lon<?);SEARCH m USING INTEGER PRIMARY KEY (rowid=?);
+MAP002Probe: synthetic_no_gps=true
+MAP002Probe: synthetic_insert=success
+MAP002Probe: mediastore_id_matches=true
+MAP002Probe: mediastore_volume_name_present=true
+MAP002Probe: mediastore_mime_type_present=true
+MAP002Probe: mediastore_datetaken_present=true
+MAP002Probe: mediastore_date_modified_present=true
+MAP002Probe: mediastore__size_present=true
+MAP002Probe: mediastore_generation_added_present=true
+MAP002Probe: mediastore_generation_modified_present=true
+MAP002Probe: location_permission_granted=false
+MAP002Probe: androidx_original_gps_matches_known=true
+MAP002Probe: androidx_original_datetime_matches=true
+MAP002Probe: synthetic_same_id=true gps_matches_known=true timestamp_present=true
+MAP002Probe: synthetic_cleanup_rows=1
+MAP002Probe: deleted_uri_unavailable=true
+MAP002Probe: temporary_cleanup=true
