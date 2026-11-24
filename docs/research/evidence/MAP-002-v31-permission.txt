@@ -1,0 +1,4 @@
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=false partial=false
+MAP002ReadOnly: sample_stopped=no_image_permission

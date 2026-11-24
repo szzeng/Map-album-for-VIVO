@@ -1,0 +1,50 @@
+MAP002ReadOnly: sample_scheduled_delay_ms=0
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=false partial=true
+MAP002ReadOnly: authorized_primary_total=8
+MAP002ReadOnly: authorized_primary_sample=8
+MAP002ReadOnly: provider_query_ms=3
+MAP002ReadOnly: provider_sample_rows=8 matched_unique=8 missing=0 duplicates=0 selection_mismatch=0
+MAP002ReadOnly: sample_gps_nonzero_in_range=8 null=0 zero_pair=0 invalid=0
+MAP002ReadOnly: sample_mime_matches=8
+MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=8 date_taken_exact_match=0
+MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+MAP002ReadOnly: sample_elapsed_ms=65 worker_cpu_ms=3
+MAP002ReadOnly: sample_scheduled_delay_ms=0
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=false partial=true
+MAP002ReadOnly: authorized_primary_total=17
+MAP002ReadOnly: authorized_primary_sample=17
+MAP002ReadOnly: provider_query_ms=4
+MAP002ReadOnly: provider_sample_rows=17 matched_unique=17 missing=0 duplicates=0 selection_mismatch=0
+MAP002ReadOnly: sample_gps_nonzero_in_range=15 null=2 zero_pair=0 invalid=0
+MAP002ReadOnly: sample_mime_matches=17
+MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=17 date_taken_exact_match=0
+MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+MAP002ReadOnly: sample_elapsed_ms=61 worker_cpu_ms=2
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=true partial=true
+MAP002ReadOnly: authorized_primary_total=1
+MAP002ReadOnly: authorized_primary_sample=1
+MAP002ReadOnly: provider_query_ms=9
+MAP002ReadOnly: provider_sample_rows=1 matched_unique=1 missing=0 duplicates=0 selection_mismatch=0
+MAP002ReadOnly: sample_gps_nonzero_in_range=1 null=0 zero_pair=0 invalid=0
+MAP002ReadOnly: sample_mime_matches=1
+MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=1 date_taken_exact_match=0
+MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+MAP002ReadOnly: sample_elapsed_ms=72 worker_cpu_ms=2
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=true partial=true
+MAP002ReadOnly: authorized_primary_total=1
+MAP002ReadOnly: authorized_primary_sample=1
+MAP002ReadOnly: provider_query_ms=26
+MAP002ReadOnly: provider_sample_rows=1 matched_unique=1 missing=0 duplicates=0 selection_mismatch=0
+MAP002ReadOnly: sample_gps_nonzero_in_range=1 null=0 zero_pair=0 invalid=0
+MAP002ReadOnly: sample_mime_matches=1
+MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=1 date_taken_exact_match=0
+MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+MAP002ReadOnly: sample_elapsed_ms=106 worker_cpu_ms=3

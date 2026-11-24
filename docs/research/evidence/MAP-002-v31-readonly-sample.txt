@@ -1,0 +1,12 @@
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=true partial=true
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=true partial=true
+MAP002ReadOnly: authorized_primary_sample=20
+MAP002ReadOnly: provider_sample_rows=20 matched_unique=20 missing=0 duplicates=0 selection_mismatch=0
+MAP002ReadOnly: sample_gps_nonzero_in_range=18 null=2 zero_pair=0 invalid=0
+MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=20 date_taken_exact_match=0
+MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+MAP002ReadOnly: sample_elapsed_ms=75

@@ -1,0 +1,15 @@
+MAP002ReadOnly: vivo_permission_granted=true
+MAP002ReadOnly: provider_exported=true
+MAP002ReadOnly: image_permission_full=true partial=true
+MAP002ReadOnly: authorized_primary_total=79147
+MAP002ReadOnly: sample_offset=40000
+MAP002ReadOnly: authorized_primary_sample=2000
+MAP002ReadOnly: provider_query_ms=26
+MAP002ReadOnly: provider_sample_rows=2000 matched_unique=2000 missing=0 duplicates=0 selection_mismatch=0
+MAP002ReadOnly: sample_gps_nonzero_in_range=1968 null=32 zero_pair=0 invalid=0
+MAP002ReadOnly: sample_mime_matches=2000
+MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=2000 date_taken_exact_match=0
+MAP002ReadOnly: sample_mediastore_time_nonzero=2000 provider_exif_time_nonzero=0 exact_ms_match=0 seconds_match=0
+MAP002ReadOnly: sample_provider_media_type_1=2000 type_3=0 type_other_or_null=0
+MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+MAP002ReadOnly: sample_elapsed_ms=139 worker_cpu_ms=9
