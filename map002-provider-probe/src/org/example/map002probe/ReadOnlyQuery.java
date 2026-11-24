@@ -70,7 +70,9 @@ final class ReadOnlyQuery {
             int rows=0, gps=0, empty=0, zero=0, invalid=0, duplicate=0, time=0, exifTime=0, dateMatch=0, mismatch=0, mimeMatch=0, mediaTime=0, exifTimeNonzero=0, exifTimeMatch=0, exifTimeSecondsMatch=0, type1=0, type3=0, typeOther=0;
             Set<Long> seen=new HashSet<>();
             long providerStart=SystemClock.elapsedRealtime();
-            try(Cursor c=resolver.query(Uri.parse("content://"+PROVIDER+"/mediaextra"),new String[]{"_id","latitude","longitude","media_type","origin_date_taken","origin_date_taken_exif","mime_type"},selection.toString(),args,null,cancel)) {
+            if(intent.getBooleanExtra("cancel_before_provider",false)) {cancel.cancel();log("cancel_test=before_provider_query");}
+            String[] projection=intent.getBooleanExtra("invalid_projection",false)?new String[]{"_id","map002_nonexistent_column"}:new String[]{"_id","latitude","longitude","media_type","origin_date_taken","origin_date_taken_exif","mime_type"};
+            try(Cursor c=resolver.query(Uri.parse("content://"+PROVIDER+"/mediaextra"),projection,selection.toString(),args,null,cancel)) {
                 if(c==null){log("provider_sample=null_cursor");return;}
                 while(c.moveToNext()) {
                     long id=c.getLong(0);
@@ -123,6 +125,21 @@ final class ReadOnlyQuery {
                     if(c==null) log("viewport_query=null_cursor");
                     else {while(c.moveToNext()){long id=c.getLong(0);if(!selected.containsKey(id)){unexpected++;break;}if(id>previous)sorted=false;previous=id;actual.add(id);if(actual.size()>limit)break;}
                         log("viewport_filter_matches_sample="+actual.equals(expected)+" expected_count="+expected.size()+" returned_count="+actual.size()+" sorted_desc="+sorted+" unexpected="+unexpected);}
+                }
+            }
+            if(intent.getBooleanExtra("wrap_test",false) && !positions.isEmpty()) {
+                // A wide antimeridian-crossing range: almost the whole globe except a thin strip near zero.
+                double west=0.0,east=-0.0001;
+                Set<Long> expected=new HashSet<>();
+                for(Map.Entry<Long,double[]> item:positions.entrySet()) {double[] p=item.getValue();if(p[1]>=west||p[1]<=east)expected.add(item.getKey());}
+                String[] rangeArgs=new String[args.length+2];System.arraycopy(args,0,rangeArgs,0,args.length);
+                rangeArgs[args.length]=Double.toString(west);rangeArgs[args.length+1]=Double.toString(east);
+                Set<Long> actual=new HashSet<>();int unexpected=0;
+                String where=selection.toString()+" AND latitude>=-90 AND latitude<=90 AND longitude>=-180 AND longitude<=180 AND (longitude>=? OR longitude<=?) AND (latitude!=0 OR longitude!=0)";
+                try(Cursor c=resolver.query(Uri.parse("content://"+PROVIDER+"/mediaextra"),new String[]{"_id"},where,rangeArgs,null,cancel)) {
+                    if(c==null) log("wrap_query=null_cursor");
+                    else {while(c.moveToNext()){long id=c.getLong(0);if(!selected.containsKey(id)){unexpected++;break;}actual.add(id);if(actual.size()>limit)break;}
+                        log("wrap_filter_matches_sample="+actual.equals(expected)+" expected_count="+expected.size()+" returned_count="+actual.size()+" unexpected="+unexpected);}
                 }
             }
             if(intent.getBooleanExtra("thumb_test",false) && !seen.isEmpty()) {

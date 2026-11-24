@@ -55,3 +55,9 @@ MediaStore 当前授权主卷共有 79,147 张图片。按 ID 降序选最近 50
 ## 拍摄时间字段补充
 
 另一组按 ID 排序位置 40,000 起的 2,000 张授权图片中，MediaStore `DATE_TAKEN` 2,000 条非零；Provider `origin_date_taken` 2,000 条为零，`origin_date_taken_exif` 虽均非空但也全部为零，无法用于比对拍摄时间、单位或时区。此样本 Provider `media_type` 均为整数 1；仅反映图片样本，不能据此确认其他类型定义。没有读取照片 EXIF；字段仅在 Provider 侧以数值做汇总比较，不记录具体时间。日志 `evidence/MAP-002-v31-time-fields.txt`。
+
+## 范围、预取消与异常补测
+
+在此前相同设备和单主卷授权条件下，2,000 个图片 ID 的样本中，跨日期变更线的 OR 条件返回 1,864 条，与同一次样本的内存筛选集合一致，没有返回请求集合之外的 ID。所选范围覆盖全球绝大部分，不能证明样本包含日期变更线两侧或 ±180° 边界，也不证明全库查询性能或权限竞态安全。
+
+另以 100 个可见 ID 在调用 Provider 前取消 CancellationSignal，探针记录 `OperationCanceledException`；这仅验证预取消，不能证明正在执行的远端查询会及时取消或释放资源。用不存在的投影字段触发 `SQLiteException` 后，同一进程再次进行正常只读查询成功，100 个 ID 均匹配，视口样本过滤一致。该异常仅代表这一种错误，不证明超时或 Provider 崩溃后的恢复能力。原始脱敏结果见 `evidence/MAP-002-v31-wrap-cancel-error.txt`。
