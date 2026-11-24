@@ -1,0 +1,26 @@
+# APK SHA-256, local and device native output; freshly queried active APK paths
+$ adb -d shell pm path com.vivo.gallery
+package:/data/app/~~VLvDQt_FGdbv3CNerFEstg==/com.vivo.gallery-opmgBrSjPJHMflFNOXHy8g==/base.apk
+$ adb -d shell sha256sum /data/app/~~VLvDQt_FGdbv3CNerFEstg==/com.vivo.gallery-opmgBrSjPJHMflFNOXHy8g==/base.apk
+9205cd41b1f8f85fe2493788f25e145e563d8115d52691de1869da6024bfa175  /data/app/~~VLvDQt_FGdbv3CNerFEstg==/com.vivo.gallery-opmgBrSjPJHMflFNOXHy8g==/base.apk
+com.vivo.gallery.apk 295525008 bytes SHA256 9205CD41B1F8F85FE2493788F25E145E563D8115D52691DE1869DA6024BFA175
+
+$ adb -d shell pm path com.vivo.base.gallery
+package:/system/app/VivoBaseGallery/VivoBaseGallery.apk
+$ adb -d shell sha256sum /system/app/VivoBaseGallery/VivoBaseGallery.apk
+e8e117d10e36a70fb8e2a8a351b270b35e89f04ffeb4d0ca679afbf49cf20af5  /system/app/VivoBaseGallery/VivoBaseGallery.apk
+com.vivo.base.gallery.apk 7050140 bytes SHA256 E8E117D10E36A70FB8E2A8A351B270B35E89F04FFEB4D0CA679AFBF49CF20AF5
+
+$ adb -d shell pm path com.android.photopicker
+package:/apex/com.android.mediaprovider/priv-app/Photopicker@CP2A.260605.016/Photopicker.apk
+$ adb -d shell sha256sum /apex/com.android.mediaprovider/priv-app/Photopicker@CP2A.260605.016/Photopicker.apk
+545c67d5525a5002287ae89ec952cb8a74c957348750c694e6300071ecb53dd2  /apex/com.android.mediaprovider/priv-app/Photopicker@CP2A.260605.016/Photopicker.apk
+com.android.photopicker.apk 57775305 bytes SHA256 545C67D5525A5002287AE89EC952CB8A74C957348750C694E6300071ECB53DD2
+
+$ adb -d shell pm path com.android.providers.media.module
+package:/apex/com.android.mediaprovider/priv-app/MediaProvider@CP2A.260605.016/MediaProvider.apk
+$ adb -d shell sha256sum /apex/com.android.mediaprovider/priv-app/MediaProvider@CP2A.260605.016/MediaProvider.apk
+25e211e3c600abbcfbdbf48c7897d61490a2e5ca72e235c33401ff36047605a4  /apex/com.android.mediaprovider/priv-app/MediaProvider@CP2A.260605.016/MediaProvider.apk
+com.android.providers.media.module.apk 18364155 bytes SHA256 25E211E3C600ABBCFBDBF48C7897D61490A2E5CA72E235C33401FF36047605A4
+
+JADX 1.5.7 release SHA256 1755E4242ADE71A077438723689F404079592EC7764A3A0572F98FEF94EBCBF3 (local archive matched upstream)

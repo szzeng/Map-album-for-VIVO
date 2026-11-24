@@ -1,0 +1,15 @@
+$ adb -d shell content gettype --uri content://media/external/images/media
+Result: vnd.android.cursor.dir/image
+[exit 0]
+
+$ adb -d shell content query --uri content://media/external/images/media --projection _id:datetaken:generation_added:generation_modified --where 0=1
+No result found.
+[exit 0]
+
+$ adb -d shell content query --uri content://media/external/images/media --projection latitude:longitude --where 0=1
+No result found.
+[exit 0]
+
+$ adb -d shell content call --uri content://media --method get_generation --extra android.intent.extra.TEXT:s:external_primary
+Result: Bundle[{android.intent.extra.INDEX=17312317}]
+[exit 0]

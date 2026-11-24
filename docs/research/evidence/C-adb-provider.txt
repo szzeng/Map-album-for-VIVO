@@ -1,0 +1,38 @@
+$ adb -d shell dumpsys package com.vivo.gallery
+  Permission [com.vivo.gallery3d.permission.GALLERY_MEDIA_PROVIDER] (36e9760):
+    sourcePackage=com.vivo.gallery
+    uid=10159 gids=[] type=0 prot=signature|privileged
+    perm=PermissionInfo{ded16e7 com.vivo.gallery3d.permission.GALLERY_MEDIA_PROVIDER}
+  Permission [com.android.gallery3d.permission.GalleryDataProvider] (4a1f8ea):
+    sourcePackage=com.vivo.gallery
+    uid=10159 gids=[] type=0 prot=normal
+    perm=PermissionInfo{5e76fb com.android.gallery3d.permission.GalleryDataProvider}
+[exit 0]
+
+$ adb -d shell dumpsys package com.vivo.base.gallery
+  Permission [com.vivo.gallery3d.permission.MediaExtraProvider] (85ca5c6):
+    sourcePackage=com.vivo.base.gallery
+    uid=10159 gids=[] type=0 prot=signature|privileged
+    perm=PermissionInfo{5b0e731 com.vivo.gallery3d.permission.MediaExtraProvider}
+[exit 0]
+
+$ adb -d shell content query --uri content://com.android.gallery3d.dataprovider/mediaextra --projection _id --where 0=1
+Error while accessing provider:com.android.gallery3d.dataprovider
+java.lang.SecurityException: Permission Denial: opening provider com.android.gallery3d.provider.GalleryDataProvider from (null) (pid=10922, uid=2000) requires com.android.gallery3d.permission.GalleryDataProvider or com.android.gallery3d.permission.GalleryDataProvider
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3410)
+	at android.os.Parcel.createException(Parcel.java:3394)
+	at android.os.Parcel.readException(Parcel.java:3377)
+	at android.os.Parcel.readException(Parcel.java:3319)
+	at android.app.IActivityManager$Stub$Proxy.getContentProviderExternal(IActivityManager.java:9176)
+	at com.android.commands.content.Content$Command.execute(Content.java:553)
+	at com.android.commands.content.Content.main(Content.java:772)
+	at com.android.internal.os.RuntimeInit.nativeFinishInit(Native Method)
+	at com.android.internal.os.RuntimeInit.main(RuntimeInit.java:412)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.am.ContentProviderHelper.checkAssociationAndPermissionLocked(ContentProviderHelper.java:917)
+	at com.android.server.am.ContentProviderHelper.getContentProviderImpl(ContentProviderHelper.java:422)
+	at com.android.server.am.ContentProviderHelper.getContentProviderExternalUnchecked(ContentProviderHelper.java:220)
+	at com.android.server.am.ContentProviderHelper.getContentProviderExternal(ContentProviderHelper.java:211)
+	at com.android.server.am.ActivityManagerService.getContentProviderExternal(ActivityManagerService.java:9178)
+
+[exit 0]

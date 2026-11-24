@@ -1,0 +1,408 @@
+[com.vivo.gallery.apk / classes.dex]
+class  Lcom/vivo/gallerywidgetmodule/DataBinderMapperImpl;
+string 'TAG_GPS_INFO_IFD_POINTER'
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+[com.vivo.gallery.apk / classes10.dex]
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+[com.vivo.gallery.apk / classes11.dex]
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+[com.vivo.gallery.apk / classes12.dex]
+string "CREATE TABLE IF NOT EXISTS `basic_info` (`id` INTEGER NOT NULL, `owner_id` INTEGER NOT NULL DEFAULT 0, `resident_location` TEXT DEFAULT '', `last_fetch_time` INTEGER NOT NULL DEFAULT 0, `version` TEXT DEFAULT '1.0.0', PRIMARY KEY(`id`))"
+[com.vivo.gallery.apk / classes2.dex]
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+[com.vivo.gallery.apk / classes3.dex]
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+[com.vivo.gallery.apk / classes4.dex]
+[com.vivo.gallery.apk / classes5.dex]
+class  Lcom/android/gallery3d/app/MappedView;
+class  Lcom/android/gallery3d/colorspace/BitmapBlurJNI;
+class  Lcom/android/gallery3d/colorspace/BitmapColorHelper;
+class  Lcom/android/gallery3d/colorspace/BitmapHelper;
+class  Lcom/android/gallery3d/data/BitmapBinder;
+class  Lcom/android/gallery3d/data/OneShotBitmapBinder;
+class  Lcom/android/gallery3d/data/VideoEditorBitmapBinder;
+class  Lcom/android/gallery3d/provider/GalleryDataProvider$a$a;
+class  Lcom/android/gallery3d/provider/GalleryDataProvider$a;
+class  Lcom/android/gallery3d/provider/GalleryDataProvider$b;
+class  Lcom/android/gallery3d/provider/GalleryDataProvider;
+class  Lcom/android/gallery3d/vivo/custombeauty/makingmodel/BitmapListLoadListener;
+class  Lcom/android/gallery3d/vivo/custombeauty/makingmodel/MakingPageBitmapManager$1;
+class  Lcom/android/gallery3d/vivo/custombeauty/makingmodel/MakingPageBitmapManager$2;
+class  Lcom/android/gallery3d/vivo/custombeauty/makingmodel/MakingPageBitmapManager;
+class  Lcom/android/gallery3d/vivo/custombeauty/network/CustomBeautyNetManager$uploadBitmap$request$1;
+class  Lcom/android/gallery3d/vivo/footprint/map/GalleryMapFunction$1;
+class  Lcom/android/gallery3d/vivo/footprint/map/GalleryMapFunction$a;
+class  Lcom/android/gallery3d/vivo/footprint/map/GalleryMapFunction$b;
+class  Lcom/android/gallery3d/vivo/footprint/map/GalleryMapFunction;
+class  Lcom/android/gallery3d/vivo/footprint/ui/BaseLocationPage$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$k;
+class  Lcom/android/gallery3d/vivo/footprint/ui/BaseLocationPage;
+class  Lcom/android/gallery3d/vivo/footprint/ui/FootprintMapActivity$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/a$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/a$b;
+class  Lcom/android/gallery3d/vivo/footprint/ui/FootprintMapActivity;
+class  Lcom/android/gallery3d/vivo/footprint/ui/JourneyDateFilterTabItem;
+class  Lcom/android/gallery3d/vivo/footprint/ui/LocationPage;
+class  Lcom/android/gallery3d/vivo/map/BaseMapFragment;
+class  Lcom/android/gallery3d/vivo/footprint/ui/a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/b$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/b$b;
+class  Lcom/android/gallery3d/vivo/footprint/ui/b;
+class  Lcom/android/gallery3d/vivo/footprint/ui/c$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/c$b;
+class  Lcom/android/gallery3d/vivo/footprint/ui/c;
+class  Lcom/android/gallery3d/vivo/footprint/ui/d$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/d$b;
+class  Lcom/android/gallery3d/vivo/footprint/ui/d$c;
+class  Lcom/android/gallery3d/vivo/footprint/ui/d$d;
+class  Lcom/android/gallery3d/vivo/footprint/ui/d$e;
+class  Lcom/android/gallery3d/vivo/footprint/ui/d;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$b;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$c;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$d;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$e;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$f;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$g;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$h;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$i;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$j;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e$l;
+class  Lcom/android/gallery3d/vivo/footprint/ui/f$d;
+class  Lcom/android/gallery3d/vivo/footprint/ui/e;
+class  Lcom/android/gallery3d/vivo/footprint/ui/f$a;
+class  Lcom/android/gallery3d/vivo/footprint/ui/f$b;
+class  Lcom/android/gallery3d/vivo/footprint/ui/f$c;
+class  Lcom/android/gallery3d/vivo/footprint/ui/f;
+class  Lcom/android/gallery3d/vivo/footprint/view/MarginRemovalTextView;
+class  Lcom/android/gallery3d/vivo/imagepick/PickLocationPage$a;
+class  Lcom/android/gallery3d/vivo/imagepick/PickLocationPage;
+class  Lcom/android/gallery3d/vivo/map/BaseMapFragment$MapNetWorkState;
+class  Lcom/android/gallery3d/vivo/map/bean/StatusUpdate$UpdateStatus;
+class  Lcom/android/gallery3d/vivo/map/bean/StatusUpdate;
+string '-Create table l~, gps, local_config failed: '
+string '-Create table l~, gps, local_config, duration: '
+string 'BaseFootprintMapFragment'
+string 'CREATE TABLE IF NOT EXISTS MediaExtraTable (_id INTEGER PRIMARY KEY AUTOINCREMENT, latitude DOUBLE, longitude DOUBLE, _data TEXT, mime_type INTEGER, media_type INTEGER, audioseek LONG, group_id LONG, group_index INTEGER, fullview INTEGER, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER ,bucket_id INTEGER ,rotation INTEGER ,raw_sample_bit INTEGER DEFAULT 0 ,fisheye TEXT ,extra1 INTEGER ,extra2 TEXT, temp_file INTEGER DEFAULT 1 ,media_special INTEGER DEFAULT 0, func_switch INTEGER, group_type INTEGER, preferred_id INTEGER, preferred_path TEXT, algo_flag INTEGER default 0, virtual_video_id TEXT, is_full_movie_effect INTEGER DEFAULT -1 , shooting_mode TEXT, camera_model TEXT, video_extra_metadata TEXT, file_convert INTEGER DEFAULT -1, real_picture_process_long INTEGER DEFAULT 0, origin_date_taken LONG, origin_date_modify LONG, origin_date_taken_exif LONG, generation_modified INTEGER DEFAULT 1 )'
+string 'CREATE TABLE IF NOT EXISTS albumphotos (_id INTEGER PRIMARY KEY, image_id INTEGER, group_id INTEGER, latitude DOUBLE, longitude DOUBLE, datetaken INTEGER, datataken_format TEXT, path TEXT, locality TEXT, sub_locality TEXT, add_type INTEGER, movie_index INTEGER, mime_type TEXT, width INTEGER, height INTEGER, movie_selected INTEGER,is_seclected_to_summary INTEGER)'
+string 'CREATE TABLE IF NOT EXISTS hidden_files (_id INTEGER PRIMARY KEY AUTOINCREMENT, _data TEXT, data_original TEXT, _size LONG, _display_name TEXT, title TEXT, bucket_id TEXT, bucket_display_name TEXT, date_added LONG, date_modified LONG, datetaken LONG, date_recycled LONG, width INTEGER, height INTEGER, mime_type TEXT, latitude DOUBLE, longitude DOUBLE, orientation INTEGER, audioseek LONG DEFAULT 0, fullview INTEGER, group_index INTEGER, group_id LONG, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER, media_type INTEGER, fish_eye INTEGER, date_hid LONG, is_edited INTEGER, is_favorite INTEGER, is_recycled INTEGER, resolution TEXT, sight INTEGER, duration INTEGER , relative_path TEXT, virtual_video_id TEXT  ) '
+string "CREATE TABLE IF NOT EXISTS journey_cluster_state (_id INTEGER PRIMARY KEY, strategy INTEGER, media_count INTEGER, max_generation_modified INTEGER, algo_param_version INTEGER, last_cluster_time INTEGER, last_curate_time INTEGER, last_result_count INTEGER, gps_row_count INTEGER, pending_level INTEGER, title_language TEXT DEFAULT '')"
+string 'CREATE TABLE IF NOT EXISTS memoryalbum (_id INTEGER PRIMARY KEY, group_id INTEGER, type INTEGER, title TEXT, time_range TEXT, name_type INTEGER, generated_time INTEGER, signature INTEGER, cover_image_id INTEGER, template_id TEXT, template_name TEXT, audio_type INTEGER, audio_path TEXT, audio_start_time INTEGER, audio_duration INTEGER, info_saved INTEGER, rebuild_summary INTEGER,summary_list TEXT,cover_auto_set INTEGER,title_mannual_set INTEGER,location TEXT,max_timestamp INTEGER,share_video_uri TEXT,is_favorited INTEGER,edit_json TEXT, summary_update_time INTEGER, excluding_from_widget INTEGER, storyline_major INTEGER, storyline_minor INTEGER, story_time TEXT, story_place TEXT, story_person TEXT, story_label TEXT, story_theme TEXT, story_keywords TEXT, clip_strategy TEXT, subtitle TEXT, refresh_title INTEGER, refresh_clip_strategy INTEGER, refresh_subtitle INTEGER, title_update_time INTEGER, cover_update_time INTEGER, recommend_text TEXT, refresh_recommend_text INTEGER, recommend_priority INTEGER )'
+string 'CREATE TABLE IF NOT EXISTS online_gallery (_id INTEGER PRIMARY KEY AUTOINCREMENT, online_version TEXT, width INTEGER, height INTEGER, orientation INTEGER, media_type INTEGER, mime_type TEXT, longitude DOUBLE, latitude DOUBLE, duration INTEGER, md5 TEXT, md5_version TEXT, size LONG, date_taken LONG, date_modify LONG, media_id TEXT, meta_id TEXT, thumbnail_path TEXT, original_path TEXT, nail_url TEXT, original_url TEXT, group_id LONG, group_index LONG, live_photo TEXT, is_livephoto INTEGER, bucket_id TEXT, camera_refocus INTEGER, resolution TEXT, in_recyclebin INTEGER,display_name TEXT,domain_url TEXT,source_url TEXT,data1 TEXT, data2 TEXT, data3 TEXT, data4 TEXT, data5 TEXT , media_special INTEGER , attach_info TEXT  ) '
+string 'CREATE TABLE gps (_id INTEGER PRIMARY KEY AUTOINCREMENT, location_id INTEGER REFERENCES location(location_id), latitude DOUBLE NOT NULL, longitude DOUBLE NOT NULL, gpsuniqekey LONG NOT NULL UNIQUE ON CONFLICT REPLACE);'
+string 'CREATE TABLE location (location_id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, province TEXT, city TEXT, district TEXT, street TEXT, street_number TEXT, address TEXT UNIQUE ON CONFLICT REPLACE  , location_version INTEGER );'
+string 'CREATE TABLE location (location_id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, province TEXT, city TEXT, district TEXT, street TEXT, street_number TEXT, address TEXT UNIQUE ON CONFLICT REPLACE);'
+string 'FOOTPRINT_MAP_ACTIVITY_SOURCE_KEY error'
+string 'FootprintDiskWarmup'
+string 'FootprintMapActivity'
+string 'FootprintMapFragment'
+string 'FootprintMarkerManager'
+string 'Lcom/android/gallery3d/vivo/footprint/ui/a<'
+string 'MapAlbumSetDataLoader'
+string 'MapAlbumSetRenderWindow'
+string 'MapAlbumSetRenderWindow pause this = '
+string 'MapAlbumSetRenderWindow resume this = '
+string 'VG_FootprintFirstCluster'
+string 'VG_FootprintSecondCluster'
+string 'VG_MapAlbumSetReloadTask'
+string 'collage_replace_info_index'
+string 'cut_same_replace_index'
+string 'cut_same_replace_info'
+string 'floorInnerAlbumMap ='
+string 'floorInnerAlbumMap size='
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+string 'getMediaPatch -> mMapAlbumSetDataLoader == null '
+string 'insertGpsLocation : insert GPS_TABLE success'
+string 'recommendBannerAlbumMap.getValue().getmPath()='
+string 'updateLoc : delete LOCATION_TABLE success :'
+string 'updateLoc : update LOCATION_TABLE success, rowId = '
+[com.vivo.gallery.apk / classes6.dex]
+class  Lcom/android/gallery3d/vivo/photoLaunch/action/StickerCreatorAction$saveBitmapAndContinue$1;
+class  Lcom/android/gallery3d/vivo/photoLaunch/action/StickerCreatorAction$saveBitmapAndContinue$tempFile$1;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$a;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$b;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$c;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$d;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$e;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$f;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$g;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$h;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$i$a;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$i;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity$j;
+class  Lcom/android/gallery3d/vivo/photomore/PhotoMoreMapActivity;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView$a;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView$b$a;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView$b$b;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView$b;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView$c;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView$d;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView$e;
+class  Lcom/android/gallery3d/vivo/photomore/view/PhotoMapView;
+class  Lcom/android/gallery3d/vivo/search/easyshare/SearchLocationBean;
+class  Lcom/android/gallery3d/vivo/search/easyshare/SearchLocationTransfer;
+class  Lcom/android/gallery3d/vivo/search/semanticsearch/SemanticParseResultBean$DataBean$ConditionListBean$LocationBean$HierarchyBean;
+class  Lcom/android/gallery3d/vivo/search/semanticsearch/SemanticParseResultBean$DataBean$ConditionListBean$LocationBean;
+class  Lcom/android/gallery3d/vivo/search/vm/SearchViewModel$special$$inlined$map$1$2$1;
+class  Lcom/android/gallery3d/vivo/search/vm/SearchViewModel$special$$inlined$map$1$2;
+class  Lcom/android/gallery3d/vivo/search/vm/SearchViewModel$special$$inlined$map$1;
+string 'CREATE TABLE IF NOT EXISTS GalleryWidget (_id INTEGER PRIMARY KEY, image_id INTEGER, file_path TEXT, type INTEGER, widget_id TEXT, location TEXT,ai_region TEXT,generate_time TEXT, memory_id TEXT)'
+string 'CREATE TABLE IF NOT EXISTS share_media (_id INTEGER PRIMARY KEY AUTOINCREMENT, album_id TEXT , media_group_id TEXT, width INTEGER, height INTEGER, orientation INTEGER, media_type INTEGER, mime_type TEXT, longitude DOUBLE, latitude DOUBLE, duration INTEGER, size LONG, date_taken LONG, date_posted LONG, account_id TEXT, media_id TEXT, meta_id TEXT, nail_path TEXT, data_path TEXT, nail_url TEXT, data_url TEXT, ori_data_path TEXT, ori_data_url TEXT, ori_source_url TEXT, pray_count INTEGER, prayed INTEGER, live_hash TEXT, camera_refocus INTEGER, media_group_type_id LONG, media_group_type_index LONG, image_id INTEGER, resolution TEXT, is_illegal INTEGER, media_status INTEGER, version TEXT, check_sum TEXT, check_sum_version TEXT, share_name TEXT, share_id TEXT, share_is_owner TEXT, share_media_hidden INTEGER, share_file_name TEXT, share_uploaded INTEGER, share_upload_key TEXT, service_id LONG, review_status INTEGER, media_data1 TEXT, media_data2 TEXT, media_data3 TEXT, media_data4 TEXT, media_data5 TEXT, media_special INTEGER  ) '
+string 'SCENE_MODE_FOOTPRINT'
+string 'albumMap'
+string 'albumMapString'
+string 'albumMappingList'
+string 'initAlbumMappingList'
+string 'initAlbumMappingList: '
+[com.vivo.gallery.apk / classes7.dex]
+[com.vivo.gallery.apk / classes8.dex]
+string 'CREATE TABLE IF NOT EXISTS `homes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `type` TEXT NOT NULL, `address` TEXT, `address_district` TEXT, `longitude` REAL NOT NULL, `latitude` REAL NOT NULL, `start_time` INTEGER, `end_time` INTEGER, `source` TEXT, `update_time` INTEGER)'
+string "CREATE TABLE IF NOT EXISTS `images` (`id` INTEGER, `moment_id` INTEGER, `file_path` TEXT NOT NULL, `image_type` INTEGER NOT NULL DEFAULT 0, `update_status` INTEGER NOT NULL DEFAULT 0, `create_time` INTEGER, `source_app` TEXT, `camera_type` TEXT DEFAULT 'UNKNOWN', `file_create_time` INTEGER, `image_time` INTEGER, `is_weekend` INTEGER NOT NULL, `festival` TEXT, `season` TEXT, `longitude` REAL NOT NULL, `latitude` REAL NOT NULL, `clip_match` TEXT, `place` TEXT, `scenic_spot` TEXT, `labels` TEXT, `labels_algo_version` TEXT, `aesthetic_score` REAL NOT NULL, `aesthetic_algo_version` TEXT, `similar_group_id` INTEGER NOT NULL, `similar_algo_version` TEXT, `person_cluster_algo_version` TEXT, `user_attention` INTEGER NOT NULL DEFAULT 0, `is_shared` INTEGER NOT NULL DEFAULT 0, `is_collected` INTEGER NOT NULL DEFAULT 0, `human_album_name` TEXT, `human_remark` TEXT, `person_cls_need_update` INTEGER NOT NULL DEFAULT 1, `has_person_label` INTEGER NOT NULL DEFAULT 0, `label_need_update` INTEGER NOT NULL DEFAULT 1, `aesthetic_need_update` INTEGER NOT NULL DEFAULT 1, `similar_need_update` INTEGER NOT NULL DEFAULT 1, `person_algo_update_status` INTEGER NOT NULL DEFAULT 0, `event_algo_update_status` INTEGER NOT NULL DEFAULT 0, `vlm_caption_algo_version` TEXT, `vlm_caption_need_update` INTEGER NOT NULL DEFAULT 1, `places_need_update` INTEGER NOT NULL DEFAULT 1, `ticket_info` TEXT, `cover_score` REAL NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`moment_id`) REFERENCES `moments`(`id`) ON UPDATE CASCADE ON DELETE SET NULL )"
+string 'CREATE TABLE IF NOT EXISTS `moments` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `event_id` INTEGER, `start_date` INTEGER, `end_date` INTEGER, `is_weekend` INTEGER NOT NULL DEFAULT 0, `festival` TEXT, `season` TEXT, `place` TEXT, `scenic_spot` TEXT, `longitude` REAL NOT NULL, `latitude` REAL NOT NULL, `geo_context` TEXT, `in_transit` INTEGER NOT NULL, `need_update` INTEGER NOT NULL DEFAULT 0, `home_longitude` REAL NOT NULL, `home_latitude` REAL NOT NULL, `work_longitude` REAL NOT NULL, `work_latitude` REAL NOT NULL, FOREIGN KEY(`event_id`) REFERENCES `events`(`id`) ON UPDATE CASCADE ON DELETE SET NULL )'
+string 'CREATE TABLE IF NOT EXISTS homes (id INTEGER PRIMARY KEY AUTOINCREMENT,type TEXT NOT NULL,address TEXT,address_district TEXT,longitude REAL NOT NULL,latitude REAL NOT NULL,start_time INTEGER,end_time INTEGER,source TEXT,update_time INTEGER);'
+string 'CREATE TABLE IF NOT EXISTS share_media (_id INTEGER PRIMARY KEY AUTOINCREMENT, album_id TEXT , media_group_id TEXT, width INTEGER, height INTEGER, orientation INTEGER, media_type INTEGER, mime_type TEXT, longitude DOUBLE, latitude DOUBLE, duration INTEGER, size LONG, date_taken LONG, date_posted LONG, account_id TEXT, media_id TEXT, meta_id TEXT, nail_path TEXT, data_path TEXT, nail_url TEXT, data_url TEXT, ori_data_path TEXT, ori_data_url TEXT, ori_source_url TEXT, pray_count INTEGER, prayed INTEGER, live_hash TEXT, camera_refocus INTEGER, media_group_type_id LONG, media_group_type_index LONG, image_id INTEGER, resolution TEXT, is_illegal INTEGER, media_status INTEGER, version TEXT, check_sum TEXT, check_sum_version TEXT, share_name TEXT, share_id TEXT, share_is_owner TEXT, share_media_hidden INTEGER, share_file_name TEXT, share_uploaded INTEGER, share_upload_key TEXT, service_id LONG, review_status INTEGER, media_data1 TEXT, media_data2 TEXT, media_data3 TEXT, media_data4 TEXT, media_data5 TEXT, media_special INTEGER  ) '
+string "CREATE TABLE images_backup (id INTEGER PRIMARY KEY,moment_id INTEGER,file_path TEXT NOT NULL,image_type INTEGER NOT NULL DEFAULT 0,update_status INTEGER NOT NULL DEFAULT 0,create_time INTEGER,source_app TEXT,camera_type TEXT DEFAULT 'UNKNOWN',file_create_time INTEGER,image_time INTEGER,is_weekend INTEGER NOT NULL,festival TEXT,season TEXT,longitude REAL NOT NULL,latitude REAL NOT NULL,clip_match TEXT,place TEXT,scenic_spot TEXT,labels TEXT,labels_algo_version TEXT,aesthetic_score REAL NOT NULL,aesthetic_algo_version TEXT,similar_group_id INTEGER NOT NULL,similar_algo_version TEXT,person_cluster_algo_version TEXT,user_attention INTEGER NOT NULL DEFAULT 0,is_shared INTEGER NOT NULL DEFAULT 0,is_collected INTEGER NOT NULL DEFAULT 0,human_album_name TEXT,human_remark TEXT,person_cls_need_update INTEGER NOT NULL DEFAULT 1,has_person_label INTEGER NOT NULL DEFAULT 0,label_need_update INTEGER NOT NULL DEFAULT 1,aesthetic_need_update INTEGER NOT NULL DEFAULT 1,similar_need_update INTEGER NOT NULL DEFAULT 1,person_algo_update_status INTEGER NOT NULL DEFAULT 0,event_algo_update_status INTEGER NOT NULL DEFAULT 0,vlm_caption_algo_version TEXT,vlm_caption_need_update INTEGER NOT NULL DEFAULT 1,places_need_update INTEGER NOT NULL DEFAULT 1,ticket_info TEXT,cover_score REAL NOT NULL,FOREIGN KEY(moment_id) REFERENCES moments(id) ON DELETE SET NULL ON UPDATE CASCADE);"
+string 'collage_replace_info_index'
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+[com.vivo.gallery.apk / classes9.dex]
+class  Lcom/vivo/data_api/footprint/LocationGroup$1;
+class  Lcom/vivo/data_api/footprint/LocationGroup$a;
+class  Lcom/vivo/data_api/footprint/LocationGroup$b;
+class  Lcom/vivo/data_api/footprint/LocationGroup;
+class  Lcom/vivo/data_api/footprint/b;
+class  Lcom/vivo/data_api/footprint/a;
+class  Lcom/vivo/data_api/footprint/c;
+class  Lcom/vivo/data_api/footprint/d;
+class  Lcom/vivo/data_api/footprint/e;
+class  Lcom/vivo/data_api/footprint/f;
+class  Lcom/vivo/data_api/footprint/g;
+class  Lcom/vivo/data_api/footprint/h;
+class  Lcom/vivo/data_api/footprint/r$a;
+class  Lcom/vivo/data_api/footprint/i;
+class  Lcom/vivo/data_api/footprint/o$a;
+class  Lcom/vivo/data_api/footprint/j;
+class  Lcom/vivo/data_api/footprint/k;
+class  Lcom/vivo/data_api/footprint/l;
+class  Lcom/vivo/data_api/footprint/m;
+class  Lcom/vivo/data_api/footprint/n;
+class  Lcom/vivo/data_api/footprint/o$b;
+class  Lcom/vivo/data_api/footprint/o;
+class  Lcom/vivo/data_api/footprint/p;
+class  Lcom/vivo/data_api/footprint/persist/MapClusterSnapshot;
+class  Lcom/vivo/data_api/footprint/q;
+class  Lcom/vivo/data_api/footprint/r;
+class  Lcom/vivo/data_api/footprint/s;
+class  Lcom/vivo/data_api/provider/merge/GalleryCloseProvider;
+class  Lcom/vivo/data_api/provider/merge/GalleryOpenProvider;
+class  Lcom/vivo/gallery/DataBinderMapperImpl;
+class  Lcom/vivo/gallery/agent/bridge/dto/AgentEventMapper$extractParams$type$1;
+class  Lcom/vivo/gallery/agent/bridge/dto/AgentEventMapper;
+class  Lcom/vivo/gallery/agent/component/media/MediaDecoderImpl$loadOriginalBitmap$1;
+class  Lcom/vivo/gallery/agent/component/media/WatermarkEncodeHelper$removeGainmapWatermark$1;
+class  Lcom/vivo/gallery/agent/component/xdr/WatermarkGainMapGenerator$createWatermarkGainMap$1;
+class  Lcom/vivo/gallery/agent/component/xdr/WatermarkGainMapGenerator;
+class  Lcom/vivo/gallery/agent/data/db/AgentTypeConverters$toStringMap$1$1;
+class  Lcom/vivo/gallery/agent/data/db/CommonTypeConverters$toStringMap$1$1;
+class  Lcom/vivo/gallery/agent/domain/watermark/WatermarkProcessorImpl$removeWatermarkWithBitmap$2;
+class  Lcom/vivo/gallery/agent/session/AgentCropHelper$cropBitmapViaAtom$2;
+class  Lcom/vivo/gallery/agent/session/AgentResultCollector$collectResultImages$outBitmap$1;
+class  Lcom/vivo/gallery/agent/session/VideoAgentBridge$mapResultToImages$1;
+class  Lcom/vivo/gallery/agent/session/VideoAgentBridge$mapResultToImages$8$motionBean$1;
+class  Lcom/vivo/gallery/agent/session/VideoAgentBridge$mapResultToImages$livePhotoInfo$1;
+class  Lcom/vivo/gallery/agent/session/pipeline/LivePhotoCropReportStep$process$outBitmap$1;
+class  Lcom/vivo/gallery/agent/template/mapper/ChatEntityMapper$parseEditResultImages$objectType$1;
+class  Lcom/vivo/gallery/agent/template/mapper/ChatEntityMapper$parseEditResultImages$stringType$1;
+class  Lcom/vivo/gallery/agent/template/mapper/ChatEntityMapper;
+class  Lcom/vivo/gallery/agent/ui/components/ChatFlowComponentKt$ChatFlowComponent$20$1$invokeSuspend$$inlined$map$1$2$1;
+class  Lcom/vivo/gallery/agent/ui/components/ChatFlowComponentKt$ChatFlowComponent$20$1$invokeSuspend$$inlined$map$1$2;
+class  Lcom/vivo/gallery/agent/ui/components/ChatFlowComponentKt$ChatFlowComponent$20$1$invokeSuspend$$inlined$map$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/FinetuneViewModel$launchBitmapLoading$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/FinetuneViewModel$launchBitmapLoading$baseJob$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/FinetuneViewModel$launchBitmapLoading$processJob$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/VideoBatchEditViewModel$special$$inlined$map$1$2$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/VideoBatchEditViewModel$special$$inlined$map$1$2;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/VideoBatchEditViewModel$special$$inlined$map$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/VideoBatchEditViewModel$special$$inlined$map$2$2$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/VideoBatchEditViewModel$special$$inlined$map$2$2;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/VideoBatchEditViewModel$special$$inlined$map$2;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/internal/ProgressPreviewController$special$$inlined$map$1$2$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/internal/ProgressPreviewController$special$$inlined$map$1$2;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/internal/ProgressPreviewController$special$$inlined$map$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/internal/ProgressPreviewController$special$$inlined$map$2$2$1;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/internal/ProgressPreviewController$special$$inlined$map$2$2;
+class  Lcom/vivo/gallery/agent/ui/viewmodel/internal/ProgressPreviewController$special$$inlined$map$2;
+class  Lcom/vivo/gallery/agent/videoagent/generator/processor/VideoEditorProcessor$Companion$animFrameFlow$$inlined$map$1$2$1;
+class  Lcom/vivo/gallery/agent/videoagent/generator/processor/VideoEditorProcessor$Companion$animFrameFlow$$inlined$map$1$2;
+class  Lcom/vivo/gallery/agent/videoagent/generator/processor/VideoEditorProcessor$Companion$animFrameFlow$$inlined$map$1;
+class  Lcom/vivo/gallery/agent/videoagent/generator/processor/VideoEditorProcessor$ProgressAnimator$startIn$2$1$invokeSuspend$$inlined$map$1$2$1;
+class  Lcom/vivo/gallery/agent/videoagent/generator/processor/VideoEditorProcessor$ProgressAnimator$startIn$2$1$invokeSuspend$$inlined$map$1$2;
+class  Lcom/vivo/gallery/agent/videoagent/generator/processor/VideoEditorProcessor$ProgressAnimator$startIn$2$1$invokeSuspend$$inlined$map$1;
+class  Lcom/vivo/gallery/pds/infos/SmartLocationInfo;
+class  Lcom/vivo/gallerymedia/provider/GalleryMediaProvider$a;
+class  Lcom/vivo/gallerymedia/provider/GalleryMediaProvider;
+string 'CREATE TABLE IF NOT EXISTS behavior (_id INTEGER PRIMARY KEY AUTOINCREMENT, media_id INTEGER NOT NULL, behavior_type INTEGER NOT NULL, behavior_time LONG NOT NULL, behavior_from INTEGER, recycle_status INTEGER, date_taken LONG, location TEXT, tags TEXT, image_description TEXT, aesthetic_score REAL, face_group TEXT, is_selfie INTEGER, is_screenshot INTEGER, is_favorited INTEGER, file_path TEXT, media_type INTEGER, ownerpackagename TEXT)'
+string 'CREATE TABLE IF NOT EXISTS online_gallery (_id INTEGER PRIMARY KEY AUTOINCREMENT, online_version TEXT, width INTEGER, height INTEGER, orientation INTEGER, media_type INTEGER, mime_type TEXT, longitude DOUBLE, latitude DOUBLE, duration INTEGER, md5 TEXT, md5_version TEXT, size LONG, date_taken LONG, date_modify LONG, media_id TEXT, meta_id TEXT, thumbnail_path TEXT, original_path TEXT, nail_url TEXT, original_url TEXT, group_id LONG, group_index LONG, live_photo TEXT, is_livephoto INTEGER, bucket_id TEXT, camera_refocus INTEGER, resolution TEXT, in_recyclebin INTEGER,display_name TEXT,domain_url TEXT,source_url TEXT,data1 TEXT, data2 TEXT, data3 TEXT, data4 TEXT, data5 TEXT , media_special INTEGER , attach_info TEXT  ) '
+string 'CREATE TABLE image (_id INTEGER PRIMARY KEY AUTOINCREMENT, _data TEXT, data_original TEXT, _size LONG, _display_name TEXT, title TEXT, bucket_id TEXT, bucket_display_name TEXT, date_added LONG, date_modified LONG, datetaken LONG, date_recycled LONG, width INTEGER, height INTEGER, mime_type TEXT, latitude LONG, longitude LONG, orientation INTEGER, audioseek LONG DEFAULT 0, fullview INTEGER, group_index INTEGER, group_id LONG, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER, media_id LONG, relative_path TEXT, fisheye TEXT, extra1 INTEGER, extra2 TEXT, package_name TEXT, media_special INTEGER DEFAULT 0, func_switch INTEGER, video_extra_metadata TEXT  ) '
+string 'CREATE TABLE video (_id INTEGER PRIMARY KEY AUTOINCREMENT, _data TEXT, data_original TEXT, _size LONG, _display_name TEXT, title TEXT, bucket_id TEXT, bucket_display_name TEXT, date_added LONG, date_modified LONG, datetaken LONG, date_recycled LONG, width INTEGER, height INTEGER, mime_type TEXT, latitude LONG, longitude LONG, orientation INTEGER, duration LONG , artist TEXT, album TEXT, resolution TEXT, tags TEXT, category TEXT, bookmark INTEGER, shoupin TEXT, quanpin TEXT, sight INTEGER, is_live_photo INTEGER, slow_motion_speed TEXT, live_photo TEXT, media_id LONG, relative_path TEXT, virtual_video_id TEXT, package_name TEXT, media_special INTEGER DEFAULT 0, is_full_movie_effect INTEGER DEFAULT -1, func_switch INTEGER ,video_extra_metadata TEXT  ) '
+string 'FootprintMapActivity'
+string 'Footprint_Map_Activity_Source_Key'
+string 'Footprint_Map_Activity_Source_Menu'
+string 'Footprint_Page_Source_Key'
+string '[Lcom/vivo/data_api/footprint/l;'
+string 'footprint_cluster_cache.bin'
+string 'footprint_cluster_cache.bin.tmp'
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected_chinese'
+string 'footprint_normal_exposure_chinese'
+string 'footprint_unauthorized_album_networking_chinese'
+string 'getSubMediaSet: mFloorInnerAlbumMap is null or empty'
+string 'location_info'
+[com.vivo.base.gallery.apk / classes.dex]
+class  Lcom/android/gallery3d/colorspace/BitmapBlurJNI;
+class  Lcom/android/gallery3d/colorspace/BitmapHelper;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider$a;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider$b;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider$c;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider$a;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider$b;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider$c;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider;
+class  Lcom/vivo/base/gallery/DataBinderMapperImpl;
+class  Lcom/vivo/base/gallery/R$mipmap;
+class  Lcom/vivo/commonlibrary/media/mediaextra/MediaExtraProvider$a;
+class  Lcom/vivo/commonlibrary/media/mediaextra/MediaExtraProvider$b;
+class  Lcom/vivo/commonlibrary/media/mediaextra/MediaExtraProvider;
+string 'CREATE TABLE IF NOT EXISTS MediaExtraTable (_id INTEGER PRIMARY KEY AUTOINCREMENT, latitude DOUBLE, longitude DOUBLE, _data TEXT, mime_type INTEGER, media_type INTEGER, audioseek LONG, group_id LONG, group_index INTEGER, fullview INTEGER, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER ,bucket_id INTEGER ,rotation INTEGER ,raw_sample_bit INTEGER DEFAULT 0 ,fisheye TEXT ,extra1 INTEGER ,extra2 TEXT )'
+string 'CREATE TABLE IF NOT EXISTS MediaExtraTable (_id INTEGER PRIMARY KEY, latitude DOUBLE, longitude DOUBLE, _data TEXT, mime_type INTEGER, media_type INTEGER, audioseek LONG, group_id LONG, group_index INTEGER, fullview INTEGER, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER ,bucket_id INTEGER )'
+string 'cut_same_replace_index'
+[com.vivo.base.gallery.apk / classes2.dex]
+[com.android.photopicker.apk / classes.dex]
+class  Lcom/android/gallery3d/colorspace/BitmapBlurJNI;
+class  Lcom/android/gallery3d/colorspace/BitmapColorHelper;
+class  Lcom/android/gallery3d/colorspace/BitmapHelper;
+class  Lcom/android/gallery3d/data/BitmapBinder;
+class  Lcom/android/gallery3d/data/LocationCoverMediaSet;
+class  Lcom/android/gallery3d/data/VideoEditorBitmapBinder;
+class  Lcom/android/gallery3d/glrenderer/BitmapTexture;
+class  Lcom/android/gallery3d/glrenderer/LottieBitmapTextures$TextureCache;
+class  Lcom/android/gallery3d/glrenderer/LottieBitmapTextures;
+class  Lcom/android/gallery3d/glrenderer/SliderBitmapTextures;
+class  Lcom/android/gallery3d/ui/BitmapLoader;
+class  Lcom/android/gallery3d/ui/BitmapScreenNail;
+class  Lcom/android/gallery3d/util/LocationConfigReportUtil;
+class  Lcom/android/gallery3d/util/ReverseGeocoder;
+class  Lcom/android/gallery3d/vivo/GalleryService$GpsTask;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider$DatabaseHelper;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider$GalleryAlbumColumns;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider$GalleryFileColumns;
+class  Lcom/android/gallery3d/vivo/filemeta/VivoGalleryFileMetaProvider;
+class  Lcom/android/gallery3d/vivo/imagepick/BitmapJobDrawable$ThumbnailLoader$1$1;
+class  Lcom/android/gallery3d/vivo/imagepick/BitmapJobDrawable$ThumbnailLoader$1;
+class  Lcom/android/gallery3d/vivo/imagepick/BitmapJobDrawable$ThumbnailLoader;
+class  Lcom/android/gallery3d/vivo/imagepick/BitmapJobDrawable;
+class  Lcom/android/gallery3d/vivo/imagepick/PickLocationPage$1$$ExternalSyntheticLambda0;
+class  Lcom/android/gallery3d/vivo/imagepick/PickLocationPage$1;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/BaseLocationPage;
+class  Lcom/android/gallery3d/vivo/imagepick/PickLocationPage;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/BaseLocationPage$1;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/LocationPage;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$$ExternalSyntheticLambda0;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$$ExternalSyntheticLambda1;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$$ExternalSyntheticLambda3;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$$ExternalSyntheticLambda4;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$1;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$2$$ExternalSyntheticLambda0;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$2;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$3;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$4;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView$6;
+class  Lcom/android/gallery3d/vivo/imagepick/morepage/ui/LocationListView;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider$MediaCacheTable;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider$MediaExtraTable;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider$MediaSQLiteOpenHelper;
+class  Lcom/android/gallery3d/vivo/mediaextra/MediaExtraProvider;
+class  Lcom/android/gallery3d/vivo/search/location/LocationClusterAlbumsSet;
+class  Lcom/android/gallery3d/vivo/search/location/LocationLevelInterface;
+class  Lcom/android/gallery3d/vivo/search/location/LocationLevelImpl;
+class  Lcom/android/gallery3d/vivo/search/location/SelectionManagerLocationCluster;
+string 'CREATE TABLE IF NOT EXISTS GalleryWidget (_id INTEGER PRIMARY KEY, image_id INTEGER, file_path TEXT, type INTEGER, widget_id TEXT, location TEXT,ai_region TEXT,generate_time TEXT, memory_id TEXT)'
+string 'CREATE TABLE IF NOT EXISTS MediaExtraTable (_id INTEGER PRIMARY KEY AUTOINCREMENT, latitude DOUBLE, longitude DOUBLE, _data TEXT, mime_type INTEGER, media_type INTEGER, audioseek LONG, group_id LONG, group_index INTEGER, fullview INTEGER, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER ,bucket_id INTEGER ,rotation INTEGER ,raw_sample_bit INTEGER DEFAULT 0 ,fisheye TEXT ,extra1 INTEGER ,extra2 TEXT, temp_file INTEGER DEFAULT 1 ,media_special INTEGER DEFAULT 0, func_switch INTEGER)'
+string 'CREATE TABLE IF NOT EXISTS albumphotos (_id INTEGER PRIMARY KEY, image_id INTEGER, group_id INTEGER, latitude DOUBLE, longitude DOUBLE, datetaken INTEGER, datataken_format TEXT, path TEXT, locality TEXT, sub_locality TEXT, add_type INTEGER, movie_index INTEGER, mime_type TEXT, width INTEGER, height INTEGER, movie_selected INTEGER,is_seclected_to_summary INTEGER)'
+string 'CREATE TABLE IF NOT EXISTS memoryalbum (_id INTEGER PRIMARY KEY, group_id INTEGER, type INTEGER, title TEXT, time_range TEXT, name_type INTEGER, generated_time INTEGER, signature INTEGER, cover_image_id INTEGER, template_id TEXT, template_name TEXT, audio_type INTEGER, audio_path TEXT, audio_start_time INTEGER, audio_duration INTEGER, info_saved INTEGER, rebuild_summary INTEGER,summary_list TEXT,cover_auto_set INTEGER,title_mannual_set INTEGER,location TEXT,max_timestamp INTEGER,share_video_uri TEXT,is_favorited INTEGER,edit_json TEXT, summary_update_time INTEGER, excluding_from_widget INTEGER, storyline_major INTEGER, storyline_minor INTEGER, story_time TEXT, story_place TEXT, story_person TEXT, story_label TEXT, story_theme TEXT, story_keywords TEXT, clip_strategy TEXT, subtitle TEXT, refresh_title INTEGER, refresh_clip_strategy INTEGER, refresh_subtitle INTEGER, title_update_time INTEGER, cover_update_time INTEGER, recommend_text TEXT, refresh_recommend_text INTEGER, recommend_priority INTEGER )'
+string 'Footprint_Page_Source_Key'
+string 'activity_footprint_map'
+string 'cut_same_replace_index'
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected'
+string 'footprint_normal_exposure'
+string 'footprint_unauthorized_album_networking'
+string 'mapAlbumIdToAlbumOpened'
+string 'mapAlbumIdToSelectedAlbum'
+[com.android.photopicker.apk / classes2.dex]
+class  Lcom/vivo/data_api/footprint/LocationDistance;
+class  Lcom/vivo/data_api/footprint/LocationGroup$$ExternalSyntheticLambda0;
+class  Lcom/vivo/data_api/footprint/LocationGroup;
+class  Lcom/vivo/data_api/footprint/LocationPoint;
+class  Lcom/vivo/data_api/footprint/MapDataManager;
+string '-Create table l~, gps, local_config failed: '
+string '-Create table l~, gps, local_config, duration: '
+string 'CREATE TABLE gps (_id INTEGER PRIMARY KEY AUTOINCREMENT, location_id INTEGER REFERENCES location(location_id), latitude DOUBLE NOT NULL, longitude DOUBLE NOT NULL, gpsuniqekey LONG NOT NULL UNIQUE ON CONFLICT REPLACE);'
+string 'CREATE TABLE image (_id INTEGER PRIMARY KEY AUTOINCREMENT, _data TEXT, data_original TEXT, _size LONG, _display_name TEXT, title TEXT, bucket_id TEXT, bucket_display_name TEXT, date_added LONG, date_modified LONG, datetaken LONG, date_recycled LONG, width INTEGER, height INTEGER, mime_type TEXT, latitude LONG, longitude LONG, orientation INTEGER, audioseek LONG DEFAULT 0, fullview INTEGER, group_index INTEGER, group_id LONG, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER, media_id LONG, relative_path TEXT, fisheye TEXT, extra1 INTEGER, extra2 TEXT, package_name TEXT, media_special INTEGER DEFAULT 0, func_switch INTEGER  ) '
+string 'CREATE TABLE location (location_id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, province TEXT, city TEXT, district TEXT, street TEXT, street_number TEXT, address TEXT UNIQUE ON CONFLICT REPLACE);'
+string 'CREATE TABLE video (_id INTEGER PRIMARY KEY AUTOINCREMENT, _data TEXT, data_original TEXT, _size LONG, _display_name TEXT, title TEXT, bucket_id TEXT, bucket_display_name TEXT, date_added LONG, date_modified LONG, datetaken LONG, date_recycled LONG, width INTEGER, height INTEGER, mime_type TEXT, latitude LONG, longitude LONG, orientation INTEGER, duration LONG , artist TEXT, album TEXT, resolution TEXT, tags TEXT, category TEXT, bookmark INTEGER, shoupin TEXT, quanpin TEXT, sight INTEGER, is_live_photo INTEGER, slow_motion_speed TEXT, live_photo TEXT, media_id LONG, relative_path TEXT, virtual_video_id TEXT, package_name TEXT, media_special INTEGER DEFAULT 0, is_full_movie_effect INTEGER DEFAULT -1, func_switch INTEGER  ) '
+string 'GPSLOCATION_DB_NAME'
+string 'GPS_TABLE'
+string 'LOCATION_TABLE'
+string 'URI_QUERY_GPS_TABLE'
+string '[Lcom/vivo/data_api/footprint/LocationPoint;'
+string 'activity_footprint_map'
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected'
+string 'footprint_normal_exposure'
+string 'footprint_unauthorized_album_networking'
+string 'insertGpsLocation : insert GPS_TABLE success'
+[com.android.photopicker.apk / classes3.dex]
+string 'URI_QUERY_GPS_TABLE'
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected'
+string 'footprint_normal_exposure'
+string 'footprint_unauthorized_album_networking'
+[com.android.photopicker.apk / classes4.dex]
+string 'footprint_map'
+string 'footprint_map_no_net'
+string 'footprint_network_not_connected'
+string 'footprint_normal_exposure'
+string 'footprint_unauthorized_album_networking'

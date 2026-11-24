@@ -1,0 +1,459 @@
+$ adb version
+Android Debug Bridge version 1.0.41
+Version 37.0.0-14910828
+Installed as D:\Users\28288\AppData\Local\platform-tools\adb.exe
+Running on Windows 10.0.26300
+[exit 0]
+
+$ adb devices -l
+List of devices attached
+[serial omitted]        device product:PD2502 model:V2502A device:PD2502 transport_id:3
+[exit 0]
+
+$ adb -d shell for k in ro.product.manufacturer ro.product.model ro.product.device ro.build.version.release ro.build.version.sdk ro.build.version.security_patch ro.build.fingerprint ro.vivo.os.build.display.id ro.vivo.os.name ro.vivo.os.version ro.vivo.product.version ro.build.version.incremental; do echo "$k=$(getprop "$k")"; done
+ro.product.manufacturer=vivo
+ro.product.model=V2502A
+ro.product.device=PD2502
+ro.build.version.release=17
+ro.build.version.sdk=37
+ro.build.version.security_patch=2026-10-01
+ro.build.fingerprint=vivo/PD2502/PD2502:17/CP2A.260605.016_V000L1/261119011022:user/release-keys
+ro.vivo.os.build.display.id=OriginOS 7
+ro.vivo.os.name=Funtouch
+ro.vivo.os.version=17.0
+ro.vivo.product.version=PD2502E_A_17.1.13.6.W10.V000L1
+ro.build.version.incremental=261119011022
+[exit 0]
+
+$ adb -d shell cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.APP_GALLERY
+1 activities found:
+  Activity #0:
+    priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true
+    com.vivo.gallery/com.android.gallery3d.vivo.GalleryTabActivity
+[exit 0]
+
+$ adb -d shell cmd package resolve-activity --brief -a android.intent.action.VIEW -t image/jpeg
+priority=0 preferredOrder=0 match=0x608000 specificIndex=-1 isDefault=true
+com.android.filemanager/.ViewNonCompressedFilePositionActivity
+[exit 0]
+
+$ adb -d shell cmd package list packages --apex-only
+package:com.android.media
+package:com.android.mediaprovider
+package:com.android.media.swcodec
+[exit 0]
+
+$ adb -d shell cmd package list packages -s
+package:com.vivo.base.gallery
+package:com.android.location.fused
+package:com.android.providers.media.module
+package:com.baidu.map.location
+package:com.vivo.gallery
+package:com.android.photopicker
+package:com.vivo.widget.gallery
+package:com.amap.android.location
+[exit 0]
+
+$ adb -d shell pm path com.vivo.gallery
+package:/data/app/~~VLvDQt_FGdbv3CNerFEstg==/com.vivo.gallery-opmgBrSjPJHMflFNOXHy8g==/base.apk
+[exit 0]
+
+$ adb -d shell dumpsys package com.vivo.gallery
+  Permission [com.vivo.gallery.permission.MemoryBufferActivity] (9995b94):
+  Permission [com.vivo.gallery3d.permission.VivoRenameProvider] (8ab463d):
+  Permission [com.vivo.xspace.permission.EXIT_XSPACE_PAGE_GALLERY] (81ae32):
+  Permission [com.vivo.gallery3d.permission.VivoOcrProvider] (6f69783):
+  Permission [com.vivo.gallery3d.permission.PhotoSimilarProvider] (5987b7e):
+  Permission [com.vivo.gallery.permission.ThirdDownloadOriginalActivity] (90128df):
+  Permission [com.vivo.gallery.permission.SMART_GALLERY_ACCESS] (309fff5):
+  Permission [com.vivo.gallery.permission.NFC_SERVICE] (3bcd18a):
+  Permission [com.vivo.gallery3d.permission.RecommendProvider] (faf0c18):
+  Permission [com.vivo.gallery3d.permission.MemoryAlbumProvider] (5c7a671):
+  Permission [com.vivo.gallery3d.permission.FaceGroupProvider] (26154d7):
+  Permission [com.vivo.gallery3d.permission.CloudGalleryProvider] (94d1c4):
+  Permission [com.vivo.gallery3d.permission.RecycleProvider] (8df38ad):
+  Permission [com.vivo.gallery3d.permission.OriginFileDownloadService] (6fc6773):
+  Permission [com.vivo.gallery3d.permission.FolderFilterProvider] (463b2a9):
+  Permission [com.vivo.gallery.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION] (b2c07cf):
+  Permission [com.vivo.gallery3d.permission.VivoTagProvider] (53a955c):
+  Permission [com.vivo.gallery3d.permission.GALLERY_MEDIA_PROVIDER] (49bd065):
+  Permission [com.vivo.gallery.permission.APPLE_TRANSFER_RECEIVER] (2f4b13a):
+  Permission [com.vivo.gallery.SEND_MEMORY_NOTIFY] (789ab48):
+  Permission [com.vivo.gallery.permission.PREMIUM_WEB] (97e0de1):
+  Permission [com.vivo.gallery3d.permission.ShareGalleryProvider] (feca706):
+  Permission [com.android.gallery3d.permission.GalleryDataProvider] (74b21c7):
+  Permission [com.vivo.gallery3d.permission.AIService] (63233f4):
+  Permission [com.vivo.gallery.permission.ImageEcokit.provider] (1eca71d):
+  Permission [com.android.gallery3d.permission.GALLERY_PHOTOPICKER_PROVIDER] (4ce1363):
+  Permission [com.vivo.gallery3d.permission.PortraitProvider] (7389b60):
+    sharedUser=SharedUserSetting{1512bf2 com.vivo.gallery.sharedId/10159}
+    codePath=/data/app/~~VLvDQt_FGdbv3CNerFEstg==/com.vivo.gallery-opmgBrSjPJHMflFNOXHy8g==
+    versionCode=110006008 minSdk=34 targetSdk=36
+    versionName=11.0.6.8
+    splits=[base]
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA UPDATED_SYSTEM_APP LARGE_HEAP ]
+    sharedUser=SharedUserSetting{1512bf2 com.vivo.gallery.sharedId/10159}
+    codePath=/system/custom/app/VivoGallery
+    versionCode=110006005 minSdk=34 targetSdk=36
+    versionName=11.0.6.5
+    splits=[base]
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA LARGE_HEAP ]
+    [com.vivo.gallery,com.vivo.base.gallery,com.vivo.widget.gallery]:
+      [com.vivo.gallery,com.vivo.base.gallery,com.vivo.widget.gallery]:
+[exit 0]
+
+$ adb -d shell pm path com.vivo.base.gallery
+package:/system/app/VivoBaseGallery/VivoBaseGallery.apk
+[exit 0]
+
+$ adb -d shell dumpsys package com.vivo.base.gallery
+  Permission [com.android.gallery3d.permission.GALLERY_PROVIDER] (7e0b069):
+  Permission [com.vivo.gallery3d.permission.MediaExtraProvider] (aa14aee):
+  Permission [com.vivo.gallery3d.permission.GalleryTrashService] (d959b8f):
+  Permission [com.vivo.gallery3d.permission.FileMetaProvider] (44aea25):
+  Permission [com.vivo.gallery3d.permission.VivoFavoriteProvider] (4db27fa):
+  Permission [com.vivo.gallery3d.permission.VivoFavoriteProvider.write] (cda61ab):
+    sharedUser=SharedUserSetting{1512bf2 com.vivo.gallery.sharedId/10159}
+    codePath=/system/app/VivoBaseGallery
+    versionCode=2030100 minSdk=27 targetSdk=37
+    versionName=2.3.1.0
+    splits=[base]
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    [com.vivo.gallery,com.vivo.base.gallery,com.vivo.widget.gallery]:
+      [com.vivo.gallery,com.vivo.base.gallery,com.vivo.widget.gallery]:
+[exit 0]
+
+$ adb -d shell pm path com.android.photopicker
+package:/apex/com.android.mediaprovider/priv-app/Photopicker@CP2A.260605.016/Photopicker.apk
+[exit 0]
+
+$ adb -d shell dumpsys package com.android.photopicker
+  Permission [com.vivo.gallery3d.permission.VivoRecycleProvider] (eda867f):
+  Permission [com.vivo.gallery3d.permission.VivoGalleryFileMeta] (d40264c):
+  Permission [com.vivo.gallery3d.permission.MediaExtra] (ac3a695):
+  Permission [com.vivo.gallery3d.permission.VivoOcr] (e4d83aa):
+  Permission [com.vivo.gallery3d.permission.VivoTag] (49b0b9b):
+  Permission [com.vivo.gallery3d.permission.GalleryState] (86f5b38):
+  Permission [com.vivo.gallery3d.permission.Portrait] (a851711):
+  Permission [com.vivo.gallery3d.permission.FolderFilter] (fd83076):
+  Permission [com.vivo.gallery3d.permission.VivoFavorite.write] (f14c677):
+  Permission [com.vivo.gallery3d.permission.VivoFavorite] (75af2e4):
+  Permission [com.vivo.gallery3d.permission.VivoFaceGroup] (a8ede02):
+  Permission [com.vivo.gallery3d.permission.PhotoSimilar] (e055313):
+    codePath=/apex/com.android.mediaprovider/priv-app/Photopicker@CP2A.260605.016
+    versionCode=16000101 minSdk=30 targetSdk=37
+    versionName=16.0.1.1
+    splits=[base]
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+[exit 0]
+
+$ adb -d shell pm path com.android.providers.media.module
+package:/apex/com.android.mediaprovider/priv-app/MediaProvider@CP2A.260605.016/MediaProvider.apk
+[exit 0]
+
+$ adb -d shell dumpsys package com.android.providers.media.module
+  Permission [com.android.providers.media.permission.UPDATE_OEM_METADATA] (e101f0a):
+  Permission [com.android.providers.media.permission.BIND_OEM_METADATA_SERVICE] (20e737b):
+  Permission [com.android.providers.media.permission.ACCESS_MEDIA_OWNER_PACKAGE_NAME] (378d598):
+  Permission [com.android.providers.media.permission.ACCESS_OEM_METADATA] (71771f1):
+  Permission [com.android.providers.media.permission.BIND_MEDIA_COGNITION_SERVICE] (b1921d6):
+  Permission [com.android.providers.media.permission.BIND_MEDIA_PROCESSING_SERVICE] (386cc57):
+  Permission [com.android.providers.media.permission.MANAGE_CLOUD_MEDIA_PROVIDERS] (4f1b344):
+  Permission [com.android.providers.media.permission.BIND_SEARCH_MEDIA_SERVICE] (a203c2d):
+  Permission [com.android.providers.media.module.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION] (9dd8562):
+    codePath=/apex/com.android.mediaprovider/priv-app/MediaProvider@CP2A.260605.016
+    versionCode=37 minSdk=30 targetSdk=37
+    versionName=17
+    splits=[base]
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_BACKUP RESTORE_ANY_VERSION ]
+[exit 0]
+
+$ adb -d shell pm path com.vivo.widget.gallery
+package:/system/custom/app/GalleryWidget/GalleryWidget.apk
+[exit 0]
+
+$ adb -d shell dumpsys package com.vivo.widget.gallery
+    sharedUser=SharedUserSetting{1512bf2 com.vivo.gallery.sharedId/10159}
+    codePath=/system/custom/app/GalleryWidget
+    versionCode=30301 minSdk=28 targetSdk=36
+    versionName=3.0.3.1
+    splits=[base]
+    pkgFlags=[ SYSTEM HAS_CODE ALLOW_CLEAR_USER_DATA ]
+    [com.vivo.gallery,com.vivo.base.gallery,com.vivo.widget.gallery]:
+      [com.vivo.gallery,com.vivo.base.gallery,com.vivo.widget.gallery]:
+[exit 0]
+
+$ adb -d shell dumpsys package providers
+  com.android.photopicker/com.android.gallery3d.vivo.recommend.RecommendProvider:
+    Provider{e352876 com.android.photopicker/com.android.gallery3d.vivo.recommend.RecommendProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.memoriesalbum.MemoryAlbumProvider:
+    Provider{173be5e com.android.photopicker/com.android.gallery3d.vivo.memoriesalbum.MemoryAlbumProvider}
+  com.vivo.gallery/com.vivo.cloud_api.db.CloudThirdProvider:
+    Provider{a273a1a com.vivo.gallery/com.vivo.cloud_api.db.CloudThirdProvider}
+  com.vivo.gallery/com.android.gallery3d.provider.GalleryDataProvider:
+    Provider{35d75d4 com.vivo.gallery/com.android.gallery3d.provider.GalleryDataProvider}
+  com.vivo.widget.gallery/androidx.core.content.FileProvider:
+    Provider{2d0dc22 com.vivo.widget.gallery/androidx.core.content.FileProvider}
+  com.android.photopicker/androidx.startup.InitializationProvider:
+    Provider{845cc64 com.android.photopicker/androidx.startup.InitializationProvider}
+  com.vivo.gallery/com.vivo.gallerymedia.provider.GalleryMediaProvider:
+    Provider{5ae8889 com.vivo.gallery/com.vivo.gallerymedia.provider.GalleryMediaProvider}
+  com.vivo.base.gallery/com.android.gallery3d.vivo.filemeta.VivoGalleryFileMetaProvider:
+    Provider{fe6c14c com.vivo.base.gallery/com.android.gallery3d.vivo.filemeta.VivoGalleryFileMetaProvider}
+  com.vivo.base.gallery/com.android.gallery3d.data.VivoFavoriteProvider:
+    Provider{c37264e com.vivo.base.gallery/com.android.gallery3d.data.VivoFavoriteProvider}
+  com.vivo.gallery/com.vivo.upgradelibrary.utils.FileProvider:
+    Provider{9c980a3 com.vivo.gallery/com.vivo.upgradelibrary.utils.FileProvider}
+  com.android.photopicker/com.vivo.imagelabel_api.tag.VivoTagProvider:
+    Provider{1adbccd com.android.photopicker/com.vivo.imagelabel_api.tag.VivoTagProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.provider.MySuggestionProvider:
+    Provider{d0af6a6 com.android.photopicker/com.android.gallery3d.vivo.provider.MySuggestionProvider}
+  com.vivo.gallery/com.android.gallery3d.vivo.online.db.OnlineAgentProvider:
+    Provider{ca0964b com.vivo.gallery/com.android.gallery3d.vivo.online.db.OnlineAgentProvider}
+  com.android.photopicker/com.android.gallery3d.provider.VivoRenameProvider:
+    Provider{92e2eca com.android.photopicker/com.android.gallery3d.provider.VivoRenameProvider}
+  com.android.photopicker/com.vivo.data_api.recycle.RecycleProvider:
+    Provider{da6ea07 com.android.photopicker/com.vivo.data_api.recycle.RecycleProvider}
+  com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerProvider:
+    Provider{c8021da com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.provider.PhotoZoomProvider:
+    Provider{57b060b com.android.photopicker/com.android.gallery3d.vivo.provider.PhotoZoomProvider}
+  com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  com.vivo.base.gallery/androidx.startup.InitializationProvider:
+    Provider{2897c4e com.vivo.base.gallery/androidx.startup.InitializationProvider}
+  com.vivo.gallery/com.vivo.cloud_api.db.CloudAgentProvider:
+    Provider{1f8668 com.vivo.gallery/com.vivo.cloud_api.db.CloudAgentProvider}
+  com.vivo.gallery/com.vivo.photoeditormodule.screenshot.ShareAutoDeleteProvider:
+    Provider{a68c34f com.vivo.gallery/com.vivo.photoeditormodule.screenshot.ShareAutoDeleteProvider}
+  com.android.providers.media.module/com.android.providers.media.MediaDocumentsProvider:
+    Provider{6200707 com.android.providers.media.module/com.android.providers.media.MediaDocumentsProvider}
+  com.vivo.gallery/androidx.startup.InitializationProvider:
+    Provider{148ed61 com.vivo.gallery/androidx.startup.InitializationProvider}
+  com.vivo.gallery/.agent.provider.AgentFileProvider:
+    Provider{a08e799 com.vivo.gallery/.agent.provider.AgentFileProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.VivoGalleryFolderFilterProvider:
+    Provider{1530804 com.android.photopicker/com.android.gallery3d.vivo.VivoGalleryFolderFilterProvider}
+  com.android.providers.media.module/androidx.startup.InitializationProvider:
+    Provider{7237346 com.android.providers.media.module/androidx.startup.InitializationProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.recommendbanner.BannerAlbumProvider:
+    Provider{4ea105d com.android.photopicker/com.android.gallery3d.vivo.recommendbanner.BannerAlbumProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.mediaextra.MediaExtraProvider:
+    Provider{1f16d0 com.android.photopicker/com.android.gallery3d.vivo.mediaextra.MediaExtraProvider}
+  com.vivo.gallery/com.android.gallery3d.vivo.cloud.download.DownloadProvider:
+    Provider{78eefe8 com.vivo.gallery/com.android.gallery3d.vivo.cloud.download.DownloadProvider}
+  com.vivo.gallery/com.vivo.aivisionmodule.data.provider.ImageEcoKitProvider:
+    Provider{79066e2 com.vivo.gallery/com.vivo.aivisionmodule.data.provider.ImageEcoKitProvider}
+  com.android.photopicker/com.vivo.facegroup_api.VivoFaceGroupProvider:
+    Provider{ceca7d8 com.android.photopicker/com.vivo.facegroup_api.VivoFaceGroupProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.photosimilar.VivoSimilarPhotoProvider:
+    Provider{d8b95e3 com.android.photopicker/com.android.gallery3d.vivo.photosimilar.VivoSimilarPhotoProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.aiportrait.PortraitProvider:
+    Provider{677a63b com.android.photopicker/com.android.gallery3d.vivo.aiportrait.PortraitProvider}
+  com.vivo.gallery/com.vivo.share.GalleryFileProvider:
+    Provider{1b1d8ed com.vivo.gallery/com.vivo.share.GalleryFileProvider}
+  com.vivo.gallery/com.vivo.securityshareimg.ImgProvider:
+    Provider{236bcce com.vivo.gallery/com.vivo.securityshareimg.ImgProvider}
+  com.android.providers.media.module/com.android.providers.media.MediaProvider:
+    Provider{47997a6 com.android.providers.media.module/com.android.providers.media.MediaProvider}
+  com.vivo.gallery/com.android.gallery3d.vivo.settingsearch.GallerySearchIndexablesProvider:
+    Provider{773c5c2 com.vivo.gallery/com.android.gallery3d.vivo.settingsearch.GallerySearchIndexablesProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.provider.VivoOcrProvider:
+    Provider{2ffa7d9 com.android.photopicker/com.android.gallery3d.vivo.provider.VivoOcrProvider}
+  com.android.providers.media.module/com.android.providers.media.photopicker.RemoteVideoPreviewProvider:
+    Provider{8985485 com.android.providers.media.module/com.android.providers.media.photopicker.RemoteVideoPreviewProvider}
+  com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.filemeta.VivoGalleryFileMetaProvider:
+    Provider{6faaa14 com.android.photopicker/com.android.gallery3d.vivo.filemeta.VivoGalleryFileMetaProvider}
+  com.vivo.widget.gallery/.dataprovider.RecommendProvider:
+    Provider{99fb6a2 com.vivo.widget.gallery/.dataprovider.RecommendProvider}
+  com.vivo.base.gallery/com.android.gallery3d.vivo.VivoGalleryFolderFilterProvider:
+    Provider{b107d87 com.vivo.base.gallery/com.android.gallery3d.vivo.VivoGalleryFolderFilterProvider}
+  com.vivo.base.gallery/com.android.gallery3d.vivo.mediaextra.MediaExtraProvider:
+    Provider{987f9bd com.vivo.base.gallery/com.android.gallery3d.vivo.mediaextra.MediaExtraProvider}
+  com.android.photopicker/com.android.gallery3d.data.VivoFavoriteProvider:
+    Provider{78bff4f com.android.photopicker/com.android.gallery3d.data.VivoFavoriteProvider}
+  com.android.photopicker/com.android.gallery3d.vivo.provider.TranslationProvider:
+    Provider{b21a33b com.android.photopicker/com.android.gallery3d.vivo.provider.TranslationProvider}
+  com.vivo.base.gallery/androidx.core.content.FileProvider:
+    Provider{b713159 com.vivo.base.gallery/androidx.core.content.FileProvider}
+  com.vivo.gallery/androidx.core.content.FileProvider:
+    Provider{8805673 com.vivo.gallery/androidx.core.content.FileProvider}
+  [com.vivo.gallery3d.cloud.provider]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.facegroupprovider]:
+    Provider{ceca7d8 com.android.photopicker/com.vivo.facegroup_api.VivoFaceGroupProvider}
+  [com.vivo.gallery3d.provider.vivosuggestionprovider]:
+    Provider{d0af6a6 com.android.photopicker/com.android.gallery3d.vivo.provider.MySuggestionProvider}
+  [com.vivo.gallery3d.imageecokit.provider]:
+    Provider{79066e2 com.vivo.gallery/com.vivo.aivisionmodule.data.provider.ImageEcoKitProvider}
+  [com.vivo.data_api.provider.merge.GalleryOpenProvider]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.android.gallery3d.filtershow.modeldownload]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.recycle]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.android.gallery3d.collage.download]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.open.gallery.smart.provider]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.recommendprovider]:
+    Provider{e352876 com.android.photopicker/com.android.gallery3d.vivo.recommend.RecommendProvider}
+  [com.vivo.gallery3d.filemetaprovider]:
+    Provider{6faaa14 com.android.photopicker/com.android.gallery3d.vivo.filemeta.VivoGalleryFileMetaProvider}
+  [com.vivo.gallery3d.file.meta]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.provider.tanslationprovider]:
+    Provider{b21a33b com.android.photopicker/com.android.gallery3d.vivo.provider.TranslationProvider}
+  [com.vivo.base.gallery.mediaextra]:
+    Provider{987f9bd com.vivo.base.gallery/com.android.gallery3d.vivo.mediaextra.MediaExtraProvider}
+  [com.vivo.gallery3d.memoryalbumprovider]:
+    Provider{173be5e com.android.photopicker/com.android.gallery3d.vivo.memoriesalbum.MemoryAlbumProvider}
+  [com.vivo.widget.gallery.dataprovider]:
+    Provider{99fb6a2 com.vivo.widget.gallery/.dataprovider.RecommendProvider}
+  [com.vivo.gallery3d.memoryalbum]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.favorite]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.favoriteprovider]:
+    Provider{78bff4f com.android.photopicker/com.android.gallery3d.data.VivoFavoriteProvider}
+  [com.vivo.gallery3d.mediaextra]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.base.gallery.androidx-startup]:
+    Provider{2897c4e com.vivo.base.gallery/androidx.startup.InitializationProvider}
+  [com.vivo.gallery3d.rename.filter]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.cloud.third]:
+    Provider{a273a1a com.vivo.gallery/com.vivo.cloud_api.db.CloudThirdProvider}
+  [com.vivo.gallery3d.vivorecycleprovider]:
+    Provider{da6ea07 com.android.photopicker/com.vivo.data_api.recycle.RecycleProvider}
+  [com.vivo.widget.gallery.provider]:
+    Provider{2d0dc22 com.vivo.widget.gallery/androidx.core.content.FileProvider}
+  [com.vivo.gallery3d.searchocrprovider]:
+    Provider{2ffa7d9 com.android.photopicker/com.android.gallery3d.vivo.provider.VivoOcrProvider}
+  [com.android.gallery3d.dataprovider]:
+    Provider{35d75d4 com.vivo.gallery/com.android.gallery3d.provider.GalleryDataProvider}
+  [com.vivo.base.gallery.folder.filter]:
+    Provider{b107d87 com.vivo.base.gallery/com.android.gallery3d.vivo.VivoGalleryFolderFilterProvider}
+  [com.vivo.gallery.media.provider]:
+    Provider{5ae8889 com.vivo.gallery/com.vivo.gallerymedia.provider.GalleryMediaProvider}
+  [com.android.providers.media.remote_video_preview]:
+    Provider{8985485 com.android.providers.media.module/com.android.providers.media.photopicker.RemoteVideoPreviewProvider}
+  [com.vivo.data_api.provider.merge.GalleryCloseProvider]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.banneralbum]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.provider.mysuggestionprovider]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.provider.photozoomprovider]:
+    Provider{57b060b com.android.photopicker/com.android.gallery3d.vivo.provider.PhotoZoomProvider}
+  [com.vivo.gallery3d.renamefilterprovider]:
+    Provider{92e2eca com.android.photopicker/com.android.gallery3d.provider.VivoRenameProvider}
+  [com.vivo.base.gallery.favorite]:
+    Provider{c37264e com.vivo.base.gallery/com.android.gallery3d.data.VivoFavoriteProvider}
+  [media]:
+    Provider{47997a6 com.android.providers.media.module/com.android.providers.media.MediaProvider}
+  [com.vivo.gallery.toShare.fileProvider]:
+    Provider{1b1d8ed com.vivo.gallery/com.vivo.share.GalleryFileProvider}
+  [com.android.photopicker.androidx-startup]:
+    Provider{845cc64 com.android.photopicker/androidx.startup.InitializationProvider}
+  [com.android.providers.media.module.androidx-startup]:
+    Provider{7237346 com.android.providers.media.module/androidx.startup.InitializationProvider}
+  [com.vivo.gallery.aiportrait]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.securityshareimg]:
+    Provider{236bcce com.vivo.gallery/com.vivo.securityshareimg.ImgProvider}
+  [com.vivo.gallery3d.folderfilterprovider]:
+    Provider{1530804 com.android.photopicker/com.android.gallery3d.vivo.VivoGalleryFolderFilterProvider}
+  [com.android.gallery3d.provider]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery.download.fundownloads]:
+    Provider{78eefe8 com.vivo.gallery/com.android.gallery3d.vivo.cloud.download.DownloadProvider}
+  [com.vivo.gallery3d.mediaextraprovider]:
+    Provider{1f16d0 com.android.photopicker/com.android.gallery3d.vivo.mediaextra.MediaExtraProvider}
+  [com.vivo.gallery3d.provider.photozoom]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery.androidx-startup]:
+    Provider{148ed61 com.vivo.gallery/androidx.startup.InitializationProvider}
+  [com.android.gallery3d.vivo.photosimilar]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.search.ocr]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.search.tag]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery.agentFileProvider]:
+    Provider{a08e799 com.vivo.gallery/.agent.provider.AgentFileProvider}
+  [com.android.gallery3d.photopicker]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.recommend]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.face.group]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery.upgrade]:
+    Provider{9c980a3 com.vivo.gallery/com.vivo.upgradelibrary.utils.FileProvider}
+  [com.vivo.gallery3d.folder.filter]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.android.gallery3d.filtershow.aibeauty.changebg]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery.settingsearch]:
+    Provider{773c5c2 com.vivo.gallery/com.android.gallery3d.vivo.settingsearch.GallerySearchIndexablesProvider}
+  [com.vivo.gallery3d.cloud]:
+    Provider{1f8668 com.vivo.gallery/com.vivo.cloud_api.db.CloudAgentProvider}
+  [com.vivo.gallery3d.share]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.base.gallery.fileProvider]:
+    Provider{b713159 com.vivo.base.gallery/androidx.core.content.FileProvider}
+  [com.vivo.base.gallery.file.meta]:
+    Provider{fe6c14c com.vivo.base.gallery/com.android.gallery3d.vivo.filemeta.VivoGalleryFileMetaProvider}
+  [com.vivo.gallery3d.provider.tanslation]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.vivo.gallery3d.hidden]:
+    Provider{d6524bb com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryCloseProvider}
+  [com.vivo.gallery3d.online]:
+    Provider{ca0964b com.vivo.gallery/com.android.gallery3d.vivo.online.db.OnlineAgentProvider}
+  [com.vivo.gallery.fileProvider]:
+    Provider{8805673 com.vivo.gallery/androidx.core.content.FileProvider}
+  [com.android.providers.media.documents]:
+    Provider{6200707 com.android.providers.media.module/com.android.providers.media.MediaDocumentsProvider}
+  [com.vivo.gallery3d.aiEditor.provider]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.android.gallery3d.vivo.photosimilarprovider]:
+    Provider{d8b95e3 com.android.photopicker/com.android.gallery3d.vivo.photosimilar.VivoSimilarPhotoProvider}
+  [com.vivo.gallery.aiportraitprovider]:
+    Provider{677a63b com.android.photopicker/com.android.gallery3d.vivo.aiportrait.PortraitProvider}
+  [com.vivo.gallery.sharesliceprovider]:
+    Provider{9f05476 com.vivo.gallery/com.vivo.data_api.provider.merge.GalleryOpenProvider}
+  [com.android.providers.media.photopicker]:
+    Provider{c8021da com.android.providers.media.module/com.android.providers.media.photopicker.PhotoPickerProvider}
+  [com.vivo.gallery3d.searchtagprovider]:
+    Provider{1adbccd com.android.photopicker/com.vivo.imagelabel_api.tag.VivoTagProvider}
+  [com.vivo.gallery3d.banneralbumprovider]:
+    Provider{4ea105d com.android.photopicker/com.android.gallery3d.vivo.recommendbanner.BannerAlbumProvider}
+[exit 0]
+
+$ adb -d shell service list
+227	location: [android.location.ILocationManager]
+228	location_time_zone_manager: []
+236	media.VTS: [android.hardware.IVTService]
+237	media.aaudio: [aaudio.IAAudioService]
+238	media.audio_flinger: [android.media.IAudioFlingerService]
+239	media.audio_policy: [android.media.IAudioPolicyService]
+240	media.camera: [android.hardware.ICameraService]
+241	media.camera.proxy: [android.hardware.ICameraServiceProxy]
+242	media.extractor: [android.IMediaExtractorService]
+243	media.features: [com.vivo.media.IFeatureService]
+244	media.metrics: [android.media.IMediaMetricsService]
+245	media.parameters: [com.vivo.media.IParamService]
+246	media.player: [android.media.IMediaPlayerService]
+247	media.resource_manager: [android.media.IResourceManagerService]
+248	media.resource_observer: [android.media.IResourceObserverService]
+249	media.vivocamera: [android.hardware.IVivoCameraService]
+250	media_communication: [android.media.IMediaCommunicationService]
+251	media_metrics: [android.media.metrics.IMediaMetricsManager]
+252	media_projection: [android.media.projection.IMediaProjectionManager]
+253	media_resource_monitor: [android.media.IMediaResourceMonitor]
+254	media_router: [android.media.IMediaRouterService]
+255	media_session: [android.media.session.ISessionManager]
+527	vivomediametrics: [com.vivo.mediametrics.IVivoMediaMetricsService]
+[exit 0]

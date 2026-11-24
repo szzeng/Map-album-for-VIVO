@@ -1,0 +1,46 @@
+c9.h#v(I)Ljava/lang/String; @7 getMediaPatch -> mMapAlbumSetDataLoader == null
+com.android.gallery3d.vivo.ai.AIEngineFileConvert#v(IZ[Ljava/lang/Object;)V @27 content://com.vivo.gallery3d.mediaextra/MediaExtraTable
+com.android.gallery3d.vivo.mediaextra.d#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/vdfs/
+com.android.gallery3d.vivo.mediaextra.d$a#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/MaxIdTable
+com.android.gallery3d.vivo.mediaextra.d$b#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/MediaCacheTable
+com.android.gallery3d.vivo.mediaextra.d$c#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/MediaExtraTable
+com.android.gallery3d.vivo.mediaextra.d$d#onCreate(Landroid/database/sqlite/SQLiteDatabase;)V @7 CREATE TABLE IF NOT EXISTS MediaExtraTable (_id INTEGER PRIMARY KEY AUTOINCREMENT, latitude DOUBLE, longitude DOUBLE, _data TEXT, mime_type INTEGER, media_type INTEGER, audioseek LONG, group_id LONG, group_index INTEGER, fullview INTEGER, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER ,bucket_id INTEGER ,rotation INTEGER ,raw_sample_bit INTEGER DEFAULT 0 ,fisheye TEXT ,extra1 INTEGER ,extra2 TEXT, temp_file INTEGER DEFAULT 1 ,media_special INTEGER DEFAULT 0, func_switch INTEGER, group_type INTEGER, preferred_id INTEGER, preferred_path TEXT, algo_flag INTEGER default 0, virtual_video_id TEXT, is_full_movie_effect INTEGER DEFAULT -1 , shooting_mode TEXT, camera_model TEXT, video_extra_metadata TEXT, file_convert INTEGER DEFAULT -1, real_picture_process_long INTEGER DEFAULT 0, origin_date_taken LONG, origin_date_modify LONG, origin_date_taken_exif LONG, generation_modified INTEGER DEFAULT 1 )
+com.android.gallery3d.vivo.mediaextra.d$e#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/ReversPathTable
+com.android.gallery3d.vivo.recommend.SelectedPhotoRecommender#c(Ljava/lang/String;Lcom/android/gallery3d/vivo/memoriesalbum/SQLArrayList;Ljava/util/ArrayList;)Ljava/util/ArrayList; @5b gpsuniqekey
+com.android.gallery3d.vivo.search.easyshare.SearchLocationBean#toContentValues()Landroid/content/ContentValues; @21 gpsuniqekey
+com.android.gallery3d.vivo.search.easyshare.SearchLocationTransfer#<init>(Landroid/content/Context;)V @11 gpsuniqekey
+com.android.gallery3d.vivo.search.easyshare.SearchLocationTransfer#loadInsertGpsList()V @7 gpsuniqekey
+com.android.gallery3d.vivo.search.easyshare.SearchLocationTransfer#bulkInsertData(Landroid/content/ContentResolver;Landroid/net/Uri;Ljava/util/List;)I @37 gpsuniqekey
+com.android.gallery3d.vivo.t1#p()V @10 VG_FootprintFirstCluster
+com.vivo.commonlibrary.media.BatchEditMediaUtils#<clinit>()V @7 content://com.vivo.gallery3d.mediaextra/MediaExtraTable
+com.vivo.data_api.geo.LocationQueryEngine#<clinit>()V @46 gpsuniqekey
+com.vivo.gallery.pds.helper.b#k(Landroid/database/sqlite/SQLiteDatabase;Ljava/lang/String;)Landroid/database/Cursor; @0 SELECT gpsuniqekey FROM gps WHERE location_id IN (SELECT location_id FROM location WHERE CITY = ?)
+com.vivo.gallery.pds.helper.b#l(Landroid/database/sqlite/SQLiteDatabase;Ljava/lang/String;I)Landroid/database/Cursor; @1b SELECT gpsuniqekey FROM gps, location WHERE gps.location_id = location.location_id AND
+dy.a#a(Ljava/io/File;)V @5 footprint_cluster_cache.bin
+dy.a#f(J)Lcom/vivo/data_api/footprint/persist/MapClusterSnapshot; @17 footprint_cluster_cache.bin
+fu.b#<clinit>()V @10 content://com.vivo.gallery3d.mediaextra/MediaExtraTable
+g9.a#E(Ljava/lang/String;)Landroid/database/Cursor; @5 select distinct gpsuniqekey from gps as GPS where GPS.location_id in (select location_id from location where city = '
+g9.a#E(Ljava/lang/String;)Landroid/database/Cursor; @e ') order by gpsuniqekey asc
+g9.a#F()Landroid/database/Cursor; @6 SELECT location_id, gpsuniqekey FROM gps
+g9.a#G([Ljava/lang/String;)Landroid/database/Cursor; @13 SELECT gpsuniqekey, latitude, longitude FROM gps WHERE location_id IN (SELECT location_id FROM location WHERE CITY = ?)
+g9.a#J([Ljava/lang/String;II)Landroid/database/Cursor; @1b SELECT gpsuniqekey, latitude, longitude FROM gps WHERE location_id IN ( SELECT location_id FROM location WHERE
+g9.a#K(Ljava/lang/String;)Landroid/database/Cursor; @28 SELECT gpsuniqekey FROM gps WHERE location_id IN (SELECT location_id FROM location WHERE (address LIKE '%
+g9.a#L()Landroid/database/Cursor; @4 SELECT  gps.gpsuniqekey, location.city FROM gps, location  WHERE gps.location_id = location.location_id
+g9.a#M(Ljava/util/ArrayList;)Landroid/database/Cursor; @17 SELECT gps.gpsuniqekey,location.address FROM location JOIN gps ON gps.location_id = location.location_id AND gps.gpsuniqekey IN (
+g9.a#U(Ljava/util/ArrayList;)Landroid/database/Cursor; @17 SELECT location.city FROM location JOIN gps ON gps.location_id = location.location_id AND gps.gpsuniqekey IN (
+g9.a#V(Ljava/util/ArrayList;)Landroid/database/Cursor; @5 select location_id, gpsuniqekey from gps where gpsuniqekey in
+g9.a#W()Landroid/database/Cursor; @4 SELECT gps.location_id, gps.latitude, gps.longitude, gps.gpsuniqekey,  location.country, location.province, location.city, location.district, location.street, location.street_number, location.address , location.location_version  FROM gps, location  WHERE gps.location_id = location.location_id
+g9.a#d0()Landroid/database/Cursor; @0 SELECT gps.location_id,gps.latitude,gps.longitude ,MIN(gps._id) FROM gps ,location where gps.location_id = location.location_id AND (location.location_version < 1 OR  location.location_version is null ) GROUP BY gps.location_id;
+g9.a#j0(Landroid/database/sqlite/SQLiteDatabase;)V @19 CREATE TABLE location (location_id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, province TEXT, city TEXT, district TEXT, street TEXT, street_number TEXT, address TEXT UNIQUE ON CONFLICT REPLACE);
+g9.a#j0(Landroid/database/sqlite/SQLiteDatabase;)V @2d CREATE TABLE gps (_id INTEGER PRIMARY KEY AUTOINCREMENT, location_id INTEGER REFERENCES location(location_id), latitude DOUBLE NOT NULL, longitude DOUBLE NOT NULL, gpsuniqekey LONG NOT NULL UNIQUE ON CONFLICT REPLACE);
+g9.a#j0(Landroid/database/sqlite/SQLiteDatabase;)V @32 insert into gps(_id, location_id, latitude, longitude, gpsuniqekey) select _id, geo_id, latitude, longitude, gpskey from geo_mapping_temp
+g9.a#onCreate(Landroid/database/sqlite/SQLiteDatabase;)V @f CREATE TABLE location (location_id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, province TEXT, city TEXT, district TEXT, street TEXT, street_number TEXT, address TEXT UNIQUE ON CONFLICT REPLACE  , location_version INTEGER );
+g9.a#onCreate(Landroid/database/sqlite/SQLiteDatabase;)V @4e CREATE TABLE gps (_id INTEGER PRIMARY KEY AUTOINCREMENT, location_id INTEGER REFERENCES location(location_id), latitude DOUBLE NOT NULL, longitude DOUBLE NOT NULL, gpsuniqekey LONG NOT NULL UNIQUE ON CONFLICT REPLACE);
+g9.a#onCreate(Landroid/database/sqlite/SQLiteDatabase;)V @55 CREATE INDEX gpsuniqekey_index ON gps(gpsuniqekey);
+g9.a#w(Landroid/database/sqlite/SQLiteDatabase;DDJLad/c;I)V @18 gpsuniqekey
+g9.a#z(J)Landroid/database/Cursor; @5 select location_id, province, city, district, street, street_number from location as Loc where Loc.location_id = (select location_id from gps where gpsuniqekey =
+j80.a#e(Lcom/vivo/base_lib/common/g;)Z @25 content://com.vivo.gallery3d.mediaextra/MediaExtraTable
+ly.w#G1(Ljava/util/List;)V @6e SELECT location.city, location.district, gps.gpsuniqekey FROM location , gps WHERE location.location_id = gps.location_id AND gps.gpsuniqekey IN
+zu.a#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/BestPhotoIcon
+zu.b#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/BestPhoto
+zu.c#<clinit>()V @0 content://com.vivo.gallery3d.mediaextra/CompositePhoto

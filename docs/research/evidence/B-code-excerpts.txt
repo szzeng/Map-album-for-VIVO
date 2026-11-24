@@ -1,0 +1,501 @@
+# JADX 1.5.7 selected static excerpts from the APKs in B-apk-hashes.txt.
+# Numbers refer to JADX output, not original vendor source. Java names can be obfuscated.
+
+[gallery/com.android.gallery3d.vivo.footprint.ui.FootprintMapActivity.java 187-196]
+  187     public final void I3() {
+  188         z zVarQ = getSupportFragmentManager().q();
+  189         if (this.Q0 == null) {
+  190             b bVarB3 = b.B3(this.P0, this);
+  191             this.Q0 = bVarB3;
+  192             bVarB3.h3(this);
+  193             this.Q0.i3(this);
+  194         }
+  195         zVarQ.c(R.id.map_fragment_layout, this.Q0, com.vivo.data_api.footprint.f.f63371o).i();
+  196         this.Q0.c3(true);
+
+[gallery/com.android.gallery3d.vivo.footprint.ui.b.java 151-162]
+  151         x3();
+  152         z3(this.f25764t0);
+  153         y3();
+  154         com.android.gallery3d.app.b bVarU3 = u3();
+  155         if (bVarU3 == null) {
+  156             return;
+  157         }
+  158         this.A0 = new c9.b(bVarU3, this.T);
+  159         h hVar = new h(bVarU3, qx.c.f(bVarU3.O1().B(16), 128), this.f25769y0);
+  160         this.B0 = hVar;
+  161         hVar.L(this);
+  162     }
+
+[gallery/qx.c.java 13-25]
+   13         if (i11 == 2) {
+   14             str2 = "time";
+   15         } else if (i11 == 4) {
+   16             str2 = "location";
+   17         } else if (i11 == 66) {
+   18             str2 = "time_group";
+   19         } else if (i11 == 128) {
+   20             str2 = "baidumap";
+   21         } else if (i11 == 32768) {
+   22             str2 = "waterfall_by_all";
+   23         } else if (i11 == 65536) {
+   24             str2 = "waterfall_by_cover";
+   25         } else if (i11 == 131072) {
+
+[gallery/c9.h.java 538-552]
+  538     public final void w(String str) {
+  539         as.a.f("MapClusterManager", "initData -> mediaPath : " + str);
+  540         w wVarU = this.f15270a.O1().u(str);
+  541         s2 s2Var = new s2(this.f15270a, wVarU, 64);
+  542         this.f15271b = s2Var;
+  543         this.f15273d = new u2(this.f15270a, s2Var, 64);
+  544         this.f15271b.L(this);
+  545         this.f15273d.v(this);
+  546         if (wVarU instanceof u) {
+  547             this.f15272c = (u) wVarU;
+  548         }
+  549         as.a.f("MapClusterManager", "initDataType -> mMaptype : " + this.f15283n);
+  550         this.f15272c.q4(this.f15283n);
+  551         this.f15272c.h4(this);
+  552         this.f15272c.j4(this.f15278i);
+
+[gallery/c9.h.java 557-570]
+  557         if (this.f15290u) {
+  558             return;
+  559         }
+  560         if (this.f15270a == null || this.f15272c == null) {
+  561             as.a.v("MapClusterManager", "initPhaseBHeavy skipped: already destroyed");
+  562             return;
+  563         }
+  564         as.a.f("MapClusterManager", "initPhaseBHeavy begin");
+  565         this.f15275f = new b9.a(this.f15270a, new a());
+  566         this.f15272c.g4(this);
+  567         this.f15286q = new dy.a(this.f15270a);
+  568         this.f15276g = new t1(this);
+  569         this.f15272c.i4(this);
+  570         this.f15290u = true;
+
+[gallery/ly.u.java 557-575]
+  557         as.a.f("MapGroupAlbumSet", "MapGroupAlbumSet getListWithType 2 type: " + i12);
+  558         com.vivo.data_api.footprint.b bVar = this.Y0;
+  559         if (bVar == null || (arrayListG = bVar.g(U3())) == null || arrayListG.size() <= 0) {
+  560             return;
+  561         }
+  562         int i13 = 0;
+  563         while (i13 < arrayListG.size()) {
+  564             qx.e eVar = (qx.e) arrayListG.get(i13);
+  565             if (eVar != null && com.vivo.data_api.utils.v.m0(eVar.f121238c, eVar.f121239d)) {
+  566                 if (i12 == 0) {
+  567                     hashSet3.add(eVar.f121237b);
+  568                     if (eVar.f121240e == 3) {
+  569                         hashSet2.add(eVar.f121237b);
+  570                     }
+  571                 } else {
+  572                     arrayList.add(new qx.e(eVar.f121236a, eVar.f121237b, eVar.f121238c, eVar.f121239d, eVar.f121240e, eVar.f121241f, eVar.c()));
+  573                     arrayList2.add(new com.vivo.data_api.footprint.l(eVar.f121238c, eVar.f121239d));
+  574                 }
+  575             }
+
+[gallery/ly.u.java 669-681]
+  669         if (!mapClusterSnapshot.checkValid()) {
+  670             as.a.v("MapGroupAlbumSet", "installDiskWarmup skipped: snapshot invalid");
+  671             return;
+  672         }
+  673         if (mapClusterSnapshot.dataFingerprint != com.vivo.data_api.footprint.m.e().c()) {
+  674             as.a.f("MapGroupAlbumSet", "installDiskWarmup skipped: fingerprint mismatch");
+  675             return;
+  676         }
+  677         ArrayList<ArrayList<qx.e>> firstGroups = mapClusterSnapshot.toFirstGroups();
+  678         if (firstGroups == null || firstGroups.isEmpty()) {
+  679             as.a.v("MapGroupAlbumSet", "installDiskWarmup skipped: toFirstGroups null/empty");
+  680             return;
+  681         }
+
+[gallery/ly.u.java 951-953]
+  951     public void q4(int i11) {
+  952         this.Y0 = com.vivo.data_api.footprint.m.e().g(i11);
+  953     }
+
+[gallery/com.vivo.data_api.footprint.m.java 60-77]
+   60     }
+   61
+   62     public Double[] f(Map map, int i11, Cursor cursor) {
+   63         return map == null ? new Double[2] : (Double[]) map.get(Integer.valueOf(i11));
+   64     }
+   65
+   66     public b g(int i11) {
+   67         if (i11 == 0) {
+   68             return new d();
+   69         }
+   70         if (i11 == 1) {
+   71             return new e();
+   72         }
+   73         if (i11 == 2) {
+   74             return new a();
+   75         }
+   76         if (i11 == 3) {
+   77             return new s();
+
+[gallery/com.vivo.data_api.footprint.d.java 35-51]
+   35             arrayListB = new ArrayList();
+   36         }
+   37         ArrayList arrayList2 = arrayListB;
+   38         if (arrayListH == null) {
+   39             long jD = m.e().d();
+   40             boolean z12 = false;
+   41             Cursor cursor2 = null;
+   42             cursor2 = null;
+   43             com.vivo.data_api.base.j jVarE = com.vivo.data_api.utils.f.e(false, cy.c.q(ov.j.j()), null);
+   44             dVar.f63355j = jVarE.f63269c;
+   45             dVar.f63354i = jVarE.f63270d;
+   46             try {
+   47                 try {
+   48                     boolean zF = dVar.f();
+   49                     Cursor cursorJ = iu.b.j(ov.j.j().getContentResolver(), v.a(false), zF ? dVar.c() : dVar.f63348c, dVar.f63355j, dVar.f63354i, "ifnull(datetaken,date_modified*1000) DESC, _id DESC");
+   50                     if (cursorJ != null) {
+   51                         try {
+
+[gallery/com.vivo.data_api.footprint.b.java 51-69]
+   51         String[] strArr = {"_id", "media_type", "datetaken", "date_modified"};
+   52         this.f63347b = strArr;
+   53         this.f63348c = strArr;
+   54     }
+   55
+   56     public void a(int i11, ArrayList arrayList, Cursor cursor, double d11, double d12, long j11, long j12) {
+   57         gu.o oVarF;
+   58         if (cursor == null) {
+   59             return;
+   60         }
+   61         if (cursor.getInt(this.f63350e) == 1) {
+   62             oVarF = hy.f.f101037w1.f(cursor.getInt(this.f63349d));
+   63         } else if (cursor.getInt(this.f63350e) != 3) {
+   64             return;
+   65         } else {
+   66             oVarF = hy.m.O1.f(cursor.getInt(this.f63349d));
+   67         }
+   68         arrayList.add(new qx.e(i11, oVarF, d11, d12, cursor.getInt(this.f63350e), j11, j12));
+   69     }
+
+[gallery/com.vivo.data_api.footprint.b.java 95-104]
+   95     public Map d(Cursor cursor) {
+   96         if (cursor == null || cursor.getCount() <= 0) {
+   97             return null;
+   98         }
+   99         ArrayList arrayList = new ArrayList(cursor.getCount());
+  100         while (cursor.moveToNext()) {
+  101             arrayList.add(Integer.valueOf(cursor.getInt(this.f63349d)));
+  102         }
+  103         return com.vivo.data_api.mediaextra.f.K(ov.j.j(), arrayList);
+  104     }
+
+[gallery/com.vivo.data_api.footprint.b.java 111-140]
+  111         return ey.c.e();
+  112     }
+  113
+  114     public abstract ArrayList g(String str);
+  115
+  116     public double[] h(Cursor cursor, int i11, int[] iArr, Map map) {
+  117         double dDoubleValue;
+  118         double dDoubleValue2;
+  119         if (iArr != null) {
+  120             return new double[]{cursor.getDouble(iArr[0]), cursor.getDouble(iArr[1])};
+  121         }
+  122         Double[] dArrF = m.e().f(map, i11, cursor);
+  123         if (dArrF == null || dArrF.length != 2) {
+  124             dDoubleValue = 0.0d;
+  125             dDoubleValue2 = 0.0d;
+  126         } else {
+  127             dDoubleValue = dArrF[0].doubleValue();
+  128             dDoubleValue2 = dArrF[1].doubleValue();
+  129         }
+  130         return new double[]{dDoubleValue, dDoubleValue2};
+  131     }
+  132
+  133     public int[] i(Cursor cursor) {
+  134         if (cursor == null) {
+  135             return null;
+  136         }
+  137         int columnIndex = cursor.getColumnIndex("latitude");
+  138         int columnIndex2 = cursor.getColumnIndex("longitude");
+  139         if (columnIndex < 0 || columnIndex2 < 0) {
+  140             return null;
+
+[gallery/ly.v.java 8-13]
+    8     public static Uri a(boolean z11) {
+    9         if (d()) {
+   10             return z11 ? t30.b.f124406f : t30.b.f124404d;
+   11         }
+   12         return hy.g.f101070d;
+   13     }
+
+[gallery/ly.v.java 24-26]
+   24     public static boolean d() {
+   25         return ey.c.e();
+   26     }
+
+[gallery/ey.c.java 31-33]
+   31
+   32     public static final boolean e() {
+   33         return p30.c.d();
+
+[gallery/com.vivo.data_api.mediaextra.f.java 428-433]
+  428             try {
+  429                 Cursor cursorQuery = context.getContentResolver().query(f63466a, f63470e, str, null, null);
+  430                 if (cursorQuery != null) {
+  431                     while (cursorQuery.moveToNext()) {
+  432                         map.put(Integer.valueOf(cursorQuery.getInt(0)), new Double[]{Double.valueOf(cursorQuery.getDouble(1)), Double.valueOf(cursorQuery.getDouble(2))});
+  433                     }
+
+[gallery/com.vivo.data_api.mediaextra.c.java 1335-1356]
+ 1335     public void l(MediaExtraEntry mediaExtraEntry) {
+ 1336         int attributeInt;
+ 1337         String filePath = mediaExtraEntry.getFilePath();
+ 1338         ExifInterface exifInterfaceW = w(filePath);
+ 1339         float[] fArr = new float[2];
+ 1340         if (exifInterfaceW != null) {
+ 1341             exifInterfaceW.getLatLong(fArr);
+ 1342             attributeInt = exifInterfaceW.getAttributeInt(androidx.exifinterface.media.ExifInterface.TAG_MAKER_NOTE, 0);
+ 1343             if (r0.a()) {
+ 1344                 mediaExtraEntry.setCameraModel(g(exifInterfaceW.getAttribute(androidx.exifinterface.media.ExifInterface.TAG_MAKE), exifInterfaceW.getAttribute(androidx.exifinterface.media.ExifInterface.TAG_MODEL)));
+ 1345                 long jM = M(exifInterfaceW.getAttribute(androidx.exifinterface.media.ExifInterface.TAG_DATETIME_ORIGINAL));
+ 1346                 if (jM == 0) {
+ 1347                     jM = -1;
+ 1348                 }
+ 1349                 mediaExtraEntry.setOriginDateTakenExif(jM);
+ 1350             }
+ 1351         } else {
+ 1352             attributeInt = 0;
+ 1353         }
+ 1354         mediaExtraEntry.setFacing(attributeInt);
+ 1355         mediaExtraEntry.setLatitude(k(fArr[0]));
+ 1356         mediaExtraEntry.setLongtitude(k(fArr[1]));
+
+[gallery/com.android.gallery3d.vivo.mediaextra.d.java 61-65]
+   61     public static class C0301d extends SQLiteOpenHelper {
+   62         public C0301d(Context context) {
+   63             super(context, "gallery-mediaextra.db", (SQLiteDatabase.CursorFactory) null, 33);
+   64         }
+   65
+
+[gallery/com.android.gallery3d.vivo.mediaextra.d.java 135-141]
+  135         public final String i() {
+  136             return "CREATE TRIGGER trg_media_extra_gen_insert\n AFTER INSERT ON MediaExtraTable\n BEGIN\n   UPDATE MediaExtraGenerationTable   SET max_generation = max_generation + 1;\n   UPDATE MediaExtraTable   SET generation_modified = (SELECT max_generation FROM MediaExtraGenerationTable LIMIT 1)\n   WHERE _id = NEW._id;\n END";
+  137         }
+  138
+  139         public final String j() {
+  140             return "CREATE TRIGGER trg_media_extra_gen_update\n AFTER UPDATE ON MediaExtraTable\n WHEN OLD.generation_modified = NEW.generation_modified\n BEGIN\n   UPDATE MediaExtraGenerationTable   SET max_generation = max_generation + 1;\n   UPDATE MediaExtraTable   SET generation_modified = (SELECT max_generation FROM MediaExtraGenerationTable LIMIT 1)\n   WHERE _id = NEW._id;\n END";
+  141         }
+
+[gallery/com.android.gallery3d.vivo.mediaextra.d.java 220-234]
+  220
+  221         @Override // android.database.sqlite.SQLiteOpenHelper
+  222         public void onCreate(SQLiteDatabase sQLiteDatabase) throws Throwable {
+  223             as.a.f("MediaExtraOpenDao", "MediaSQLiteOpenHelper.onCreate start");
+  224             sQLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS MediaExtraTable (_id INTEGER PRIMARY KEY AUTOINCREMENT, latitude DOUBLE, longitude DOUBLE, _data TEXT, mime_type INTEGER, media_type INTEGER, audioseek LONG, group_id LONG, group_index INTEGER, fullview INTEGER, camera_refocus INTEGER, live_photo TEXT, image_type LONG, facing INTEGER ,bucket_id INTEGER ,rotation INTEGER ,raw_sample_bit INTEGER DEFAULT 0 ,fisheye TEXT ,extra1 INTEGER ,extra2 TEXT, temp_file INTEGER DEFAULT 1 ,media_special INTEGER DEFAULT 0, func_switch INTEGER, group_type INTEGER, preferred_id INTEGER, preferred_path TEXT, algo_flag INTEGER default 0, virtual_video_id TEXT, is_full_movie_effect INTEGER DEFAULT -1 , shooting_mode TEXT, camera_model TEXT, video_extra_metadata TEXT, file_convert INTEGER DEFAULT -1, real_picture_process_long INTEGER DEFAULT 0, origin_date_taken LONG, origin_date_modify LONG, origin_date_taken_exif LONG, generation_modified INTEGER DEFAULT 1 )");
+  225             sQLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS MediaCacheTable (maxid INTEGER DEFAULT 0 , nextids TEXT )");
+  226             sQLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS MaxIdTable (maxid INTEGER DEFAULT 0 , type INTEGER ,scan_time LONG ,max_id_temp INTEGER DEFAULT 0)");
+  227             sQLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS ReversPathTable (_id INTEGER , file_path TEXT, edit_type INTEGER, revers_file_type INTEGER, revers_file_path TEXT, size INTEGER, bucketId INTEGER,scan_status INTEGER DEFAULT 0)");
+  228             ContentValues contentValues = new ContentValues();
+  229             contentValues.put("maxid", (Integer) 0);
+  230             contentValues.put("nextids", "");
+  231             sQLiteDatabase.insert("MediaCacheTable", null, contentValues);
+  232             sQLiteDatabase.execSQL("CREATE TABLE IF NOT EXISTS MediaExtraGenerationTable (max_generation INTEGER DEFAULT 0)");
+  233             ContentValues contentValues2 = new ContentValues();
+  234             contentValues2.put("max_generation", (Integer) 0);
+
+[gallery/com.android.gallery3d.vivo.mediaextra.d.java 424-432]
+  424     public static Cursor w(String[] strArr, String str, String[] strArr2, String str2) {
+  425         C0301d c0301d = f27617e;
+  426         if (c0301d != null) {
+  427             return c0301d.getReadableDatabase().query("MediaExtraTable", strArr, str, strArr2, null, null, str2);
+  428         }
+  429         as.a.i("MediaExtraOpenDao", "queryMediaExtraDirectly: helper not initialized");
+  430         return null;
+  431     }
+  432
+
+[gallery/com.android.gallery3d.vivo.mediaextra.d.java 566-589]
+  566     @Override // hu.b
+  567     public boolean o() {
+  568         return h().checkCallingPermission("com.vivo.gallery3d.permission.MediaExtraProvider") == 0;
+  569     }
+  570
+  571     @Override // hu.b
+  572     public boolean p() {
+  573         return h().checkCallingPermission("com.vivo.gallery3d.permission.MediaExtraProvider") == 0;
+  574     }
+  575
+  576     @Override // hu.b
+  577     public boolean q() {
+  578         as.a.k("MediaExtraOpenDao", "onCreate");
+  579         f27617e = new C0301d(h());
+  580         return true;
+  581     }
+  582
+  583     @Override // hu.b
+  584     public Cursor s(Uri uri, String[] strArr, String str, String[] strArr2, String str2) {
+  585         String strV = v(uri);
+  586         if (TextUtils.isEmpty(strV)) {
+  587             return null;
+  588         }
+  589         return f27617e.getReadableDatabase().query(strV, strArr, str, strArr2, null, null, str2);
+
+[gallery/g9.a.java 43-47]
+   43     public a(Context context) {
+   44         super(context, "geo.db", (SQLiteDatabase.CursorFactory) null, 4);
+   45         this.f98538d = new ReentrantLock();
+   46         this.f98535a = context;
+   47     }
+
+[gallery/g9.a.java 619-636]
+  619     public void onCreate(SQLiteDatabase sQLiteDatabase) {
+  620         long jCurrentTimeMillis = System.currentTimeMillis();
+  621         this.f98536b = sQLiteDatabase;
+  622         try {
+  623             sQLiteDatabase.execSQL("DROP TABLE IF EXISTS location;");
+  624             this.f98536b.execSQL("CREATE TABLE location (location_id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, province TEXT, city TEXT, district TEXT, street TEXT, street_number TEXT, address TEXT UNIQUE ON CONFLICT REPLACE  , location_version INTEGER );");
+  625             this.f98536b.execSQL("CREATE INDEX country_index ON location(country);");
+  626             this.f98536b.execSQL("CREATE INDEX province_index ON location(province);");
+  627             this.f98536b.execSQL("CREATE INDEX city_index ON location(city);");
+  628             this.f98536b.execSQL("CREATE INDEX district_index ON location(district);");
+  629             this.f98536b.execSQL("CREATE INDEX street_index ON location(street);");
+  630             this.f98536b.execSQL("CREATE INDEX street_number_index ON location(street_number);");
+  631             this.f98536b.execSQL("CREATE INDEX address_index ON location(address);");
+  632             this.f98536b.execSQL("DROP TABLE IF EXISTS gps;");
+  633             this.f98536b.execSQL("CREATE TABLE gps (_id INTEGER PRIMARY KEY AUTOINCREMENT, location_id INTEGER REFERENCES location(location_id), latitude DOUBLE NOT NULL, longitude DOUBLE NOT NULL, gpsuniqekey LONG NOT NULL UNIQUE ON CONFLICT REPLACE);");
+  634             this.f98536b.execSQL("CREATE INDEX gpsuniqekey_index ON gps(gpsuniqekey);");
+  635             this.f98536b.execSQL("DROP TABLE IF EXISTS local_config;");
+  636             this.f98536b.execSQL("CREATE TABLE local_config (_id INTEGER PRIMARY KEY AUTOINCREMENT, language TEXT, region TEXT);");
+
+[gallery/dy.a.java 145-154]
+  145         File fileM = b.m(this.f95507a);
+  146         Closeable closeable2 = null;
+  147         if (fileM == null) {
+  148             as.a.v("MapClusterDiskCache", "load: cache dir unavailable");
+  149             return null;
+  150         }
+  151         File file = new File(fileM, "footprint_cluster_cache.bin");
+  152         if (!file.exists()) {
+  153             return null;
+  154         }
+
+[gallery/com.vivo.data_api.utils.b.java 461-470]
+  461     public static File m(Context context) {
+  462         if (context == null) {
+  463             return null;
+  464         }
+  465         File file = new File(com.vivo.commonlibrary.media.p.f62271b + "/Android/data/" + context.getPackageName() + "/cache");
+  466         if (file.isDirectory() || file.mkdirs()) {
+  467             return file;
+  468         }
+  469         as.a.i("BBK_Gallery2", "MtkUtils:  Unable to create cache directory " + file);
+  470         return null;
+
+[gallery/com.android.gallery3d.provider.GalleryDataProvider.java 551-559]
+  551     @Override // android.content.ContentProvider
+  552     public Cursor query(Uri uri, String[] strArr, String str, String[] strArr2, String str2) {
+  553         if (uri == null) {
+  554             return null;
+  555         }
+  556         switch (f19838m.match(uri)) {
+  557             case 0:
+  558                 return d.w(strArr, str, strArr2, str2);
+  559             case 1:
+
+[gallery/com.vivo.commonlibrary.database.p.java 343-371]
+  343     public final b v(Uri uri, Function1 function1, String str) {
+  344         boolean zBooleanValue;
+  345         hu.b bVarC = hu.e.f100980a.c(this, uri);
+  346         boolean z11 = false;
+  347         if (bVarC != null) {
+  348             boolean zM = bVarC.m();
+  349             zBooleanValue = zM ? false : ((Boolean) function1.invoke(bVarC)).booleanValue();
+  350             z11 = zM;
+  351         } else {
+  352             zBooleanValue = false;
+  353         }
+  354         if (z11 || zBooleanValue) {
+  355             as.a.f("BaseProvider", str + " isSelfCalled:" + z11 + ",callingPid:" + Binder.getCallingPid() + ",callingUid:" + Binder.getCallingUid() + ",daoName:" + (bVarC != null ? bVarC.i() : null) + ",uri:" + uri);
+  356         } else {
+  357             String strI = bVarC != null ? bVarC.i() : null;
+  358             as.a.f("BaseProvider", str + " fail isSelfCalled: false,hasPermission:false, daoName:" + strI + ",callingPid:" + Binder.getCallingPid() + ",callingUid:" + Binder.getCallingUid() + ",uri:" + uri);
+  359         }
+  360         return new b(z11, zBooleanValue, bVarC);
+  361     }
+  362
+  363     public final Object y(Uri uri, Function1 function1, String str, Function1 function2) {
+  364         b bVarV = v(uri, function1, str);
+  365         if (!bVarV.c() && !bVarV.b()) {
+  366             return null;
+  367         }
+  368         as.a.s(str + ":" + uri);
+  369         try {
+  370             hu.b bVarA = bVarV.a();
+  371             kotlin.jvm.internal.o.h(bVarA);
+
+[gallery/xy.a.java 164-172]
+  164     @Override // hu.b
+  165     public boolean o() {
+  166         return h().checkCallingPermission("com.android.gallery3d.permission.GALLERY_PHOTOPICKER_PROVIDER") == 0;
+  167     }
+  168
+  169     @Override // hu.b
+  170     public boolean p() {
+  171         return h().checkCallingPermission("com.android.gallery3d.permission.GALLERY_PHOTOPICKER_PROVIDER") == 0;
+  172     }
+
+[mediaprovider/com.android.providers.media.scan.ModernMediaScanner.java 1673-1676]
+ 1673                 withOptionalValue(builderNewUpsert, "iso", parseOptional(exifInterface.getAttribute("ISOSpeedRatings")));
+ 1674                 withOptionalValue(builderNewUpsert, "scene_capture_type", parseOptional(exifInterface.getAttribute("SceneCaptureType")));
+ 1675                 populateImageGeolocationCoordinates(builderNewUpsert, exifInterface);
+ 1676                 withXmpValues(builderNewUpsert, XmpDataParser.createXmpInterface(exifInterface), str);
+
+[mediaprovider/com.android.providers.media.scan.ModernMediaScanner.java 1705-1711]
+ 1705     private void populateImageGeolocationCoordinates(ContentProviderOperation.Builder builder, ExifInterface exifInterface) {
+ 1706         float[] fArr = new float[2];
+ 1707         if (exifInterface.getLatLong(fArr)) {
+ 1708             builder.withValue("latitude", Float.valueOf(fArr[0]));
+ 1709             builder.withValue("longitude", Float.valueOf(fArr[1]));
+ 1710         }
+ 1711     }
+
+[mediaprovider/com.android.providers.media.MediaProvider.java 6747-6752]
+ 6747         }
+ 6748         if (hasColumnsToFilterInProjection(queryBuilder, strArrUpdateProjectionToFilterColumns, List.of("latitude", "longitude")) && !isCallingPackageSelf()) {
+ 6749             strArrUpdateProjectionToFilterColumns = updateProjectionToFilterColumns(queryBuilder, strArrUpdateProjectionToFilterColumns, List.of("latitude", "longitude"));
+ 6750         }
+ 6751         if (shouldFilterOwnerPackageNameFlag() && shouldFilterOwnerPackageNameInProjection(queryBuilder, strArrUpdateProjectionToFilterColumns)) {
+ 6752             Log.i("MediaProvider", String.format("Filtering owner package name for %s, projection: %s", ((LocalCallingIdentity) this.mCallingIdentity.get()).getPackageName(), Arrays.toString(strArrUpdateProjectionToFilterColumns)));
+
+[mediaprovider/com.android.providers.media.MediaProvider.java 6801-6820]
+ 6801     private String[] updateProjectionToFilterColumns(SQLiteQueryBuilder sQLiteQueryBuilder, String[] strArr, List list) {
+ 6802         List listAsList = Arrays.asList(maybeReplaceNullProjection(strArr, sQLiteQueryBuilder));
+ 6803         listAsList.replaceAll(new MediaProvider$$ExternalSyntheticLambda31());
+ 6804         if (sQLiteQueryBuilder.getProjectionAllowlist() == null) {
+ 6805             sQLiteQueryBuilder.setProjectionAllowlist(new ArrayList());
+ 6806         }
+ 6807         Iterator it = list.iterator();
+ 6808         while (it.hasNext()) {
+ 6809             String str = (String) it.next();
+ 6810             if (listAsList.contains(str)) {
+ 6811                 int iIndexOf = listAsList.indexOf(str);
+ 6812                 String strConstructNullProjectionForColumn = constructNullProjectionForColumn(str);
+ 6813                 listAsList.set(iIndexOf, strConstructNullProjectionForColumn);
+ 6814                 sQLiteQueryBuilder.getProjectionAllowlist().add(Pattern.compile(Pattern.quote(strConstructNullProjectionForColumn)));
+ 6815             }
+ 6816         }
+ 6817         return (String[]) listAsList.toArray(new String[listAsList.size()]);
+ 6818     }
+ 6819
+ 6820     private String constructNullProjectionForColumn(String str) {
+
+[mediaprovider/com.android.providers.media.MediaProvider.java 11072-11080]
+11072     private Bundle getResultForGetGeneration(Bundle bundle) {
+11073         long jElapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos();
+11074         String string = bundle.getString("android.intent.extra.TEXT");
+11075         try {
+11076             long jLongValue = ((Long) getDatabaseForUri(MediaStore.Files.getContentUri(string)).runWithoutTransaction(new MediaProvider$$ExternalSyntheticLambda42())).longValue();
+11077             Bundle bundle2 = new Bundle();
+11078             bundle2.putLong("android.intent.extra.INDEX", jLongValue);
+11079             Metrics.logMediaProviderOp(22, 0, string, ((LocalCallingIdentity) this.mCallingIdentity.get()).uid, SystemClock.elapsedRealtimeNanos() - jElapsedRealtimeNanos);
+11080             return bundle2;

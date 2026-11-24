@@ -1,0 +1,14 @@
+com.android.providers.media.MediaProvider#getClausesForFilteringGeolocationData(Landroid/os/Bundle;)Ljava/util/List; @31 latitude
+com.android.providers.media.MediaProvider#getClausesForFilteringGeolocationData(Landroid/os/Bundle;)Ljava/util/List; @37 longitude
+com.android.providers.media.MediaProvider#insertInternal(Landroid/net/Uri;Landroid/content/ContentValues;Landroid/os/Bundle;)Landroid/net/Uri; @204 latitude
+com.android.providers.media.MediaProvider#insertInternal(Landroid/net/Uri;Landroid/content/ContentValues;Landroid/os/Bundle;)Landroid/net/Uri; @20f longitude
+com.android.providers.media.MediaProvider#queryInternal(Landroid/net/Uri;[Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;Z)Landroid/database/Cursor; @4eb latitude
+com.android.providers.media.MediaProvider#queryInternal(Landroid/net/Uri;[Ljava/lang/String;Landroid/os/Bundle;Landroid/os/CancellationSignal;Z)Landroid/database/Cursor; @4ed longitude
+com.android.providers.media.MediaProvider#updateInternal(Landroid/net/Uri;Landroid/content/ContentValues;Landroid/os/Bundle;)I @33c latitude
+com.android.providers.media.MediaProvider#updateInternal(Landroid/net/Uri;Landroid/content/ContentValues;Landroid/os/Bundle;)I @347 longitude
+com.android.providers.media.scan.ModernMediaScanner#populateImageGeolocationCoordinates(Landroid/content/ContentProviderOperation$Builder;Landroid/media/ExifInterface;)V @10 latitude
+com.android.providers.media.scan.ModernMediaScanner#populateImageGeolocationCoordinates(Landroid/content/ContentProviderOperation$Builder;Landroid/media/ExifInterface;)V @1c longitude
+com.android.providers.media.scan.ModernMediaScanner#populateVideoGeolocationCoordinates(Landroid/content/ContentProviderOperation$Builder;Landroid/media/MediaMetadataRetriever;)V @29 latitude
+com.android.providers.media.scan.ModernMediaScanner#populateVideoGeolocationCoordinates(Landroid/content/ContentProviderOperation$Builder;Landroid/media/MediaMetadataRetriever;)V @32 longitude
+com.android.providers.media.util.LocationMetadataUtils#updateLocationMetadataColumns(Landroid/database/sqlite/SQLiteDatabase;JJLandroid/os/CancellationSignal;)J @88 latitude
+com.android.providers.media.util.LocationMetadataUtils#updateLocationMetadataColumns(Landroid/database/sqlite/SQLiteDatabase;JJLandroid/os/CancellationSignal;)J @93 longitude

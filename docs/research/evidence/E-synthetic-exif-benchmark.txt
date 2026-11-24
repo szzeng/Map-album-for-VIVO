@@ -1,0 +1,6 @@
+Windows AMD64 Python 3.12.10 Pillow 12.1.1 SQLite 3.49.1
+fixture_count=10000 jpeg_bytes=[40463, 40577] gps_ratio=1/5 batch=256 readers=1 cache=recently_written no_pixel_decode
+initial: wall_s=1.2994 cpu_s=1.2656 parsed=10000 skipped=0 gps=2000 logical_read_bytes=3908000
+visible_metadata_reconcile: wall_s=0.5234 cpu_s=0.5156 parsed=0 skipped=10000 gps=0 logical_read_bytes=0
+delta_100_modified: wall_s=0.0163 cpu_s=0.0156 parsed=100 skipped=0 gps=20 logical_read_bytes=39080
+sqlite_file_bytes=147456

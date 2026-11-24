@@ -1,0 +1,3192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sharedUserId="com.vivo.gallery.sharedId"
+    android:versionCode="110006008"
+    android:versionName="11.0.6.8"
+    android:compileSdkVersion="36"
+    android:compileSdkVersionCodename="Baklava"
+    package="com.vivo.gallery"
+    platformBuildVersionCode="36"
+    platformBuildVersionName="Baklava">
+    <uses-sdk
+        android:minSdkVersion="34"
+        android:targetSdkVersion="36"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.ShareGalleryProvider"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.OriginFileDownloadService"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.ShareGalleryProvider"/>
+    <uses-permission android:name="com.vivo.handoff.WRITE_DUAL_SWITCH_PERMISSION"/>
+    <uses-permission android:name="com.vivo.handoff.READ_DUAL_SWITCH_PERMISSION"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.AI_EDITOR_PROVIDER"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.AI_EDITOR_PROVIDER"/>
+    <uses-permission android:name="com.vivo.doubleinstance.permission.WHITELIST_QUERY_SERVICE"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.STORAGE_THRESHOLD_MONITOR"/>
+    <permission
+        android:name="com.vivo.gallery.permission.ThirdDownloadOriginalActivity"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery.permission.ThirdDownloadOriginalActivity"/>
+    <uses-permission android:name="com.vivo.EditRelationAccess"/>
+    <original-package android:name="com.vivo.gallery"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="bbk.theme.permission.ACCESS_CROP_FUNC"/>
+    <uses-permission android:name="com.vivo.filemanager.permission.OPEN_FILE_LIST"/>
+    <uses-permission android:name="android.permission.SET_ACTIVITY_WATCHER"/>
+    <permission
+        android:name="com.vivo.gallery.permission.PREMIUM_WEB"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.vivo.vtouch.touchscan.shouldgrabpermission"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.share.permission.SHARE_SLICE_PROVIDER"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.vivo.vtouch.touchscan.shouldgrabpermission"/>
+    <uses-permission android:name="com.android.camera.permission.AI_VISION_DATA_PROVIDER"/>
+    <uses-permission android:name="com.vivo.pem.permission.BROADCAST"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.RecycleProvider"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.RecycleProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.AIService"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.AIService"/>
+    <permission
+        android:name="com.android.gallery3d.permission.GALLERY_PROVIDER"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.aivoice.sdk.permission.AI_SERVICE_ALBUM"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.vivo.gallery.permission.NFC_SERVICE"
+        android:protectionLevel="system|signature"/>
+    <uses-permission
+        android:name="com.vivo.permission.ACCESS_VIVO_CAST_DISPLAY"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.vivo.gallery.SEND_MEMORY_NOTIFY"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.VideoSummaryService"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.PhotoSummaryService"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.SdkDownloadService"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.VideoEditorExceptionMonitor"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.MakeupMigrate"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.GalleryTrashService"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.face.permission.BIND_MESSENGER_SERVICE"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.vivo.GenerateMemoryService"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.data_api.xspace.permission.XSPACE_PRIVATE_DATA_TRANSFER"
+        android:protectionLevel="system|signature"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.NearFieldService"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.vivo.face.permission.BIND_MESSENGER_SERVICE"/>
+    <uses-permission android:name="com.android.camera.permission.MOVIE_EFFECT_PROVIDER"/>
+    <uses-permission android:name="com.vivo.gallery.SEND_MEMORY_NOTIFY"/>
+    <uses-permission android:name="android.permission.DEVICE_POWER"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.NFC"/>
+    <uses-permission android:name="android.permission.CONTROL_DEVICE_STATE"/>
+    <uses-permission android:name="com.vivo.permission.LID_SWITCH"/>
+    <uses-permission android:name="com.iqoo.secure.permission.CALL_PROVIDER"/>
+    <uses-permission
+        android:name="android.permission.READ_SMS"
+        android:maxSdkVersion="35"/>
+    <uses-permission android:name="android.permission.SET_WALLPAPER"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="35"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="35"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
+    <uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW"/>
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"/>
+    <uses-permission android:name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS"/>
+    <uses-permission android:name="com.vivo.permission.WRITE_V_SYSTEM_SETTINGS"/>
+    <uses-permission android:name="com.vivo.abe.permission.unifiedconfig.provider"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.REAL_GET_TASKS"/>
+    <uses-permission android:name="android.permission.BROADCAST_STICKY"/>
+    <uses-permission android:name="com.android.email.permission.READ_ATTACHMENT"/>
+    <uses-permission android:name="android.permission.STATUS_BAR"/>
+    <uses-permission android:name="android.permission.STATUS_BAR_SERVICE"/>
+    <uses-feature android:name="android.hardware.camera"/>
+    <uses-feature android:name="android.hardware.camera.autofocus"/>
+    <uses-permission android:name="com.bbk.iqoo.logsystem.permission.READ_DATA"/>
+    <uses-permission android:name="com.bbk.iqoo.logsystem.permission.WRITE_DATA"/>
+    <uses-permission android:name="android.permission.MANAGE_USERS"/>
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS"/>
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL"/>
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL"/>
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL"/>
+    <uses-permission android:name="com.vivo.xspace.permission.ENTER_VERIFY_PAGE"/>
+    <uses-permission android:name="com.vivo.xspace.permission.ENTER_VERIFY_PAGE"/>
+    <uses-permission android:name="com.qti.snapdragon.sdk.permission.DISPLAY_SETTINGS"/>
+    <uses-permission android:name="com.provider.notesaccess"/>
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"
+        android:maxSdkVersion="30"/>
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"/>
+    <uses-permission android:name="com.vivo.gallery.permission.power"/>
+    <permission
+        android:name="com.vivo.daemonService.permission.safelyDelete"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.daemonService.permission.safelyDelete"/>
+    <uses-permission android:name="android.permission.FORCE_STOP_PACKAGES"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="com.bbk.account.permission.receivebroadcast.removeaccount"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="com.vivo.aiengine.permission.ACCESS_EASYIPC_SERVICE"/>
+    <uses-permission android:name="bbk.theme.permission.ACCESS_THEME"/>
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR"/>
+    <uses-permission android:name="com.vivo.hiboard.permission.READ_SETTINGS"/>
+    <uses-permission android:name="com.vivo.abe.permission.user.conset.record"/>
+    <uses-permission android:name="com.vivo.permission.ACCESS_GALLERY_SHARE"/>
+    <uses-permission android:name="com.vivo.intentresolver.permission.VIVO_GALLERY_SHARE"/>
+    <uses-permission android:name="com.vivo.filemanager.permission.OPEN_SAFEBOX"/>
+    <uses-permission android:name="com.vivo.safebox.gallery"/>
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
+    <uses-permission android:name="com.vivo.settings.permission.SOFTWARE_LOCK_APP_LIST"/>
+    <uses-permission android:name="com.vivo.xspace.permission.XSPACE_FUNC_HANDLE"/>
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC_INTERNAL"/>
+    <uses-permission android:name="android.permission.MANAGE_BIOMETRIC"/>
+    <uses-permission android:name="com.vivo.systemui.notification.permission.dialog.access.permission"/>
+    <permission
+        android:name="com.vivo.gallery.permission.SMART_GALLERY_ACCESS"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.vivo.gallery.permission.SMART_GALLERY_ACCESS"/>
+    <uses-permission android:name="com.vivo.permission.vdfs"/>
+    <uses-permission android:name="com.vivo.handoff.READ_HANDOFF_SET_PERMISSION"/>
+    <uses-permission android:name="com.vivo.easyshare.permission.DRAG_AND_COPY_SERVICE"/>
+    <uses-permission android:name="com.iqoo.secure.permission.DATA_USAGE_EXCESS_WARNING"/>
+    <uses-permission android:name="com.vivo.connbase.permission.CONNBASE_STARTUP"/>
+    <uses-permission android:name="com.iqoo.secure.datamonitorprovider.permission"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="vivo.aiservice.permission.AISERVICE_ACCESS"/>
+    <uses-permission android:name="com.vivo.permission.SERVICE_SETTING"/>
+    <permission
+        android:label="exit permission"
+        android:name="com.vivo.xspace.permission.EXIT_XSPACE_PAGE_GALLERY"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.xspace.permission.EXIT_XSPACE_PAGE"/>
+    <uses-permission android:name="com.vivo.xspace.permission.EXIT_XSPACE_PAGE_FILEMANAGER"/>
+    <uses-permission android:name="com.vivo.pcsuite.permission.PCSUITE_WEBVIEW"/>
+    <uses-permission android:name="com.vivo.basemanager.START_ACTIVITY"/>
+    <uses-permission android:name="android.Manifest.permission.INTERACT_ACROSS_USERS"/>
+    <uses-permission android:name="android.permission.ACCESS_SURFACE_FLINGER"/>
+    <uses-permission android:name="com.vivo.ai.copilot.permission.BIND_FLOATSERVICE"/>
+    <uses-permission android:name="mediatek.permission.ACCESS_APU_SYS"/>
+    <uses-permission android:name="mediatek.permission.ACCESS_APU_SYS"/>
+    <uses-permission android:name="com.vivo.easyshare.permission.READ_STATE"/>
+    <uses-permission android:name="com.vivo.videoeditor.permission.ACCESS_LITE_VIDEO_TRIM"/>
+    <uses-permission android:name="com.vivo.videoeditor.permission.ACCESS_VIDEO_EDITOR_AGENT"/>
+    <uses-permission android:name="com.vivo.ai.gptagent.permission.BIND_GPTLINKMANAGERSERVICE"/>
+    <uses-permission android:name="com.vivo.ai.gptagent.permission.BIND_GPTSERVICE"/>
+    <uses-permission android:name="com.vivo.intentionkit.permission.BIND_SKILLPROVIDER"/>
+    <uses-permission
+        android:name="com.vivo.permission.frozen.ALLOW_LONG_TASK"
+        android:protectionLevel="signature"/>
+    <uses-permission
+        android:name="com.vivo.cpa.permission_bindservice"
+        android:protectionLevel="signatureOrSystem"/>
+    <permission
+        android:name="com.android.gallery3d.permission.GalleryDataProvider"
+        android:protectionLevel="normal"/>
+    <permission
+        android:name="com.vivo.gallery.permission.ImageEcokit.provider"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.vivo.intentionkit.permission.BIND_SKILLPROVIDER"
+        android:protectionLevel="signatureOrSystem"/>
+    <permission
+        android:name="com.vivo.gallery.permission.MemoryBufferActivity"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.videoeditor.permission.VideoEditorActivity"/>
+    <permission
+        android:name="com.android.gallery3d.permission.GALLERY_PHOTOPICKER_PROVIDER"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.android.camera.permission.SYSTEM_CAMERA_DATA_PROVIDER"/>
+    <permission
+        android:name="com.bbk.theme.permission.STICKER_SERVICE"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.bbk.theme.permission.STICKER_SERVICE"/>
+    <uses-permission android:name="bbk.theme.permission.ACCESS_NOVOLAND"/>
+    <supports-screens
+        android:anyDensity="true"
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:resizeable="true"/>
+    <queries>
+        <package android:name="com.tencent.mm"/>
+        <package android:name="com.vivo.gallery.module.gallery_photoeditor"/>
+        <package android:name="com.vivo.imageecokit"/>
+        <package android:name="com.vivo.symmetry"/>
+        <package android:name="com.vivo.health"/>
+        <package android:name="com.vivo.ai.agent"/>
+        <intent>
+            <action android:name="com.vivo.ai.gptagent.action.gptagentaction"/>
+        </intent>
+        <package android:name="com.vivo.ai.gptagent"/>
+    </queries>
+    <uses-permission android:name="com.vivo.aiengine.permission.READ_AWARE_PROVIDER"/>
+    <uses-permission android:name="com.vivo.aiengine.permission.WRITE_AWARE_PROVIDER"/>
+    <uses-permission android:name="com.bbk.account.permission.READ_ACCOUNTINFO"/>
+    <original-package android:name="com.vivo.gallerywidgetmodule"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.GALLERY_MEDIA_PROVIDER"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.GALLERY_MEDIA_PROVIDER"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.CloudGalleryProvider"/>
+    <permission
+        android:name="com.vivo.cloud.agent.permission.AgentService"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.cloud.agent.permission.AgentService"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.CloudGalleryProvider"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.bbk.cloud.permission.OPEN_SWTICH_BY_BOOT"/>
+    <uses-permission android:name="com.bbk.cloud.permission.RESTORING_STATE_READ"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.GALLERY_SYNC_OPEN"/>
+    <permission
+        android:name="com.bbk.cloud.permission.RECOVER_BROADCAST"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <permission
+        android:name="com.vivo.aivisionmodule.permission.ACCESS_AIVISION"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.hiboard.permission.query_added_widgets"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.FolderFilterProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.FolderFilterProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.FaceGroupProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.FaceGroupProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.VivoOcrProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.VivoOcrProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.RecommendProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.RecommendProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.MemoryAlbumProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.MemoryAlbumProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.PortraitProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.PortraitProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.VivoTagProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.VivoTagProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.MediaExtraProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.MediaExtraProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.PhotoSimilarProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.PhotoSimilarProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.VivoFavoriteProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.VivoFavoriteProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.VivoFavoriteProvider.write"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.VivoFavoriteProvider.write"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.FileMetaProvider"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.FileMetaProvider"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.GalleryPermissionState"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.GalleryPermissionState"/>
+    <permission
+        android:name="com.vivo.gallery3d.permission.VivoRenameProvider"
+        android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="com.vivo.gallery3d.permission.VivoRenameProvider"/>
+    <uses-permission android:name="com.android.camera.permission.SYSTEM_GALLERY_DATA_PROVIDER"/>
+    <permission
+        android:name="com.vivo.gallery.permission.APPLE_TRANSFER_RECEIVER"
+        android:protectionLevel="system|signature"/>
+    <uses-permission android:name="com.vivo.gallery.permission.APPLE_TRANSFER_RECEIVER"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+    <permission
+        android:name="com.vivo.gallery.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="com.vivo.gallery.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
+    <uses-permission android:name="com.vivo.ai.gptagent.permission.BIND_GPTDECISIONSERVICE"/>
+    <uses-permission android:name="android.permission.INTERACT_ACROSS_PROFILES"/>
+    <uses-permission android:name="com.vivo.connbase.permission.VIVO_CONNECT_SERVICE"/>
+    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS"/>
+    <uses-permission android:name="android.permission.MANAGE_OVERLAY_PERMISSION"/>
+    <uses-permission android:name="android.permission.SENSORS"/>
+    <uses-permission android:name="com.vivo.handoff.WRITE_HANDOFF_SET_PERMISSION"/>
+    <uses-permission android:name="com.vivo.devicerpc.notify"/>
+    <uses-permission android:name="com.vivo.Tips.permission.LOAD_DATA_ACTIVITY"/>
+    <uses-permission android:name="com.vivo.permissionmanager.activity.privacysettings"/>
+    <uses-permission android:name="com.iqoo.secure.permission.START_PRIVACY_ACTIVITY"/>
+    <uses-permission android:name="com.bbk.launcher2.permission.JUMP_ORIGIN"/>
+    <uses-permission android:name="com.bbk.launcher2.permission.ENTER_VIRTUAL_SYSTEM"/>
+    <uses-permission android:name="com.vivo.settings.permission.START_SETTINGS_ACTIVITY"/>
+    <uses-permission android:name="com.vivo.agent.permission.VOICE_RECOGNITION"/>
+    <uses-permission android:name="com.vivo.smartshot.permission.SETTINGS_MENU"/>
+    <uses-permission android:name="com.vivo.vtouch.permission.ANALYSE"/>
+    <uses-permission android:name="android.permission.smartmultiwindow.SMARTMULTIWINDOW_OP"/>
+    <uses-permission android:name="android.permission.smartmultiwindow.SMARTMULTIWINDOW_OP"/>
+    <uses-permission android:name="com.vivo.agent.permission.VIVO_TRANSLATOR"/>
+    <uses-permission android:name="com.vivo.assistant.permission.READ_SPECIAL_DATA"/>
+    <uses-permission android:name="com.iqoo.secure.permission.START_ACTIVITY"/>
+    <uses-permission android:name="com.vivo.remotecontrol.START_ACTIVITY_PERMISSION"/>
+    <uses-permission android:name="com.vivo.safecenter.permissions.START_SAFE_CENTER_ACTIVITY"/>
+    <uses-permission android:name="com.vivo.ai.copilot.permission.COPILOT_SETTINGS"/>
+    <uses-permission android:name="com.bbk.launcher2.permission.OPEN_SIMPLE_SETTINGS_PREFERENCE"/>
+    <uses-permission android:name="bbk.theme.permission.ACCESS_THEME_EDITER"/>
+    <uses-permission android:name="com.vivo.telephonyapp.permission.ACTIVITY_ACCESS"/>
+    <uses-permission android:name="com.android.bbkmusic.PERMISSION"/>
+    <uses-permission android:name="com.vivo.safecenter.permission.START_PRIVACY_ACTIVITY"/>
+    <uses-permission android:name="com.vivo.Tips.permission.TIPS_HELP_GUIDE_ACTIVITY"/>
+    <uses-permission android:name="com.vivo.permission.INSTALL_SYSTEM_APP"/>
+    <uses-permission android:name="com.vivo.vtouch.permission.SCANCODE"/>
+    <uses-permission android:name="com.vivo.contacts.permission.COMPONENTS_EXPORTED_CONTACTS"/>
+    <uses-permission android:name="com.vivo.calendar.permission.FIRST_DAY_OF_WEEK"/>
+    <uses-permission android:name="com.vivo.calendar.permission.WORK_FREE_DAY"/>
+    <uses-permission android:name="com.vivo.calendar.permission.READ_HOLIDAY"/>
+    <uses-permission
+        android:name="com.vivo.ai.gptagent.intent.action.permission"
+        android:protectionLevel="signature"/>
+    <uses-permission
+        android:name="com.vivo.ai.gptagent.client.permission.gptkitservice"
+        android:protectionLevel="signature"/>
+    <permission
+        android:name="com.vivo.ai.gptagent.permission.push.PUSH_BROADCAST"
+        android:protectionLevel="signature"/>
+    <application
+        android:theme="@style/Theme.Gallery"
+        android:label="@string/album_app_name"
+        android:icon="@drawable/icon"
+        android:name="com.android.gallery3d.app.GalleryAppImpl"
+        android:allowBackup="false"
+        android:logo="@drawable/icon"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        android:supportsRtl="true"
+        android:extractNativeLibs="true"
+        android:resizeableActivity="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+        android:allowNativeHeapPointerTagging="false"
+        android:requestRawExternalStorageAccess="true">
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.Gallery"
+            android:label="@string/album_app_name"
+            android:name="com.android.gallery3d.app.Gallery"
+            android:exported="true"
+            android:taskAffinity=""
+            android:excludeFromRecents="false"
+            android:screenOrientation="behind"
+            android:configChanges="fontScale|colorMode|density|smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:showWhenLocked="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_CLEAN_RECYCLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <meta-data
+                android:name="vivo_flip_ex_screen_show"
+                android:value="1"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+            <meta-data
+                android:name="vivo.snap_activity_nokeyguard"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT"/>
+                <category android:name="android.intent.category.OPENABLE"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT"/>
+                <category android:name="android.intent.category.OPENABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <action android:name="com.android.camera.action.REVIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme=""/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="image/heic"/>
+                <data android:mimeType="image/heif"/>
+                <data android:mimeType="image/bmp"/>
+                <data android:mimeType="image/jpeg"/>
+                <data android:mimeType="image/gif"/>
+                <data android:mimeType="image/png"/>
+                <data android:mimeType="image/x-ms-bmp"/>
+                <data android:mimeType="image/vnd.wap.wbmp"/>
+                <data android:mimeType="image/webp"/>
+                <data android:mimeType="image/x-adobe-dng"/>
+                <data android:mimeType="image/dng"/>
+                <data android:mimeType="image/x-canon-cr2"/>
+                <data android:mimeType="image/x-nikon-nef"/>
+                <data android:mimeType="image/x-nikon-nrw"/>
+                <data android:mimeType="image/x-sony-arw"/>
+                <data android:mimeType="image/x-panasonic-rw2"/>
+                <data android:mimeType="image/x-olympus-orf"/>
+                <data android:mimeType="image/x-fuji-raf"/>
+                <data android:mimeType="image/x-pentax-pef"/>
+                <data android:mimeType="image/x-samsung-srw"/>
+                <data android:mimeType="application/vnd.google.panorama360+jpg"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.android.camera.action.REVIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="video/mpeg4"/>
+                <data android:mimeType="video/mp4"/>
+                <data android:mimeType="video/3gp"/>
+                <data android:mimeType="video/3gpp"/>
+                <data android:mimeType="video/3gpp2"/>
+                <data android:mimeType="application/sdp"/>
+                <data android:mimeType="video/x-ms-wmv"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PICK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PICK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PICK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_PICK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_PICK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_PICK_MULTI"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_PICK_MULTI"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_TO_FACE_GROUP_SELECT_PAGE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_PICK_MULTI"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_TO_GRID_PAGE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_TO_GRID_PAGE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_TO_GRID_PAGE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme=""/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="image/heic"/>
+                <data android:mimeType="image/heif"/>
+                <data android:mimeType="image/bmp"/>
+                <data android:mimeType="image/jpeg"/>
+                <data android:mimeType="image/gif"/>
+                <data android:mimeType="image/png"/>
+                <data android:mimeType="image/x-ms-bmp"/>
+                <data android:mimeType="image/vnd.wap.wbmp"/>
+                <data android:mimeType="image/webp"/>
+                <data android:mimeType="image/x-adobe-dng"/>
+                <data android:mimeType="image/dng"/>
+                <data android:mimeType="image/x-canon-cr2"/>
+                <data android:mimeType="image/x-nikon-nef"/>
+                <data android:mimeType="image/x-nikon-nrw"/>
+                <data android:mimeType="image/x-sony-arw"/>
+                <data android:mimeType="image/x-panasonic-rw2"/>
+                <data android:mimeType="image/x-olympus-orf"/>
+                <data android:mimeType="image/x-fuji-raf"/>
+                <data android:mimeType="image/x-pentax-pef"/>
+                <data android:mimeType="image/x-samsung-srw"/>
+                <data android:mimeType="application/vnd.google.panorama360+jpg"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="video/mpeg4"/>
+                <data android:mimeType="video/mp4"/>
+                <data android:mimeType="video/3gp"/>
+                <data android:mimeType="video/3gpp"/>
+                <data android:mimeType="video/3gpp2"/>
+                <data android:mimeType="application/sdp"/>
+                <data android:mimeType="video/x-ms-wmv"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_EDIT_PHOTO"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="photoeditor"
+                    android:host="com.vivo.gallery"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_TO_MEMORY"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_VIEW_PRIVACY"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.action.REQUEST_PERMISSION"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="com.vivo.gallery.support_iphone_vdfs"
+            android:value="2"/>
+        <meta-data
+            android:name="vivo.install.compatibility.os_name"
+            android:value="Funtouch"/>
+        <meta-data
+            android:name="com.vivo.gallery.support.image.choose"
+            android:value="8070000"/>
+        <meta-data
+            android:name="com.vivo.gallery.backup_support"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.cloud.ThirdModifyProvider.future.version"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.cloud.fake.state.future"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.cloud.sync.state.setting"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.cloud.support_third_download_original"
+            android:value="1000"/>
+        <meta-data
+            android:name="com.vivo.gallery.cloud.xspace_move_out"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.photopicker_supported"
+            android:value="true"/>
+        <meta-data
+            android:name="com.vivo.gallery.support.gallery_media"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.support.origin_file_download_service"
+            android:value="1"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.QuickApply"
+            android:label="@string/quickapply_intelligent_privacy_mosaic"
+            android:icon="@drawable/quickapply_intelligent_privacy_mosaic_new"
+            android:name="com.vivo.quickapplymodule.view.QuickApplyActivity"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="unspecified"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.share.SharedAlbumDetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:label="@string/cloud_shared_album"
+            android:icon="@drawable/icon"
+            android:name="com.android.gallery3d.vivo.share.ui.ShareAlbumEntranceActivity"
+            android:exported="true"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.share.ui.SharedGroupOwnerPreferenceActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.share.ui.RenameGroupNameActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="stateVisible">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.share.ui.ContactActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.share.ui.FamilyContactActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.vivo.gallery.wxapi.WXEntryActivity"
+            android:exported="true"
+            android:taskAffinity="com.vivo.gallery"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.cloud.setting.CloudSyncAlbumActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_CLOUD_SYNC_ALBUM"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.GalleryTabActivity"
+            android:name="com.android.gallery3d.vivo.online.ui.OnlineAgentActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="vivo.online_gallery_vivo_cloud_support"
+                android:value="1"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ONLINE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <service
+            android:name="com.android.gallery3d.vivo.cloud.setting.ClearJobSchedulerService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <service
+            android:name="com.android.gallery3d.vivo.cloud.slim.ManualSlimService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.cloud.slim.ManualSlimProcessActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.manualSlim"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.cloud.setting.AccountBundingActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_ACCOUNT_BINDING"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.share.ui.ServiceAgreementActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.GallerySetting2"
+            android:name="com.android.gallery3d.vivo.share.ui.ShareFAQActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.share.ui.ShareFAQDetailsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.GallerySetting2"
+            android:name="com.android.gallery3d.vivo.share.ui.ShareCreateActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustResize|stateHidden">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.GallerySetting2"
+            android:name="com.android.gallery3d.vivo.share.ui.ShareAlbumReportActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTileBar.Transparent"
+            android:name="com.android.gallery3d.vivo.share.ui.ShareAlbumReportContentActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:name="com.android.gallery3d.vivo.ThirdDownloadOriginalActivity"
+            android:permission="com.vivo.gallery.permission.ThirdDownloadOriginalActivity"
+            android:exported="true"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.third_download_original_action"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <service
+            android:name="com.vivo.vdfs.sdk.VdfsService"
+            android:exported="true"/>
+        <service
+            android:name="com.vivo.data_api.vdfs.compent_vdfs.GalleryVdfsService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.vivo.GalleryVdfsService"/>
+            </intent-filter>
+        </service>
+        <receiver
+            android:name="com.android.gallery3d.vivo.cloud.monitor.VivoAccountRemoveReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.bbk.account.action.ACCOUNT_REMOVED"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.android.gallery3d.vivo.cloud.slim.ability.SilentSlimTriggerReceiver"
+            android:permission="com.vivo.gallery3d.permission.STORAGE_THRESHOLD_MONITOR"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.cloud.TRIGGER_PROCESS"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.android.gallery3d.vivo.cloud.slim.ability.SilentSlimJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <service
+            android:name="com.android.gallery3d.vivo.cloud.download.OriginFileDownloadService"
+            android:permission="com.vivo.gallery3d.permission.OriginFileDownloadService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.OriginFileDownloadService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.aidl.GalleryTrashService"
+            android:permission="com.vivo.gallery3d.permission.GalleryTrashService"
+            android:exported="true">
+            <meta-data
+                android:name="support_clean_recycle"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.GalleryTrashService"/>
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="com.vivo.gallery.support_clean_ability"
+            android:value="true"/>
+        <receiver
+            android:name="com.android.gallery3d.vivo.cloud.monitor.BandwidthLimitRetryReceiver"
+            android:exported="false"/>
+        <service
+            android:name="com.android.gallery3d.vivo.cloud.download.OriginFileDownloadService"
+            android:permission="com.vivo.gallery3d.permission.OriginFileDownloadService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.OriginFileDownloadService"/>
+            </intent-filter>
+        </service>
+        <service android:name="com.aidl.GalleryTrashService">
+            <meta-data
+                android:name="support_clean_recycle"
+                android:value="true"/>
+        </service>
+        <meta-data
+            android:name="com.vivo.gallery.support_clean_ability"
+            android:value="true"/>
+        <property
+            android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+            android:value="true"/>
+        <property
+            android:name="android.app.appfunctions.app_metadata"
+            android:resource="@xml/app_metadata"/>
+        <property
+            android:name="android.app.appfunctions.app_metadata"
+            android:resource="@xml/app_metadata"/>
+        <meta-data
+            android:name="vivo.app.uninstall.content"
+            android:resource="@string/uninstall_gallery_tip"/>
+        <meta-data
+            android:name="vivo.app.uninstall.content"
+            android:resource="@string/uninstall_gallery_tip"/>
+        <meta-data
+            android:name="vivo.dynamicBlurRelaunch"
+            android:value="true"/>
+        <meta-data
+            android:name="vivo.handoff.app.id"
+            android:value="70001"/>
+        <meta-data
+            android:name="com.vivo.gallery.support.image.choose.global"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.image.choose.mobile_pad_same_branch"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.support.image.choose.version"
+            android:value="5"/>
+        <meta-data
+            android:name="com.vivo.gallery.support.image.choose.custom.close"
+            android:value="true"/>
+        <meta-data
+            android:name="vivo.xspace.support.privacy_file_manage"
+            android:value="true"/>
+        <meta-data
+            android:name="com.vivo.gallery.suppor_xpace_edit_enlarge"
+            android:value="true"/>
+        <meta-data
+            android:name="widget_db"
+            android:value="true"/>
+        <meta-data
+            android:name="widget_db"
+            android:value="true"/>
+        <meta-data
+            android:name="widget_take_turns_time_show"
+            android:value="true"/>
+        <meta-data
+            android:name="vivo.xspace.support.entrance_hide"
+            android:value="true"/>
+        <meta-data
+            android:name="vivo.handoff.action.turnOn"
+            android:value="com.android.gallery3d.vdfs.compent_vdfs.GalleryVdfsService"/>
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.3"/>
+        <meta-data
+            android:name="com.vivo.vcode.moduleId"
+            android:value="@string/data_collect_vcode_id"/>
+        <meta-data
+            android:name="com.vivo.analytics.AppId"
+            android:value="@string/data_collect_app_id"/>
+        <uses-library
+            android:name="com.google.android.media.effects"
+            android:required="false"/>
+        <meta-data
+            android:name="com.vivo.gallery.support_cloud"
+            android:value="2"/>
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="b23627080b0778218c28ce61217474a1"/>
+        <meta-data
+            android:name="com.vivo.gallery.support_intobin"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.support_online"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.support_beauty_makeup"
+            android:value="1"/>
+        <meta-data
+            android:name="tips_sdk_module_id"
+            android:value="3"/>
+        <meta-data
+            android:name="vivo.install.compatibility.deviceType"
+            android:value="phone|foldable|flip|tablet"/>
+        <meta-data
+            android:name="vivo.uninstall.compatibility.not_adbUninstall"
+            android:value="1"/>
+        <meta-data
+            android:name="vivo.cold_start_capture_enable"
+            android:value="true"/>
+        <meta-data
+            android:name="vivo.cold_iconstyle_follow"
+            android:value="true"/>
+        <meta-data
+            android:name="com.vivo.gallery.nfc_support"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery_boot_supported"
+            android:value="315"/>
+        <meta-data
+            android:name="com.vivo.gallery.view_video_version"
+            android:value="3"/>
+        <meta-data
+            android:name="support_backup"
+            android:value="1"/>
+        <meta-data
+            android:name="family_share_supported"
+            android:value="315"/>
+        <meta-data
+            android:name="com.vivo.gallery.memoryversion"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.anim_in_camera_support"
+            android:value="true"/>
+        <meta-data
+            android:name="support_vivo_foldable_rotate"
+            android:value="true"/>
+        <meta-data
+            android:name="tag_sdk_version"
+            android:value="5100"/>
+        <meta-data
+            android:name="com.vivo.gallery.support_watch_nfc_share"
+            android:value="true"/>
+        <meta-data
+            android:name="support_GetFeaturedRecommendations"
+            android:value="true"/>
+        <meta-data
+            android:name="com.android.notes.support_oneshot"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.frozen.quick.discharging"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.ai.llm.digital_beauty.supportness"
+            android:value="true"/>
+        <meta-data
+            android:name="com.vivo.ai.llm.digital_beauty.submodule.icon.1"
+            android:resource="@drawable/icon"/>
+        <meta-data
+            android:name="com.vivo.ai.llm.digital_beauty.submodule.title.1"
+            android:resource="@string/about_service_beauty_title"/>
+        <meta-data
+            android:name="com.vivo.ai.llm.digital_beauty.submodule.describe.1"
+            android:resource="@string/about_service_beauty_describe"/>
+        <meta-data
+            android:name="com.vivo.ai.llm.llm_common_3b.supportness"
+            android:value="true"/>
+        <meta-data
+            android:name="com.vivo.ai.llm.llm_common_3b.lora_image_album.describe"
+            android:resource="@string/multimodal_large_model_desc"/>
+        <meta-data
+            android:name="com.vivo.gallery.support_apple_vivo_transfer"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.support_heif_chansfer"
+            android:value="1"/>
+        <meta-data
+            android:name="vivo.xspace.global_verify_support"
+            android:value="true"/>
+        <meta-data
+            android:name="com.vivo.gallery.calldownload"
+            android:value="1000"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.Gallery"
+            android:label="@string/album_app_name"
+            android:name="com.android.gallery3d.app.CameraViewActivity"
+            android:exported="true"
+            android:taskAffinity=""
+            android:screenOrientation="sensor"
+            android:configChanges="fontScale|colorMode|density|smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:showWhenLocked="true">
+            <meta-data
+                android:name="vivo_flip_ex_screen_show"
+                android:value="1"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.camera.ACTION_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="vnd.android.cursor.dir/image"/>
+                <data android:mimeType="vnd.android.cursor.dir/video"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.camera.ACTION_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme=""/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="image/heic"/>
+                <data android:mimeType="image/heif"/>
+                <data android:mimeType="image/bmp"/>
+                <data android:mimeType="image/jpeg"/>
+                <data android:mimeType="image/gif"/>
+                <data android:mimeType="image/png"/>
+                <data android:mimeType="image/x-ms-bmp"/>
+                <data android:mimeType="image/vnd.wap.wbmp"/>
+                <data android:mimeType="image/webp"/>
+                <data android:mimeType="image/x-adobe-dng"/>
+                <data android:mimeType="image/dng"/>
+                <data android:mimeType="image/x-canon-cr2"/>
+                <data android:mimeType="image/x-nikon-nef"/>
+                <data android:mimeType="image/x-nikon-nrw"/>
+                <data android:mimeType="image/x-sony-arw"/>
+                <data android:mimeType="image/x-panasonic-rw2"/>
+                <data android:mimeType="image/x-olympus-orf"/>
+                <data android:mimeType="image/x-fuji-raf"/>
+                <data android:mimeType="image/x-pentax-pef"/>
+                <data android:mimeType="image/x-samsung-srw"/>
+                <data android:mimeType="application/vnd.google.panorama360+jpg"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.camera.ACTION_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="video/mpeg4"/>
+                <data android:mimeType="video/mp4"/>
+                <data android:mimeType="video/3gp"/>
+                <data android:mimeType="video/3gpp"/>
+                <data android:mimeType="video/3gpp2"/>
+                <data android:mimeType="application/sdp"/>
+                <data android:mimeType="video/x-ms-wmv"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/BaseAppTheme"
+            android:label="@string/album_app_name"
+            android:name="com.android.gallery3d.vivo.GalleryTabActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="layoutDirection|smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|locale"
+            android:windowSoftInputMode="adjustNothing"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="vivo.snap_activity_nokeyguard"
+                android:value="true"/>
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.APP_GALLERY"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="gallery"
+                    android:host="com.vivo.gallery"
+                    android:pathPrefix="/tab"/>
+            </intent-filter>
+        </activity>
+        <activity-alias
+            android:label="@string/album_app_name"
+            android:name="com.cooliris.media.Gallery"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:targetActivity="com.android.gallery3d.vivo.GalleryTabActivity"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+            </intent-filter>
+        </activity-alias>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.GalleryTabActivity"
+            android:label="@string/album_app_name"
+            android:name="com.android.gallery3d.vivo.ocr.ui.FileRecogResultActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.ExternalSettingActivity"
+            android:permission="android.permission.WRITE_SETTINGS"
+            android:exported="true"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_EXTERNAL_SETTINGS"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:label="@string/album_app_name"
+            android:name="com.android.gallery3d.app.UsbDeviceActivity"
+            android:exported="true"
+            android:taskAffinity=""
+            android:launchMode="singleInstance"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter"/>
+        </activity>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:icon="@drawable/icon_set_desktopwallpaper"
+            android:name="com.android.gallery3d.app.Wallpaper"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <intent-filter android:label="@string/wallpaper_label">
+                <action android:name="android.intent.action.ATTACH_DATA"/>
+                <data android:mimeType="image/*"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter android:label="@string/wallpaper_label">
+                <action android:name="android.intent.action.SET_WALLPAPER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter android:label="@string/wallpaper_label">
+                <action android:name="com.vivo.gallery.SET_WALLPAPER"/>
+                <data android:mimeType="*/*"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.wallpaper.preview"
+                android:resource="@xml/wallpaper_picker_preview"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.CropImage"
+            android:label="@string/crop_label"
+            android:name="com.android.gallery3d.app.CropImage"
+            android:exported="true"
+            android:process=":crop"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+            <intent-filter android:label="@string/crop_label">
+                <action android:name="com.android.camera.action.CROP"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:scheme=""/>
+                <data android:mimeType="image/*"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.ALTERNATIVE"/>
+                <category android:name="android.intent.category.SELECTED_ALTERNATIVE"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.app.OCRCropImage"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:label="@string/crop_label"
+            android:name="com.android.gallery3d.app.AlbumPickActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:label="@string/select_image"
+            android:name="com.android.gallery3d.app.DialogPicker"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+        </activity>
+        <activity
+            android:theme="@style/Transparent"
+            android:name="com.android.gallery3d.vivo.permission.PrivacyDialogActivity"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value=""/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.search.ui.MainSearchActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustPan|stateVisible"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.action.MAIN_SEARCH"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:label="@string/select_album"
+            android:name="com.android.gallery3d.app.AlbumPicker"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+            <intent-filter>
+                <action android:name="com.mediatek.action.PICK_VIDEO_FOLDER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.mediatek.action.PICK_IMAGE_FOLDER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+        </activity>
+        <receiver
+            android:name="com.android.gallery3d.push.PushMessageReceiverImpl"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.vivo.pushservice.action.RECEIVE"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.android.gallery3d.util.LocalChangeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.LOCALE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.vivo.push.sdk.service.CommandService"
+            android:permission="com.push.permission.UPSTAGESERVICE"
+            android:exported="true"/>
+        <meta-data
+            android:name="sdk_version"
+            android:value="340"/>
+        <meta-data
+            android:name="api_key"
+            android:value="424acafe8f314a898b29ed738a6ec77c"/>
+        <meta-data
+            android:name="app_id"
+            android:value="1033"/>
+        <receiver
+            android:name="com.android.gallery3d.bbk.BBKGalleryReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.camera.SecureCameraActivity.START_GALLERY_PROC"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.android.settings.font_size_changed"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.android.gallery3d.vivo.cloud.download.DownloadService"
+            android:exported="false"/>
+        <provider
+            android:name="com.android.gallery3d.vivo.cloud.download.DownloadProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery.download.fundownloads">
+            <path-permission
+                android:permission="android.permission.INTERNET"
+                android:pathPrefix="/my_downloads"/>
+            <path-permission
+                android:permission="android.permission.ACCESS_ALL_DOWNLOADS"
+                android:pathPrefix="/all_downloads"/>
+            <path-permission
+                android:permission="android.permission.INTERNET"
+                android:pathPrefix="/download"/>
+            <grant-uri-permission android:pathPrefix="/all_downloads/"/>
+            <grant-uri-permission android:pathPrefix="/my_downloads/"/>
+        </provider>
+        <meta-data
+            android:name="com.vivo.gallery.support_global_search"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.gallery.pds_support"
+            android:value="2004"/>
+        <meta-data
+            android:name="com.vivo.gallery.smart_search_key"
+            android:value="1001"/>
+        <meta-data
+            android:name="com.vivo.gallery.behavior"
+            android:value="1000"/>
+        <meta-data
+            android:name="com.vivo.gallery.smart_search_support"
+            android:value="20250825"/>
+        <service
+            android:name="com.aidl.pds.PdsService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.PdsService"/>
+            </intent-filter>
+        </service>
+        <provider
+            android:name="com.android.gallery3d.vivo.online.db.OnlineAgentProvider"
+            android:permission="com.vivo.gallery3d.permission.OnlineAgentProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery3d.online"/>
+        <meta-data
+            android:name="com.baidu.lbsapi.API_KEY"
+            android:value="bw9MRUuVHCZOu0p4gmKbzbUm"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.facegroup.FaceGroupActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.action.FACE_GROUP"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.NewPageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="vivo.snap_activity_nokeyguard"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.CustomBeautyIntroducePageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.CustomBeautyPageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.upgrade.UpgradeGuideActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.GallerySetting2"
+            android:label="@string/album_app_name"
+            android:icon="@drawable/icon"
+            android:name="com.android.gallery3d.vivo.OfflineAIServiceSettingActivity"
+            android:exported="true"
+            android:taskAffinity="com.vivo.setting"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_OFFLINE_AI_SERVICE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.GallerySetting2"
+            android:label="@string/album_app_name"
+            android:icon="@drawable/icon"
+            android:name="com.android.gallery3d.vivo.SettingMenuActivity"
+            android:exported="true"
+            android:taskAffinity="com.vivo.setting"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="vivo.intent.category.settings.MAIN"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTOION_SET"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_SET"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_CLOUD_STORE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <meta-data
+                android:name="vivo.settings.order"
+                android:value="4600"/>
+            <meta-data
+                android:name="search_xml"
+                android:resource="@xml/settingmenuactivity_nodes"/>
+            <intent-filter android:priority="-500">
+                <action android:name="com.android.settings.action.EXTRA_SETTINGS"/>
+            </intent-filter>
+            <meta-data
+                android:name="com.android.settings.category"
+                android:value="com.android.settings.category.internal"/>
+            <meta-data
+                android:name="com.android.settings.title"
+                android:resource="@string/album_app_name"/>
+            <intent-filter>
+                <action android:name="com.android.settings.action.VIVO_SYSTEM_SETTINGS"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="vivo.settings.PRIVACY_FEATURES_INTRODUCE_ACTION"/>
+                <category android:name="com.vivo.settings.category.privacy"/>
+            </intent-filter>
+            <meta-data
+                android:name="vivo.settings.privacy.order"
+                android:value="200"/>
+            <meta-data
+                android:name="vivo.settings.privacy.title"
+                android:resource="@string/third_party_app_deletes_image_title"/>
+            <meta-data
+                android:name="vivo.settings.privacy.summary"
+                android:resource="@string/third_party_app_deletes_image_summary"/>
+            <meta-data
+                android:name="vivo.settings.privacy.bigicon"
+                android:resource="@drawable/third_party_app_deletes_image_img"/>
+            <meta-data
+                android:name="vivo.settings.privacy.TITLE_ICON"
+                android:resource="@drawable/third_party_app_title_image_img"/>
+            <meta-data
+                android:name="vivo.settings.manageahotoalbum"
+                android:value="1"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.setting.activity.EditorSaveMeasuresActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_EDITOR_SAVE_MEASURES"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.conshots.ConShootingActivity"
+            android:exported="false"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false"
+            android:showWhenLocked="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTileBar.Transparent"
+            android:label="@string/menu_string_action_photo_retrieval"
+            android:name="com.android.gallery3d.vivo.SightVideoPlayer"
+            android:exported="false"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="hide"/>
+        </activity>
+        <receiver
+            android:name="com.android.gallery3d.data.safedelete.SafeDeleteReceiver"
+            android:permission="com.vivo.daemonService.permission.safelyDelete"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.services.security.client.FileDelete"/>
+                <action android:name="com.vivo.gallery.action.jumpRecycleBin"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.aidl.NewPictureService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.aidl.NewPictureService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.vivo.share.service.GrantUriPermissionService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.GrantUriPermissionService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.android.gallery3d.vivo.GalleryService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="GalleryService.common"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.android.gallery3d.vivo.online.ui.OnlineGalleryService"
+            android:exported="false"/>
+        <receiver
+            android:name="com.android.gallery3d.vivo.classify.SymmetryNewPicBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.symmetry.UPDATE_IMAGE_CLASSIFICATION"/>
+            </intent-filter>
+        </receiver>
+        <meta-data
+            android:name="com.android.gallery3d.vivo.search.util.GalleryGlideModule"
+            android:value="GlideModule"/>
+        <service
+            android:name="com.android.gallery3d.vivo.memoriesalbum.PhotoRecallJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <service
+            android:name="com.android.gallery3d.vivo.memoriesalbum.journey.JourneyClusterJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <receiver
+            android:name="com.android.gallery3d.vivo.memoriesalbum.MemoryAlbumReceiver"
+            android:permission="com.vivo.gallery.SEND_MEMORY_NOTIFY"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.photorecall"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.vivo.photoeditormodule.sticker.StickerSyncReceiver"
+            android:permission="com.bbk.theme.permission.STICKER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.bbk.theme.sticker.action.REQUEST_ALBUM_SYNC"/>
+            </intent-filter>
+        </receiver>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.memoriesalbum.MemoriesAlbumActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:parentActivityName="com.android.gallery3d.vivo.GalleryTabActivity"
+            android:resizeableActivity="true">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+        </activity>
+        <provider
+            android:name="com.android.gallery3d.vivo.settingsearch.GallerySearchIndexablesProvider"
+            android:permission="android.permission.READ_SEARCH_INDEXABLES"
+            android:exported="true"
+            android:multiprocess="false"
+            android:authorities="com.vivo.gallery.settingsearch"
+            android:grantUriPermissions="true">
+            <intent-filter>
+                <action android:name="android.content.action.SEARCH_INDEXABLES_PROVIDER"/>
+            </intent-filter>
+        </provider>
+        <activity
+            android:theme="@style/vivo_upgrade_activity_style"
+            android:label="dialog_name"
+            android:name="com.vivo.upgradelibrary.upmode.appdialog.VivoUpgradeActivityDialog"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <provider
+            android:name="com.vivo.upgradelibrary.utils.FileProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery.upgrade"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/upgrade_file_paths"/>
+        </provider>
+        <service
+            android:name="com.vivo.aivoice.sdk.AiVoiceCommandService"
+            android:permission="com.vivo.aivoice.sdk.permission.AI_SERVICE_ALBUM"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.aivoice.sdk.AI_SERVICE"/>
+            </intent-filter>
+        </service>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.GalleryExportActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_SIMILAR"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_EXPORT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.VideoCompress"
+            android:name="com.android.gallery3d.vivo.videotranscode.VideoTranscodeActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.intent.VIDEO_COMPRESS"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.photomore.PhotoMoreMapActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.featured.ui.EffectDescActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.pdfppt.CreatPDForPPTActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustNothing"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.pdfppt.AdJustPDFImageActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <service
+            android:name="com.android.gallery3d.vivo.recommend.SelectedRecommendJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <receiver
+            android:name="com.android.gallery3d.push.PushBroadCastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="broadcast_action_push_date_click"/>
+                <action android:name="broadcast_action_push_memory_click"/>
+                <action android:name="broadcast_action_push_open_click"/>
+            </intent-filter>
+        </receiver>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery.fileProvider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_paths"/>
+        </provider>
+        <provider
+            android:name="com.vivo.share.GalleryFileProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery.toShare.fileProvider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_provider_paths"/>
+        </provider>
+        <service
+            android:name="com.aidl.VideoSummaryService"
+            android:permission="com.vivo.VideoSummaryService"
+            android:exported="true"/>
+        <service
+            android:name="com.aidl.PhotoSummaryService"
+            android:permission="com.vivo.PhotoSummaryService"
+            android:exported="true"/>
+        <service
+            android:name="com.aidl.VideoEditorMonitorService"
+            android:permission="com.vivo.VideoEditorExceptionMonitor"
+            android:exported="true"/>
+        <service
+            android:name="com.android.gallery3d.vivo.recommend.GalleryRecommendJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <service
+            android:name="com.android.gallery3d.vivo.sticker.StickerMigrationJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <service
+            android:name="com.android.gallery3d.vivo.aiportrait.FaceRecognizeService"
+            android:enabled="true"
+            android:exported="false"
+            android:process="com.vivo.gallery.aiservice"/>
+        <service
+            android:name="com.android.gallery3d.vivo.drag.GalleryDragService"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.easyshare.DragServiceEx"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.aidl.SdkDownloadService"
+            android:permission="com.vivo.SdkDownloadService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.aidl.ISdkDownload"/>
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="permission.reason.for.storage"
+            android:resource="@string/gallery_read_storage_permission"/>
+        <meta-data
+            android:name="permission.reason.for.read_media_visual"
+            android:resource="@string/gallery_read_storage_permission"/>
+        <meta-data
+            android:name="permission.reason.for.read_media_aural"
+            android:resource="@string/gallery_read_storage_audio_permission"/>
+        <meta-data
+            android:name="permission.reason.for.location"
+            android:resource="@string/gallery_location_permission"/>
+        <meta-data
+            android:name="permission.reason.for.contacts"
+            android:resource="@string/gallery_read_contacts_permission"/>
+        <meta-data
+            android:name="permission.reason.for.sms"
+            android:resource="@string/gallery_read_sms_permission"/>
+        <service
+            android:name="com.android.gallery3d.vivo.nfc.NfcService"
+            android:permission="com.vivo.gallery.permission.NFC_SERVICE"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.vhome.album.nfc.service"/>
+            </intent-filter>
+        </service>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.memoriesalbum.memorybuffer.MemoryBufferActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing"
+            android:parentActivityName="com.android.gallery3d.app.AbstractGalleryActivity"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vendor.home_indicator"
+                android:value="dark"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_TO_MEMORY_BUFFER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.faq.FAQActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.faq.SpatialEffectFaqActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.GalleryTabActivity"
+            android:name="com.vivo.permission.GalleryPermissionActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan">
+            <meta-data
+                android:name="vivo_flip_ex_screen_show"
+                android:value="1"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:name="com.vivo.permission.GalleryPermissionDialogActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.search.ui.sug.SearchSugActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="true"/>
+        <activity
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:name="com.vivo.permission.GalleryPermissionCheckActivity"
+            android:exported="true"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan"
+            android:resizeableActivity="true"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.footprint.ui.FootprintMapActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="true"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.premium.PremiumSettingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.action.ACTION_TO_PREMIUM"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.premium.PremiumWebActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"/>
+        <activity
+            android:theme="@style/Theme.Gallery.WebView.Vipone"
+            android:name="com.android.gallery3d.vivo.premium.PremiumVipOneActivity"
+            android:permission="com.vivo.gallery.permission.PREMIUM_WEB"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.action.ACTION_TO_PREMIUM_WEB"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.android.gallery3d.vivo.c2pa.C2PaListActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:showWhenLocked="true"/>
+        <activity
+            android:theme="@style/Theme.Gallery.Transparent"
+            android:name="com.android.gallery3d.ShareRefinementDialog"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
+            android:theme="@style/AppTheme"
+            android:label=""
+            android:name="com.android.gallery3d.vivo.setting.activity.AIEditAssistantActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="fontScale|layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|locale"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false"/>
+        <uses-native-library
+            android:name="libvdnn.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="libOpenCL.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="libvcap_npu_network_v1.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="liblava.so"
+            android:required="false"/>
+        <service
+            android:name="com.aidl.data.GalleryDataService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.aidl.data.GalleryDataService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.vivo.data_api.xspace.XSpacePrivateDataTransferService"
+            android:permission="com.vivo.data_api.xspace.permission.XSPACE_PRIVATE_DATA_TRANSFER"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.aidl.data.XSpacePrivateDataTransferService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.aidl.data.NearFieldService"
+            android:permission="com.vivo.gallery3d.permission.NearFieldService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.aidl.data.NearFieldService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.aidl.memory.MemoryService"
+            android:permission="com.vivo.GenerateMemoryService"
+            android:exported="true"/>
+        <service
+            android:name="com.android.gallery3d.vivo.skill.SkillProviderService"
+            android:permission="com.vivo.intentionkit.permission.BIND_SKILLPROVIDER"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.SkillProviderService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.android.gallery3d.vivo.skill.SkillProviderService"
+            android:permission="com.vivo.intentionkit.permission.BIND_SKILLPROVIDER"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.SkillProviderService"/>
+            </intent-filter>
+        </service>
+        <receiver
+            android:name="com.vivo.data_api.decode.ClearDataBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="vivo.intent.action.CLEAR_PACKAGE_DATA.com.vivo.gallery"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.vivo.data_api.bokeh.USBStateBroadcastReceiver"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_STATE"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.vivo.securityshareimg.SecureShareImgService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.aidl.SecureShareImgService"/>
+            </intent-filter>
+        </service>
+        <provider
+            android:name="com.vivo.securityshareimg.ImgProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery3d.securityshareimg"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/secure_share_img_file_paths"/>
+        </provider>
+        <provider
+            android:name="com.android.gallery3d.provider.GalleryDataProvider"
+            android:permission="com.android.gallery3d.permission.GalleryDataProvider"
+            android:exported="true"
+            android:authorities="com.android.gallery3d.dataprovider">
+            <meta-data
+                android:name="com.android.gallery3d.GalleryDataProvider.suport"
+                android:value="2"/>
+            <meta-data
+                android:name="com.vivo.gallery.support.aigc_3d"
+                android:value="1"/>
+        </provider>
+        <provider
+            android:name="com.vivo.data_api.provider.merge.GalleryOpenProvider"
+            android:exported="true"
+            android:authorities="com.vivo.gallery3d.cloud.provider;com.vivo.gallery3d.mediaextra;com.vivo.data_api.provider.merge.GalleryOpenProvider;com.vivo.gallery3d.favorite;com.android.gallery3d.provider;com.vivo.gallery3d.recycle;com.vivo.gallery.sharesliceprovider;com.vivo.gallery3d.provider.photozoom;com.vivo.gallery3d.folder.filter;com.vivo.gallery3d.rename.filter;com.vivo.gallery3d.share;com.android.gallery3d.photopicker;com.vivo.gallery3d.cloud.provider;com.vivo.gallery3d.search.ocr;com.vivo.gallery3d.search.tag;com.vivo.gallery3d.face.group;com.vivo.gallery3d.provider.tanslation;com.vivo.gallery3d.recommend;com.vivo.gallery3d.memoryalbum;com.vivo.gallery3d.aiEditor.provider;com.open.gallery.smart.provider"/>
+        <provider
+            android:name="com.vivo.data_api.provider.merge.GalleryCloseProvider"
+            android:exported="false"
+            android:authorities="com.vivo.data_api.provider.merge.GalleryCloseProvider;com.vivo.gallery3d.provider.mysuggestionprovider;com.vivo.gallery3d.banneralbum;com.vivo.gallery3d.file.meta;com.vivo.gallery3d.hidden;com.vivo.gallery.aiportrait;com.android.gallery3d.vivo.photosimilar;com.android.gallery3d.filtershow.aibeauty.changebg;com.android.gallery3d.filtershow.modeldownload;com.android.gallery3d.collage.download"/>
+        <provider
+            android:name="com.vivo.aivisionmodule.data.provider.ImageEcoKitProvider"
+            android:permission="com.vivo.gallery.permission.ImageEcokit.provider"
+            android:exported="true"
+            android:authorities="com.vivo.gallery3d.imageecokit.provider"/>
+        <uses-library
+            android:name="android.hidl.base-V1.0-java"
+            android:required="false"/>
+        <meta-data
+            android:name="com.vivo.push.client_switch"
+            android:value="1"/>
+        <meta-data
+            android:name="local_iv"
+            android:value="MzMsMzQsMzUsMzYsMzcsMzgsMzksNDAsNDEsMzIsMzgsMzcsMzYsMzUsMzQsMzMsI0AzNCwzMiwzMywzNywzMywzNCwzMiwzMywzMywzMywzNCw0MSwzNSwzNSwzMiwzMiwjQDMzLDM0LDM1LDM2LDM3LDM4LDM5LDQwLDQxLDMyLDM4LDM3LDMzLDM1LDM0LDMzLCNAMzQsMzIsMzMsMzcsMzMsMzQsMzIsMzMsMzMsMzMsMzQsNDEsMzUsMzIsMzIsMzI"/>
+        <meta-data
+            android:name="com.vivo.push.support_monitor"
+            android:value="1"/>
+        <uses-native-library
+            android:name="librealm-jni.vivo.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="libOpenCL.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="libvcap_npu_network.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="libvcap_npu_network_v1.so"
+            android:required="false"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:icon="@drawable/ic_manager_gallery"
+            android:name="com.vivo.gallerywidgetmodule.view.WidgetStorageActivity"
+            android:exported="false"
+            android:taskAffinity=""
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:resizeableActivity="true">
+            <intent-filter>
+                <action android:name="gallerywidgetstorageactivity"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity-alias
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:icon="@drawable/ic_manager_gallery"
+            android:name="com.android.gallery3d.vivo.recommend.GalleryWidgetSettingActivity"
+            android:exported="true"
+            android:taskAffinity=""
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:targetActivity="com.vivo.gallerywidgetmodule.view.WidgetStorageActivity"
+            android:resizeableActivity="true">
+            <intent-filter>
+                <action android:name="gallerywidgetsettingactivity"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="vivo.cold_start_activity_caller_package"
+                android:value="com.vivo.widget.gallery"/>
+        </activity-alias>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.vivo.gallerywidgetmodule.view.WidgetSettingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <provider
+            android:name="com.vivo.gallery.agent.provider.AgentFileProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery.agentFileProvider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/agent_file_paths"/>
+        </provider>
+        <activity
+            android:theme="@style/AppTheme"
+            android:label=""
+            android:name="com.vivo.gallery.agent.ui.AgentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="fontScale|layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|locale"
+            android:windowSoftInputMode="adjustResize"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:label=""
+            android:name="com.vivo.gallery.agent.ui.EditFinetuneActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="unspecified"
+            android:configChanges="fontScale|layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|locale"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <service
+            android:name="com.vivo.gallery.agent.component.notification.ModelDownloadNotificationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
+        <provider
+            android:name="com.vivo.gallerymedia.provider.GalleryMediaProvider"
+            android:permission="com.vivo.gallery3d.permission.GALLERY_MEDIA_PROVIDER"
+            android:exported="true"
+            android:authorities="com.vivo.gallery.media.provider"
+            android:syncable="false"
+            android:grantUriPermissions="true"/>
+        <service
+            android:name="com.vivo.cloud.agent.AgentService"
+            android:permission="com.vivo.cloud.agent.permission.AgentService"
+            android:enabled="true"
+            android:exported="true"
+            android:process="com.vivo.gallery.cloudagent">
+            <intent-filter>
+                <action android:name="com.vivo.cloud_api.ICloudAgent"/>
+            </intent-filter>
+        </service>
+        <provider
+            android:name="com.vivo.cloud_api.db.CloudAgentProvider"
+            android:permission="com.vivo.gallery3d.permission.CloudGalleryProvider"
+            android:exported="true"
+            android:authorities="com.vivo.gallery3d.cloud"/>
+        <provider
+            android:name="com.vivo.cloud_api.db.CloudThirdProvider"
+            android:permission="com.vivo.gallery3d.permission.CloudGalleryProvider"
+            android:exported="true"
+            android:process="com.vivo.gallery.cloudagent"
+            android:authorities="com.vivo.gallery3d.cloud.third"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.SuperdocActivity"
+            android:name="com.vivo.superdocmodule.view.SuperDocActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.vivo.superdocmodule.view.SelectAreaActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:name="com.vivo.superdocmodule.view.TransferDocResultActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <meta-data
+            android:name="com.vivo.ai.llm.image_inpainting.supportness"
+            android:value="true"/>
+        <meta-data
+            android:name="com.vivo.ai.llm.image_inpainting.describe"
+            android:resource="@string/pe_ai_eliminates_ondevice_description"/>
+        <service
+            android:name="com.aidl.FaceDetectService"
+            android:permission="com.vivo.MakeupMigrate"
+            android:exported="true"/>
+        <activity
+            android:theme="@style/Theme.FilterShow.NoTitleBar.FullScreen"
+            android:label="@string/app_name"
+            android:name="com.vivo.photoeditormodule.FilterShowActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:screenOrientation="unspecified"
+            android:configChanges="fontScale|layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|locale"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="action_nextgen_edit"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+            <intent-filter>
+                <action android:name="com.vivo.action.filtershow.EDIT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:mimeType="image/*"
+                    android:scheme="vivogallery"
+                    android:host="com.vivo.gallery"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.FilterShow.NoTitleBar.ScreenShot"
+            android:label="@string/app_name"
+            android:name="com.vivo.photoeditormodule.screenshot.ScreenshotEdit"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:screenOrientation="unspecified"
+            android:configChanges="fontScale|layoutDirection|smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|locale"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.action.screenshot.EDIT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.FilterShow.NoTileBar.FullScreen.Black"
+            android:label="@string/app_name"
+            android:name="com.vivo.photoeditormodule.PEApplyEffectActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="unspecified"
+            android:configChanges="fontScale|layoutDirection|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|locale"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.TextInput.WordEdit"
+            android:name="com.vivo.photoeditormodule.word.edit.WordEditActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateAlwaysHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.TextInput.floating"
+            android:name="com.vivo.photoeditormodule.word.TextInputActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:screenOrientation="portrait"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateAlwaysVisible"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.TextInput.floating"
+            android:name="com.vivo.photoeditormodule.pepainter.PainterTextInputActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|uiMode|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateAlwaysVisible"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.FilterShow.NoTileBar.FullScreen.Transparent"
+            android:name="com.vivo.photoeditormodule.livephoto.editor.LivePhotoRefocusEditActivity"
+            android:exported="false"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+        </activity>
+        <provider
+            android:name="com.vivo.photoeditormodule.screenshot.ShareAutoDeleteProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery.fileProvider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/share_file_provider_paths"/>
+        </provider>
+        <meta-data
+            android:name="com.vivo.photoeditormodule.glide.PeGlideModule"
+            android:value="GlideModule"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.AIVisionActivity"
+            android:name="com.vivo.aivisionmodule.ui.mainview.AIVisionActivity"
+            android:permission="com.vivo.aivisionmodule.permission.ACCESS_AIVISION"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.AIVISION"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.AIVisionActivity"
+            android:name="com.vivo.aivisionmodule.ui.recenttask.aimodifytask.AIModifyTaskActivity"
+            android:permission="com.vivo.aivisionmodule.permission.ACCESS_AIVISION"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.gallery.AIVISION"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.SpatialEffectActivity"
+            android:name="com.vivo.spatialeffect.render.SpatialEffectViewActivity"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:configChanges="fontScale|density|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@style/Theme.FilterShow.NoTitleBar.FullScreen"
+            android:name="com.vivo.magicmove.ui.LightEditActivity"
+            android:exported="false"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false"/>
+        <meta-data
+            android:name="android.supports_size_changes"
+            android:value="true"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.AIVISION"
+            android:name="com.vivo.photoeditormodule.livephoto.task.ui.LivePhotoEliminateTaskActivity"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.AIVISION"
+            android:name="com.vivo.photoeditormodule.livephoto.task.ui.LivePhotoEliminateTaskResultActivity"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.QuickApply"
+            android:name="com.vivo.quickapplymodule.view.ImmersionCompareActivity"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
+            android:resizeableActivity="false"/>
+        <service
+            android:name="com.vivo.aivisionmodule.business.AIVisionService"
+            android:exported="false"/>
+        <meta-data
+            android:name="com.vivo.gallery.pe_sub_func_support_ver"
+            android:value="2"/>
+        <service
+            android:name="androidx.appfunctions.service.PlatformAppFunctionService"
+            android:permission="android.permission.BIND_APP_FUNCTION_SERVICE"
+            android:enabled="@bool/enablePlatformAppFunctionService"
+            android:exported="true">
+            <property
+                android:name="android.app.appfunctions"
+                android:value="app_functions.xml"/>
+            <property
+                android:name="android.app.appfunctions.schema"
+                android:value="app_functions_schema.xsd"/>
+            <property
+                android:name="android.app.appfunctions.v2"
+                android:value="app_functions_v2.xml"/>
+            <intent-filter>
+                <action android:name="android.app.appfunctions.AppFunctionService"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="androidx.appfunctions.service.ExtensionAppFunctionService"
+            android:permission="android.permission.BIND_APP_FUNCTION_SERVICE"
+            android:enabled="@bool/enableExtensionAppFunctionService"
+            android:exported="true">
+            <property
+                android:name="android.app.appfunctions"
+                android:value="app_functions.xml"/>
+            <property
+                android:name="android.app.appfunctions.schema"
+                android:value="app_functions_schema.xsd"/>
+            <property
+                android:name="android.app.appfunctions.v2"
+                android:value="app_functions_v2.xml"/>
+            <intent-filter>
+                <action android:name="android.app.appfunctions.AppFunctionService"/>
+            </intent-filter>
+        </service>
+        <uses-library
+            android:name="com.android.extensions.appfunctions"
+            android:required="false"/>
+        <activity
+            android:theme="@style/VivoWalletCashierTransTheme"
+            android:name="com.vivo.wallet.pay.plugin.webview.PayWebActivity"
+            android:exported="false"
+            android:configChanges="screenSize|uiMode|screenLayout|orientation|keyboardHidden"/>
+        <activity
+            android:theme="@style/VivoWalletTransparentTheme"
+            android:name="com.vivo.wallet.pay.plugin.webview.PluginWebActivity"
+            android:exported="false"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden">
+            <meta-data
+                android:name="android.vivo_nightmode_support"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@android:style/Theme.NoTitleBar"
+            android:name="com.vivo.wallet.pay.plugin.view.TransWxEntryActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar"
+            android:label="@string/collage_title_collage"
+            android:name="com.vivo.collagemodule.PuzzleActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustPan"
+            android:resizeableActivity="false">
+            <meta-data
+                android:name="android.supports_size_changes"
+                android:value="true"/>
+            <intent-filter>
+                <action android:name="com.vivo.collage_action_start_collagemodule"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Collage.Theme.TextInput.floating"
+            android:name="com.vivo.collagemodule.CollageTextInputActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden|mnc|mcc"
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible"
+            android:resizeableActivity="false"/>
+        <meta-data
+            android:name="aiservice.imgcaption.version"
+            android:value="1"/>
+        <receiver
+            android:name="com.android.gallery3d.vivo.PowerEventBroadcastReceiver"
+            android:permission="com.vivo.gallery.permission.power"
+            android:exported="true"
+            android:process="com.vivo.gallery.aiservice">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.action.POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="com.vivo.gallery.action.INIT_REALM"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.android.gallery3d.vivo.ai.AIService"
+            android:permission="com.vivo.gallery3d.permission.AIService"
+            android:exported="false"
+            android:process="com.vivo.gallery.aiservice"/>
+        <activity
+            android:theme="@style/WebViewStyle"
+            android:name="com.vivo.commonlibrary.permission.InfoListActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
+            android:theme="@style/Theme.GallerySetting2"
+            android:name="com.vivo.commonlibrary.permission.RecoveryPrivacyActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.ACTION_PRIVACY_ACTIVITY"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.Gallery.NoTitleBar.GalleryAboutActivity"
+            android:name="com.vivo.permission.GalleryAboutActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation|keyboardHidden"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity
+            android:theme="@style/Theme.GallerySetting2"
+            android:name="com.vivo.commonlibrary.permission.UserServiceAgreementActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan"/>
+        <service
+            android:label="@string/app_name"
+            android:name="com.vivo.easytransfer_api.GalleryTransferService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.easyshare.TRANSFER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="com.vivo.easyshare.TRANSFER_ID_1064"/>
+            </intent-filter>
+            <meta-data
+                android:name="easyshare_transfer_key"
+                android:value="com.vivo.easytransfer_api.BackupRestoreMultiFile"/>
+            <meta-data
+                android:name="easyshare_transfer_type"
+                android:value="2"/>
+            <meta-data
+                android:name="easyshare_transfer_id"
+                android:value="1064"/>
+            <meta-data
+                android:name="enable_xspace_transfer"
+                android:value="true"/>
+        </service>
+        <service
+            android:name="com.vivo.easytransfer_api.appletransfer.AppleTransferService"
+            android:permission="com.vivo.itrans.permission.BIND_TRANS_DATA_SERVICE"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.trans.action.TRANS_SERVICE_ID_10"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+        <receiver
+            android:name="com.vivo.easytransfer_api.appletransfer.AppleTransferReceiver"
+            android:permission="com.vivo.gallery.permission.APPLE_TRANSFER_RECEIVER"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.action.appletransfer.restore"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.vivo.share.ShareRefinementReceiver"
+            android:exported="false"/>
+        <activity
+            android:theme="@style/ShortMusicTheme"
+            android:name="com.kxk.ugc.video.music.container.activity.MusicSelectActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|navigation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.vivo_nightmode_support"
+                android:value="false"/>
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@style/ShortMusicTheme"
+            android:name="com.kxk.ugc.video.music.container.activity.MusicSearchActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="screenSize|uiMode|orientation|navigation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.vivo_nightmode_support"
+                android:value="false"/>
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@style/ShortMusicTheme"
+            android:name="com.kxk.ugc.video.music.container.activity.MusicStyleActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="screenSize|uiMode|orientation|navigation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.vivo_nightmode_support"
+                android:value="false"/>
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <activity
+            android:theme="@style/ShortMusicTheme"
+            android:name="com.kxk.ugc.video.music.container.activity.MusicAggregationActivity"
+            android:exported="false"
+            android:screenOrientation="behind"
+            android:configChanges="smallestScreenSize|screenSize|uiMode|screenLayout|orientation|navigation|keyboardHidden|mnc|mcc">
+            <meta-data
+                android:name="android.vivo_nightmode_support"
+                android:value="false"/>
+            <meta-data
+                android:name="android.vivo_nightmode_relaunch"
+                android:value="false"/>
+        </activity>
+        <meta-data
+            android:name="com.bumptech.glide.integration.okhttp3.OkHttpGlideModule"
+            android:value="GlideModule"/>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:exported="false"
+            android:authorities="com.vivo.gallery.androidx-startup">
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                android:value="androidx.startup"/>
+            <meta-data
+                android:name="androidx.p001lifecycle.ProcessLifecycleInitializer"
+                android:value="androidx.startup"/>
+            <meta-data
+                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+                android:value="androidx.startup"/>
+        </provider>
+        <meta-data
+            android:name="vivo_intent_kit_version_name"
+            android:value="0.1.4.1"/>
+        <meta-data
+            android:name="vivo_intent_kit_version_build_id"
+            android:value="240710_79d992ca"/>
+        <service
+            android:name="com.vivo.gallery.SkillProviderService"
+            android:permission="com.vivo.intentionkit.permission.BIND_SKILLPROVIDER"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.gallery.SkillProviderService"/>
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="skill_client_commit"
+            android:value="240828_b5eaaad25"/>
+        <service
+            android:name="androidx.room.MultiInstanceInvalidationService"
+            android:exported="false"
+            android:directBootAware="true"/>
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            android:permission="android.permission.DUMP"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SKIP_FILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION"/>
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.vivo.upgradelibrary.common.upgrademode.install.silenttiming.MyPackageInstallReceiver"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.vivo.upgradelibrary.common.upgrademode.download.DownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
+        <meta-data
+            android:name="com.bumptech.glide.integration.webp.WebpGlideModule"
+            android:value="GlideModule"/>
+        <meta-data
+            android:name="originui_support_aar_type_vtipscard"
+            android:value="1"/>
+        <service
+            android:name="com.vivo.aiengine.find.device.sdk.impl.FoundDeviceService"
+            android:permission="com.vivo.aiengine.permission.FOUND_DEVICE"
+            android:exported="true"
+            android:process="">
+            <intent-filter>
+                <action android:name="com.vivo.find.device.sdk.SCAN_RESULT_SERVICE"/>
+            </intent-filter>
+            <meta-data
+                android:name="connbase_support"
+                android:value="true"/>
+        </service>
+        <meta-data
+            android:name="originui_support_aar_type_vlinearmenu"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vlistpopupwindow"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vcoordinatorbase"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vtoolbar"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vcommonlayout"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_button"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vedittext"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vlistitem"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_progressbar"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vdividerline"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vtipspopupwindow"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vdialog"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vblank"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vsearchview"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_sheet"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vclickdrawable"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vpageindicator"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vseekbar"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vsnackbar"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vspinner"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vscrollbar"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vtablayout"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vabout"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_bottomnavigationview"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vbannertip"
+            android:value="1"/>
+        <meta-data
+            android:name="com.vivo.vdfs.sdk_compat_version"
+            android:value="1"/>
+        <service
+            android:name="com.vivo.cowork.sdk.StubService"
+            android:permission="com.vivo.permission.cowork"
+            android:enabled="true"
+            android:exported="true"/>
+        <uses-native-library
+            android:name="libOpenCL.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="libvcap_npu_network.so"
+            android:required="false"/>
+        <uses-native-library
+            android:name="libvcap_npu_network_v1.so"
+            android:required="false"/>
+        <service
+            android:name="com.vivo.health.deviceRpcSdk.service.DeviceRpcService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.health.device.rpc.channel"/>
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="originui_support_aar_type_vsoundwave"
+            android:value="1"/>
+        <activity
+            android:theme="@style/MainStyle"
+            android:name="com.vivo.tipshelper.ui.TipsJumperActivity"
+            android:exported="false"
+            android:configChanges="smallestScreenSize|screenSize|screenLayout|orientation"/>
+        <receiver android:name="com.vivo.livetextsdk.widget.ShareBradcastReceiver"/>
+        <meta-data
+            android:name="originui_support_aar_type_vselectionborder"
+            android:value="1"/>
+        <meta-data
+            android:name="originui_support_aar_type_vdialogactivity"
+            android:value="1"/>
+        <meta-data
+            android:name="vboost_sdk_version"
+            android:value="1005"/>
+        <meta-data
+            android:name="com.vivo.ai.gptkit.protocol.version"
+            android:value="10000"/>
+        <meta-data
+            android:name="com.vivo.ai.gptagent.protocol.minVersion"
+            android:value="3"/>
+        <receiver
+            android:name="com.vivo.ai.gpt.kit.core.receiver.GptAgentBroadReceiver"
+            android:permission="com.vivo.ai.gptagent.intent.action.permission"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.ai.gptagent.intent.action.CONNECTION"/>
+            </intent-filter>
+        </receiver>
+        <service
+            android:name="com.vivo.ai.gpt.kit.core.service.GptKitService"
+            android:permission="com.vivo.ai.gptagent.client.permission.gptkitservice"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.ai.gptagent.client.intent.action.service.CONNECTION"/>
+            </intent-filter>
+        </service>
+        <receiver
+            android:name="com.vivo.ai.gptagent.taskmanager.push.PushBroadCastReceiver"
+            android:permission="com.vivo.ai.gptagent.permission.push.PUSH_BROADCAST"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.vivo.ai.gptagent.push.broadcast"/>
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
