@@ -1,0 +1,1 @@
+11-24 21:07:05.502 32463 32511 I MAP002ReadOnly: primitive_fixture_pass=true synthetic_points=69637 exact_world=true exact_wrap=true truncated_detected=true pre_cancel=true clear=true capacity=true world_scan_us=49776

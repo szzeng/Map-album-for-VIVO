@@ -33,7 +33,7 @@ final class ReadOnlyQuery {
     static void release(){active.set(false);}
     static void runSample(Context context, Intent intent, CancellationSignal cancel) {
         if(!acquire()){log("sample_stopped=already_running");return;}
-        try { if(intent.getBooleanExtra("media_lookup_test",false)) MediaStoreLookupProbe.run(context,cancel,intent.getBooleanExtra("media_lookup_hold",false)); else if(intent.getBooleanExtra("load_bench",false)) LoadBenchmark.run(context,intent,cancel); else runExclusive(context,intent,cancel); } finally { release(); }
+        try { if(intent.getBooleanExtra("repository_fixture",false)) MapDataRepositoryProbe.run(context); else if(intent.getBooleanExtra("primitive_fixture",false)) PrimitiveLocationSetProbe.run(); else if(intent.getBooleanExtra("media_lookup_test",false)) MediaStoreLookupProbe.run(context,cancel,intent.getBooleanExtra("media_lookup_hold",false)); else if(intent.getBooleanExtra("load_bench",false)) LoadBenchmark.run(context,intent,cancel); else runExclusive(context,intent,cancel); } finally { release(); }
     }
     private static void runExclusive(Context context, Intent intent, CancellationSignal cancel) {
         long start=SystemClock.elapsedRealtime();

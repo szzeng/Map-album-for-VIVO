@@ -9,11 +9,16 @@ New-Item -ItemType Directory -Force -Path "$build\classes", "$build\dex" | Out-N
 function Check-Exit { if ($LASTEXITCODE -ne 0) { throw "Build command failed: $LASTEXITCODE" } }
 & "$tools\aapt2.exe" link --manifest "$root\AndroidManifest.xml" -I $androidJar -o "$build\unsigned.apk"
 Check-Exit
-$sources = Get-ChildItem "$root\src" -Recurse -Filter *.java | ForEach-Object { $_.FullName }
+$sources = @(
+    Get-ChildItem "$root\src" -Recurse -Filter *.java
+    Get-ChildItem "$root\tests" -Recurse -Filter *.java
+) | ForEach-Object { $_.FullName }
 & javac -encoding UTF-8 -source 8 -target 8 -bootclasspath $androidJar -d "$build\classes" $sources
 Check-Exit
-$classFiles = Get-ChildItem "$build\classes" -Recurse -Filter *.class | ForEach-Object { $_.FullName }
-& "$tools\d8.bat" --lib $androidJar --min-api 29 --output "$build\dex" $classFiles
+$javaRuntimePath = ((& java -XshowSettings:properties -version 2>&1 | Select-String "java.home =").ToString().Split("=")[1].Trim())
+& (Join-Path $javaRuntimePath 'bin\jar.exe') cf "$build\classes.jar" -C "$build\classes" .
+Check-Exit
+& "$tools\d8.bat" --lib $androidJar --min-api 29 --output "$build\dex" "$build\classes.jar"
 Check-Exit
 Push-Location "$build\dex"
 try { & "$tools\aapt.exe" add "$build\unsigned.apk" classes.dex; Check-Exit } finally { Pop-Location }

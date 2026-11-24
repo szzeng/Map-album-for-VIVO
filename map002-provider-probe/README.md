@@ -44,3 +44,5 @@ adb shell am start -S -n org.example.map002probe/.MainActivity --ez no_request t
 `ViewportFilter` is a pure primitive-array experiment. It returns source indexes and total matches, including when the caller-supplied output array is too small. It is not a visibility, identity or lifetime guard; its output must not be exposed to a map before those checks are validated.
 
 `media_lookup_test` exercises the internal `MediaStoreLookup` helper on one currently visible primary-volume image: metadata, an on-demand URI, a thumbnail, a missing ID, and cancellation. It never verifies vendor GPS identity, nor offers an atomically authorized production interface. `media_lookup_hold` is a one-time diagnostic pause for a lifecycle cancellation test.
+
+`MapDataRepository` is an internal integration prototype, not a released SDK. `forDevice` is deliberately closed with `IDENTITY_UNVERIFIED`; only synthetic fixtures can exercise a READY state. `PrimaryPhotoSource` is a read-only adapter but its integrated real-data path has not been executed. `repository_fixture` and `primitive_fixture` use synthetic data only and never query the vendor Provider.
