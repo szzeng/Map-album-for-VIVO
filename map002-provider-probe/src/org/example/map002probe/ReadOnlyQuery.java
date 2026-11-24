@@ -26,6 +26,9 @@ final class ReadOnlyQuery {
     private static final int MAX_SAMPLE=20000;
     static void log(String message){Log.i("MAP002ReadOnly",message);}
     private static final java.util.concurrent.atomic.AtomicBoolean active=new java.util.concurrent.atomic.AtomicBoolean();
+    // Diagnostic snapshots are strictly process-local and never written to storage.
+    private static Set<Long> scopeBaseline;
+    private static EphemeralGeoCache scopeCache;
     static void runSample(Context context, Intent intent, CancellationSignal cancel) {
         if(!active.compareAndSet(false,true)){log("sample_stopped=already_running");return;}
         try { runExclusive(context,intent,cancel); } finally { active.set(false); }
@@ -55,9 +58,10 @@ final class ReadOnlyQuery {
         try {
             Uri images=MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
             int offset=Math.max(0,intent.getIntExtra("sample_offset",0));
+            int authorizedTotal;
             try(Cursor c=resolver.query(images,new String[]{"_id","datetaken","mime_type"},null,null,"_id DESC",cancel)) {
                 if(c==null){log("mediastore=null_cursor");return;}
-                int total=c.getCount();log("authorized_primary_total="+total);
+                int total=c.getCount();authorizedTotal=total;log("authorized_primary_total="+total);
                 if(offset>total){log("sample_stopped=offset_out_of_range");return;}
                 if(offset>0 && !c.moveToPosition(offset-1)){log("sample_stopped=offset_unavailable");return;}
                 log("sample_offset="+offset);
@@ -164,6 +168,38 @@ final class ReadOnlyQuery {
                 long id=seen.iterator().next(), t=SystemClock.elapsedRealtime();
                 try {Bitmap thumb=resolver.loadThumbnail(ContentUris.withAppendedId(images,id),new Size(128,128),cancel);log("thumbnail_available="+(thumb!=null)+" thumbnail_ms="+(SystemClock.elapsedRealtime()-t));if(thumb!=null)thumb.recycle();}
                 catch(Exception e){log("thumbnail_exception="+e.getClass().getSimpleName());}
+            }
+            if(intent.getBooleanExtra("scope_baseline",false) || intent.getBooleanExtra("scope_compare",false)) {
+                if(offset!=0 || authorizedTotal!=selected.size()) {
+                    scopeBaseline=null;scopeCache=null;
+                    log("scope_test=incomplete_visible_set");
+                } else if(intent.getBooleanExtra("scope_baseline",false)) {
+                    scopeBaseline=new HashSet<>(selected.keySet());
+                    scopeCache=new EphemeralGeoCache(Math.max(1,positions.size()));
+                    for(Map.Entry<Long,double[]> item:positions.entrySet()) {
+                        double[] point=item.getValue();
+                        scopeCache.put(new EphemeralGeoCache.Key("external_primary",item.getKey()),point[0],point[1]);
+                    }
+                    log("scope_baseline_count="+scopeBaseline.size()+" cached_points="+scopeCache.size());
+                } else if(scopeBaseline==null || scopeCache==null) {
+                    log("scope_compare=no_in_memory_baseline");
+                } else {
+                    final Set<Long> current=new HashSet<>(selected.keySet());
+                    Set<Long> removed=new HashSet<>(scopeBaseline);removed.removeAll(current);
+                    Set<Long> added=new HashSet<>(current);added.removeAll(scopeBaseline);
+                    int removedCached=0, removedExposed=0;
+                    for(Long id:removed) {
+                        EphemeralGeoCache.Key key=new EphemeralGeoCache.Key("external_primary",id);
+                        if(scopeCache.getVerified(key,new EphemeralGeoCache.Validator(){
+                            public boolean currentlyAuthorizedAndIdentityVerified(String volume,long mediaId){return true;}
+                        })!=null) removedCached++;
+                        if(scopeCache.getVerified(key,new EphemeralGeoCache.Validator(){
+                            public boolean currentlyAuthorizedAndIdentityVerified(String volume,long mediaId){return current.contains(mediaId);}
+                        })!=null) removedExposed++;
+                    }
+                    log("scope_compare_removed="+removed.size()+" added="+added.size()+" removed_cached="+removedCached+" removed_exposed="+removedExposed+" cache_after="+scopeCache.size());
+                    scopeBaseline=null;scopeCache.clear();scopeCache=null;
+                }
             }
             log("volume_identity=unverified sample_scope=authorized_primary_only");
         } catch(Exception e) {log("sample_exception="+e.getClass().getSimpleName());}

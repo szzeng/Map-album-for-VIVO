@@ -1,0 +1,66 @@
+11-24 20:00:56.522 26621 26621 I MAP002ReadOnly: sample_scheduled_delay_ms=0
+11-24 20:00:56.549 26621 26690 I MAP002ReadOnly: vivo_permission_granted=true
+11-24 20:00:56.549 26621 26690 I MAP002ReadOnly: provider_exported=true
+11-24 20:00:56.549 26621 26690 I MAP002ReadOnly: image_permission_full=true partial=true
+11-24 20:00:56.599 26621 26690 I MAP002ReadOnly: authorized_primary_total=79147
+11-24 20:00:56.599 26621 26690 I MAP002ReadOnly: sample_offset=0
+11-24 20:00:56.609 26621 26690 I MAP002ReadOnly: authorized_primary_sample=20000
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: provider_query_ms=102
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: provider_sample_rows=19997 matched_unique=19997 missing=3 duplicates=0 selection_mismatch=0
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: sample_gps_nonzero_in_range=17662 null=2191 zero_pair=144 invalid=0
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: sample_mime_matches=19997
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=19997 date_taken_exact_match=0
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: sample_mediastore_time_nonzero=18077 provider_exif_time_nonzero=0 exact_ms_match=0 seconds_match=0
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: sample_provider_media_type_1=19997 type_3=0 type_other_or_null=0
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: scope_test=incomplete_visible_set
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+11-24 20:00:56.713 26621 26690 I MAP002ReadOnly: sample_elapsed_ms=164 worker_cpu_ms=33
+11-24 20:01:25.530 26914 26914 I MAP002ReadOnly: sample_scheduled_delay_ms=0
+11-24 20:01:25.542 26914 26961 I MAP002ReadOnly: vivo_permission_granted=true
+11-24 20:01:25.542 26914 26961 I MAP002ReadOnly: provider_exported=true
+11-24 20:01:25.542 26914 26961 I MAP002ReadOnly: image_permission_full=false partial=true
+11-24 20:01:25.595 26914 26961 I MAP002ReadOnly: authorized_primary_total=1
+11-24 20:01:25.595 26914 26961 I MAP002ReadOnly: sample_offset=0
+11-24 20:01:25.597 26914 26961 I MAP002ReadOnly: authorized_primary_sample=1
+11-24 20:01:25.604 26914 26961 I MAP002ReadOnly: provider_query_ms=7
+11-24 20:01:25.604 26914 26961 I MAP002ReadOnly: provider_sample_rows=1 matched_unique=1 missing=0 duplicates=0 selection_mismatch=0
+11-24 20:01:25.604 26914 26961 I MAP002ReadOnly: sample_gps_nonzero_in_range=1 null=0 zero_pair=0 invalid=0
+11-24 20:01:25.604 26914 26961 I MAP002ReadOnly: sample_mime_matches=1
+11-24 20:01:25.604 26914 26961 I MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=1 date_taken_exact_match=0
+11-24 20:01:25.604 26914 26961 I MAP002ReadOnly: sample_mediastore_time_nonzero=1 provider_exif_time_nonzero=0 exact_ms_match=0 seconds_match=0
+11-24 20:01:25.604 26914 26961 I MAP002ReadOnly: sample_provider_media_type_1=1 type_3=0 type_other_or_null=0
+11-24 20:01:25.605 26914 26961 I MAP002ReadOnly: scope_baseline_count=1 cached_points=1
+11-24 20:01:25.605 26914 26961 I MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+11-24 20:01:25.605 26914 26961 I MAP002ReadOnly: sample_elapsed_ms=63 worker_cpu_ms=2
+11-24 20:02:47.760 27552 27583 I MAP002ReadOnly: vivo_permission_granted=true
+11-24 20:02:47.760 27552 27583 I MAP002ReadOnly: provider_exported=true
+11-24 20:02:47.760 27552 27583 I MAP002ReadOnly: image_permission_full=false partial=true
+11-24 20:02:47.810 27552 27583 I MAP002ReadOnly: authorized_primary_total=6
+11-24 20:02:47.810 27552 27583 I MAP002ReadOnly: sample_offset=0
+11-24 20:02:47.811 27552 27583 I MAP002ReadOnly: authorized_primary_sample=6
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: provider_query_ms=7
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: provider_sample_rows=6 matched_unique=6 missing=0 duplicates=0 selection_mismatch=0
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: sample_gps_nonzero_in_range=6 null=0 zero_pair=0 invalid=0
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: sample_mime_matches=6
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=6 date_taken_exact_match=0
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: sample_mediastore_time_nonzero=6 provider_exif_time_nonzero=0 exact_ms_match=0 seconds_match=0
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: sample_provider_media_type_1=6 type_3=0 type_other_or_null=0
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: scope_compare=no_in_memory_baseline
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+11-24 20:02:47.818 27552 27583 I MAP002ReadOnly: sample_elapsed_ms=60 worker_cpu_ms=4
+11-24 20:03:12.982 27701 27701 I MAP002ReadOnly: sample_scheduled_delay_ms=0
+11-24 20:03:13.018 27701 27768 I MAP002ReadOnly: vivo_permission_granted=true
+11-24 20:03:13.018 27701 27768 I MAP002ReadOnly: provider_exported=true
+11-24 20:03:13.018 27701 27768 I MAP002ReadOnly: image_permission_full=true partial=true
+11-24 20:03:13.072 27701 27768 I MAP002ReadOnly: authorized_primary_total=79147
+11-24 20:03:13.072 27701 27768 I MAP002ReadOnly: sample_offset=0
+11-24 20:03:13.073 27701 27768 I MAP002ReadOnly: authorized_primary_sample=20
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: provider_query_ms=6
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: provider_sample_rows=20 matched_unique=20 missing=0 duplicates=0 selection_mismatch=0
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: sample_gps_nonzero_in_range=18 null=2 zero_pair=0 invalid=0
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: sample_mime_matches=20
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=20 date_taken_exact_match=0
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: sample_mediastore_time_nonzero=18 provider_exif_time_nonzero=0 exact_ms_match=0 seconds_match=0
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: sample_provider_media_type_1=20 type_3=0 type_other_or_null=0
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+11-24 20:03:13.079 27701 27768 I MAP002ReadOnly: sample_elapsed_ms=69 worker_cpu_ms=2
