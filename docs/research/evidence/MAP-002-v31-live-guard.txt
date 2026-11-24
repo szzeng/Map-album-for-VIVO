@@ -1,0 +1,11 @@
+11-24 20:28:00.886 11101 11101 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:28:00.966 11101 11200 I MAP002ReadOnly: guard_live_publish=true visible_total=79147 selected=500 rechecked=500 provider_rows=500 points=461 cache_count=461
+11-24 20:28:04.132 11101 11101 I MAP002ReadOnly: guard_live_paused_cleared=true
+11-24 20:28:06.213 11101 11101 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:28:06.289 11101 11200 I MAP002ReadOnly: guard_live_publish=true visible_total=79147 selected=500 rechecked=500 provider_rows=500 points=461 cache_count=461
+11-24 20:29:47.675 12470 12470 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:29:47.758 12470 12528 I MAP002ReadOnly: guard_live_waiting_before_recheck=true
+11-24 20:29:48.711 12470 12470 I MAP002ReadOnly: guard_live_paused_cleared=true
+11-24 20:29:49.809 12470 12470 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:29:52.759 12470 12528 I MAP002ReadOnly: guard_live_cancelled=true cache_count=0
+11-24 20:29:52.842 12470 12528 I MAP002ReadOnly: guard_live_publish=true visible_total=79147 selected=500 rechecked=500 provider_rows=500 points=461 cache_count=461

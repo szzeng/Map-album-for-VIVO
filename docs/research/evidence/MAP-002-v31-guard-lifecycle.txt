@@ -1,0 +1,5 @@
+11-24 20:24:45.389  9523  9523 I MAP002ReadOnly: guard_fixture_pass=true delayed_publish_rejected=true synthetic_values=true
+11-24 20:24:45.391  9523  9523 I MAP002ReadOnly: guard_lifecycle_seeded=true synthetic_values=true
+11-24 20:24:47.405  9523  9523 I MAP002ReadOnly: guard_lifecycle_paused_cleared=true
+11-24 20:24:49.481  9523  9523 I MAP002ReadOnly: guard_lifecycle_resumed_old_blocked=true resume_count=2
+11-24 20:24:49.542  9523  9677 I MAP002ReadOnly: guard_lifecycle_visible_total=79147

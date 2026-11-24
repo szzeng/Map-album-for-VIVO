@@ -1,0 +1,6 @@
+11-24 20:31:11.123 13244 13244 I MAP002ReadOnly: guard_fixture_pass=true delayed_publish_rejected=true blocked_validation_rejected=true synthetic_values=true
+11-24 20:31:19.763 13354 13354 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:31:19.832 13354 13397 I MAP002ReadOnly: guard_live_publish=true visible_total=79147 selected=500 rechecked=500 provider_rows=500 points=461 cache_count=461
+11-24 20:31:21.789 13354 13354 I MAP002ReadOnly: guard_live_paused_cleared=true
+11-24 20:31:22.862 13354 13354 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:31:22.954 13354 13397 I MAP002ReadOnly: guard_live_publish=true visible_total=79147 selected=500 rechecked=500 provider_rows=500 points=461 cache_count=461

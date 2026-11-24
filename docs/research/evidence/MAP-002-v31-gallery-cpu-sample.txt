@@ -1,0 +1,5 @@
+INVALID: no new query completion observed in the measured window; broadcast stopped; CPU/PSS snapshots cannot be attributed to a query.
+gallery_pid=24863 clk_tck=100
+baseline_wall_s=4.063 baseline_cpu_ticks=414 baseline_one_core_percent=101.9
+second_window_wall_s=4.125 second_window_cpu_ticks=419 second_window_one_core_percent=101.6
+gallery_pss_before_kib=1846195 gallery_pss_after_kib=1380868

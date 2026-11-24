@@ -1,0 +1,22 @@
+11-24 20:34:27.878 14579 14579 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:34:27.934 14579 14661 I MAP002ReadOnly: guard_live_publish=true visible_total=5 selected=5 rechecked=5 provider_rows=5 points=5 cache_count=5
+11-24 20:34:48.324 14579 14579 I MAP002ReadOnly: guard_live_paused_cleared=true
+11-24 20:35:12.418 15088 15088 I MAP002ReadOnly: guard_live_foreground=true cache_count=0
+11-24 20:35:12.466 15088 15210 I MAP002ReadOnly: guard_live_publish=true visible_total=5 selected=5 rechecked=5 provider_rows=5 points=4 cache_count=4
+11-24 20:35:25.084 15088 15088 I MAP002ReadOnly: guard_live_paused_cleared=true
+11-24 20:35:53.327 15674 15674 I MAP002ReadOnly: sample_scheduled_delay_ms=0
+11-24 20:35:53.357 15674 15747 I MAP002ReadOnly: vivo_permission_granted=true
+11-24 20:35:53.357 15674 15747 I MAP002ReadOnly: provider_exported=true
+11-24 20:35:53.357 15674 15747 I MAP002ReadOnly: image_permission_full=true partial=true
+11-24 20:35:53.406 15674 15747 I MAP002ReadOnly: authorized_primary_total=79147
+11-24 20:35:53.407 15674 15747 I MAP002ReadOnly: sample_offset=0
+11-24 20:35:53.408 15674 15747 I MAP002ReadOnly: authorized_primary_sample=20
+11-24 20:35:53.413 15674 15747 I MAP002ReadOnly: provider_query_ms=6
+11-24 20:35:53.413 15674 15747 I MAP002ReadOnly: provider_sample_rows=20 matched_unique=20 missing=0 duplicates=0 selection_mismatch=0
+11-24 20:35:53.414 15674 15747 I MAP002ReadOnly: sample_gps_nonzero_in_range=18 null=2 zero_pair=0 invalid=0
+11-24 20:35:53.414 15674 15747 I MAP002ReadOnly: sample_mime_matches=20
+11-24 20:35:53.414 15674 15747 I MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=20 date_taken_exact_match=0
+11-24 20:35:53.414 15674 15747 I MAP002ReadOnly: sample_mediastore_time_nonzero=18 provider_exif_time_nonzero=0 exact_ms_match=0 seconds_match=0
+11-24 20:35:53.414 15674 15747 I MAP002ReadOnly: sample_provider_media_type_1=20 type_3=0 type_other_or_null=0
+11-24 20:35:53.414 15674 15747 I MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+11-24 20:35:53.414 15674 15747 I MAP002ReadOnly: sample_elapsed_ms=57 worker_cpu_ms=3

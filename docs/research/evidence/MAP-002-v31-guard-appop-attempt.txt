@@ -1,0 +1,24 @@
+# Controlled READ_MEDIA_IMAGES app-op ignore/restore attempt on the probe only.
+# Probe PID before and after app-op change: 9818; restore command returned allow.
+# The ignore state was not independently read back; visible total did not shrink.
+11-24 20:25:41.825  9818  9818 I MAP002ReadOnly: guard_fixture_pass=true delayed_publish_rejected=true synthetic_values=true
+11-24 20:25:41.827  9818  9818 I MAP002ReadOnly: guard_lifecycle_seeded=true synthetic_values=true
+11-24 20:25:44.060  9818  9818 I MAP002ReadOnly: guard_lifecycle_paused_cleared=true
+11-24 20:25:46.145  9818  9818 I MAP002ReadOnly: guard_lifecycle_resumed_old_blocked=true resume_count=2
+11-24 20:25:46.201  9818  9957 I MAP002ReadOnly: guard_lifecycle_visible_total=79147
+11-24 20:25:54.709 10133 10133 I MAP002ReadOnly: sample_scheduled_delay_ms=0
+11-24 20:25:54.721 10133 10200 I MAP002ReadOnly: vivo_permission_granted=true
+11-24 20:25:54.721 10133 10200 I MAP002ReadOnly: provider_exported=true
+11-24 20:25:54.722 10133 10200 I MAP002ReadOnly: image_permission_full=true partial=true
+11-24 20:25:54.778 10133 10200 I MAP002ReadOnly: authorized_primary_total=79147
+11-24 20:25:54.778 10133 10200 I MAP002ReadOnly: sample_offset=0
+11-24 20:25:54.780 10133 10200 I MAP002ReadOnly: authorized_primary_sample=20
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: provider_query_ms=6
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: provider_sample_rows=20 matched_unique=20 missing=0 duplicates=0 selection_mismatch=0
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: sample_gps_nonzero_in_range=18 null=2 zero_pair=0 invalid=0
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: sample_mime_matches=20
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: sample_provider_taken_nonzero=0 provider_exif_time_nonnull=20 date_taken_exact_match=0
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: sample_mediastore_time_nonzero=18 provider_exif_time_nonzero=0 exact_ms_match=0 seconds_match=0
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: sample_provider_media_type_1=20 type_3=0 type_other_or_null=0
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: volume_identity=unverified sample_scope=authorized_primary_only
+11-24 20:25:54.786 10133 10200 I MAP002ReadOnly: sample_elapsed_ms=66 worker_cpu_ms=2

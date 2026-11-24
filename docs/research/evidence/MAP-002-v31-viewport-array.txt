@@ -1,0 +1,13 @@
+11-24 20:45:56.151 26738 26791 I MAP002ReadOnly: load_bench_visible_total=79147 selected=200 array_capacity=200
+11-24 20:45:56.180 26738 26791 I MAP002ReadOnly: load_bench_batch=1 requested=200 returned=200 provider_ms=4 sampled_pss_kib=83350
+11-24 20:45:56.180 26738 26791 I MAP002ReadOnly: load_bench_result=complete total=79147 selected=200 rows=200 stored=167 missing=0 null=33 zero=0 invalid=0 provider_calls=1 load_ms=87 provider_ms=4 worker_cpu_ms=21 pss_before_kib=83214 sampled_max_pss_kib=83350 array_payload_bytes=6400
+11-24 20:45:56.180 26738 26791 I MAP002ReadOnly: load_bench_range_suite=pass synthetic_boundary=true real_points=167 near_count=1 repeat_count=1 overlap_count=1 wrap_count=0 world_count=167 near_us=44 repeat_us=5
+11-24 20:45:56.180 26738 26791 I MAP002ReadOnly: viewport_array_fixture=true exact_reference=true repeated_exact=true overlap_contains=true synthetic_seam=true real_points=167 matches=1 wider=1 real_wrap=0 scan_us=9
+11-24 20:45:56.180 26738 26791 I MAP002ReadOnly: load_bench_released=method_exit
+11-24 20:46:05.966 26853 26900 I MAP002ReadOnly: load_bench_visible_total=79147 selected=20000 array_capacity=20000
+11-24 20:46:06.195 26853 26900 I MAP002ReadOnly: load_bench_batch=1 requested=20000 returned=19997 provider_ms=201 sampled_pss_kib=85864
+11-24 20:46:06.195 26853 26900 I MAP002ReadOnly: load_bench_result=complete total=79147 selected=20000 rows=19997 stored=17662 missing=3 null=2191 zero=144 invalid=0 provider_calls=1 load_ms=282 provider_ms=201 worker_cpu_ms=33 pss_before_kib=83044 sampled_max_pss_kib=85864 array_payload_bytes=640000
+11-24 20:46:06.198 26853 26900 I MAP002ReadOnly: load_bench_range_suite=pass synthetic_boundary=true real_points=17662 near_count=78 repeat_count=78 overlap_count=634 wrap_count=0 world_count=17662 near_us=593 repeat_us=585
+11-24 20:46:06.204 26853 26900 I MAP002ReadOnly: viewport_array_fixture=true exact_reference=true repeated_exact=true overlap_contains=true synthetic_seam=true real_points=17662 matches=78 wider=634 real_wrap=0 scan_us=816
+11-24 20:46:06.428 26853 26900 I MAP002ReadOnly: load_bench_viewport_match=true results=78 memory_scan_us=178 provider_query_ms=222 provider_calls=1
+11-24 20:46:06.428 26853 26900 I MAP002ReadOnly: load_bench_released=method_exit

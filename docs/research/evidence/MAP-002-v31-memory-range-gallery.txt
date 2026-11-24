@@ -1,0 +1,8 @@
+11-24 20:17:14.148 32484 32510 I MAP002ReadOnly: load_bench_visible_total=79147 selected=79147 array_capacity=100000
+11-24 20:17:14.267 32484 32510 I MAP002ReadOnly: load_bench_batch=1 requested=20000 returned=19997 provider_ms=84 sampled_pss_kib=10828
+11-24 20:17:19.357 32484 32510 I MAP002ReadOnly: load_bench_batch=2 requested=20000 returned=20000 provider_ms=49 sampled_pss_kib=12776
+11-24 20:18:04.172  5362  5478 I MAP002ReadOnly: load_bench_visible_total=79147 selected=20000 array_capacity=20000
+11-24 20:18:04.251  5362  5478 I MAP002ReadOnly: load_bench_batch=1 requested=20000 returned=19997 provider_ms=50 sampled_pss_kib=86133
+11-24 20:18:04.251  5362  5478 I MAP002ReadOnly: load_bench_result=complete total=79147 selected=20000 rows=19997 stored=17662 missing=3 null=2191 zero=144 invalid=0 provider_calls=1 load_ms=136 provider_ms=50 worker_cpu_ms=36 pss_before_kib=83418 sampled_max_pss_kib=86133 array_payload_bytes=640000
+11-24 20:18:04.254  5362  5478 I MAP002ReadOnly: load_bench_range_suite=pass synthetic_boundary=true real_points=17662 near_count=78 repeat_count=78 overlap_count=634 wrap_count=0 world_count=17662 near_us=633 repeat_us=591
+11-24 20:18:04.254  5362  5478 I MAP002ReadOnly: load_bench_released=method_exit

@@ -1,0 +1,2 @@
+11-24 20:47:06.265 27472 27535 I MAP002ReadOnly: load_bench_result=complete total=79147 selected=2000 rows=1998 stored=1864 missing=2 null=134 zero=0 invalid=0 provider_calls=1 load_ms=102 provider_ms=17 worker_cpu_ms=22 pss_before_kib=82792 sampled_max_pss_kib=82792 array_payload_bytes=64000
+11-24 20:47:06.266 27472 27535 I MAP002ReadOnly: viewport_array_fixture=true exact_reference=true repeated_exact=true overlap_contains=true aggregation_input_verified=true synthetic_seam=true real_points=1864 matches=234 wider=370 real_wrap=0 scan_us=90

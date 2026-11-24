@@ -27,3 +27,20 @@ The in-memory `EphemeralGeoCache` is an isolated prototype; it is not wired to a
 javac -encoding UTF-8 -d map002-provider-probe\build\cache-tests map002-provider-probe\src\org\example\map002probe\EphemeralGeoCache.java map002-provider-probe\tests\org\example\map002probe\EphemeralGeoCacheTest.java
 java -cp map002-provider-probe\build\cache-tests org.example.map002probe.EphemeralGeoCacheTest
 ```
+
+
+`load_bench` is an experimental, one-shot measurement, not a map data interface. It reads only authorized primary-volume image IDs and queries the vivo Provider in batches of up to 20,000. The arrays are local to the run and capped at 100,000 IDs; `require_complete` fails closed if the currently visible total exceeds that limit. It does not establish media identity or protect a later UI against authorization races. Memory is sampled, not continuously profiled. For the controlled multi-batch measurement only, batches are separated by five seconds, and a 45-second cancellation request is scheduled; this is not a hard timeout or a recurring background strategy.
+
+```powershell
+adb shell am start -S -n org.example.map002probe/.MainActivity --ez no_request true --ez load_bench true --ei load_limit 2000 --ez compare_viewport true
+```
+
+`range_suite` also checks a small synthetic antimeridian boundary fixture on the device and records only aggregate counts for real-data ranges. The `released=method_exit` log means arrays are no longer intentionally retained by that method; it is not proof of immediate garbage collection. See the performance report for measured results and limitations.
+
+`guard_lifecycle_test` runs synthetic cache fixtures and a foreground/background lifecycle diagnostic. `GuardedGeoStore` is experimental and requires a real authorization and identity verifier; it is not integrated with the loading benchmark and must not expose production locations. Foreground return reads the MediaStore visible count only; the count is not an authorization-set check.
+
+`guard_live_test` is a 500-ID real-data lifecycle experiment. It rechecks the selected IDs in MediaStore and only retains locations in process memory, but it does not prove vendor identity, atomically bind permission state to provider reads, or authorize display in a product. `guard_live_hold` adds a one-time five-second diagnostic pause after the provider query.
+
+`ViewportFilter` is a pure primitive-array experiment. It returns source indexes and total matches, including when the caller-supplied output array is too small. It is not a visibility, identity or lifetime guard; its output must not be exposed to a map before those checks are validated.
+
+`media_lookup_test` exercises the internal `MediaStoreLookup` helper on one currently visible primary-volume image: metadata, an on-demand URI, a thumbnail, a missing ID, and cancellation. It never verifies vendor GPS identity, nor offers an atomically authorized production interface. `media_lookup_hold` is a one-time diagnostic pause for a lifecycle cancellation test.

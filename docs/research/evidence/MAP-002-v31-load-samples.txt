@@ -1,0 +1,15 @@
+11-24 20:14:20.821 29433 29478 I MAP002ReadOnly: load_bench_visible_total=79147 selected=200 array_capacity=200
+11-24 20:14:20.852 29433 29478 I MAP002ReadOnly: load_bench_batch=1 requested=200 returned=200 provider_ms=9 sampled_pss_kib=80672
+11-24 20:14:20.852 29433 29478 I MAP002ReadOnly: load_bench_result=complete total=79147 selected=200 rows=200 stored=167 missing=0 null=33 zero=0 invalid=0 provider_calls=1 load_ms=78 provider_ms=9 worker_cpu_ms=16 pss_before_kib=80413 sampled_max_pss_kib=80672 array_payload_bytes=6400
+11-24 20:14:20.854 29433 29478 I MAP002ReadOnly: load_bench_viewport_match=true results=1 memory_scan_us=20 provider_query_ms=2 provider_calls=1
+11-24 20:14:20.854 29433 29478 I MAP002ReadOnly: load_bench_released=method_exit
+11-24 20:14:24.368 29520 29564 I MAP002ReadOnly: load_bench_visible_total=79147 selected=2000 array_capacity=2000
+11-24 20:14:24.426 29520 29564 I MAP002ReadOnly: load_bench_batch=1 requested=2000 returned=1998 provider_ms=34 sampled_pss_kib=89230
+11-24 20:14:24.426 29520 29564 I MAP002ReadOnly: load_bench_result=complete total=79147 selected=2000 rows=1998 stored=1864 missing=2 null=134 zero=0 invalid=0 provider_calls=1 load_ms=106 provider_ms=34 worker_cpu_ms=23 pss_before_kib=89230 sampled_max_pss_kib=89230 array_payload_bytes=64000
+11-24 20:14:24.435 29520 29564 I MAP002ReadOnly: load_bench_viewport_match=true results=234 memory_scan_us=193 provider_query_ms=8 provider_calls=1
+11-24 20:14:24.435 29520 29564 I MAP002ReadOnly: load_bench_released=method_exit
+11-24 20:14:36.500 29614 29674 I MAP002ReadOnly: load_bench_visible_total=79147 selected=20000 array_capacity=20000
+11-24 20:14:36.679 29614 29674 I MAP002ReadOnly: load_bench_batch=1 requested=20000 returned=19997 provider_ms=157 sampled_pss_kib=86236
+11-24 20:14:36.679 29614 29674 I MAP002ReadOnly: load_bench_result=complete total=79147 selected=20000 rows=19997 stored=17662 missing=3 null=2191 zero=144 invalid=0 provider_calls=1 load_ms=226 provider_ms=157 worker_cpu_ms=44 pss_before_kib=83605 sampled_max_pss_kib=86236 array_payload_bytes=640000
+11-24 20:14:36.731 29614 29674 I MAP002ReadOnly: load_bench_viewport_match=true results=78 memory_scan_us=1669 provider_query_ms=45 provider_calls=1
+11-24 20:14:36.731 29614 29674 I MAP002ReadOnly: load_bench_released=method_exit

@@ -20,7 +20,7 @@ public final class ProbeReceiver extends BroadcastReceiver {
         final CancellationSignal signal=new CancellationSignal();
         final Handler handler=new Handler(Looper.getMainLooper());
         final Runnable timeout=new Runnable(){@Override public void run(){signal.cancel();}};
-        handler.postDelayed(timeout,8000);
+        handler.postDelayed(timeout,intent.getBooleanExtra("load_bench",false) ? 45000 : 8000);
         worker.execute(new Runnable(){@Override public void run(){
             try {ReadOnlyQuery.runSample(context.getApplicationContext(),intent,signal);}
             finally {handler.removeCallbacks(timeout);running.set(false);pending.finish();}

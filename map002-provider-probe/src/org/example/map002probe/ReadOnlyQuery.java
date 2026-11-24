@@ -29,9 +29,11 @@ final class ReadOnlyQuery {
     // Diagnostic snapshots are strictly process-local and never written to storage.
     private static Set<Long> scopeBaseline;
     private static EphemeralGeoCache scopeCache;
+    static boolean acquire(){return active.compareAndSet(false,true);}
+    static void release(){active.set(false);}
     static void runSample(Context context, Intent intent, CancellationSignal cancel) {
-        if(!active.compareAndSet(false,true)){log("sample_stopped=already_running");return;}
-        try { runExclusive(context,intent,cancel); } finally { active.set(false); }
+        if(!acquire()){log("sample_stopped=already_running");return;}
+        try { if(intent.getBooleanExtra("media_lookup_test",false)) MediaStoreLookupProbe.run(context,cancel,intent.getBooleanExtra("media_lookup_hold",false)); else if(intent.getBooleanExtra("load_bench",false)) LoadBenchmark.run(context,intent,cancel); else runExclusive(context,intent,cancel); } finally { release(); }
     }
     private static void runExclusive(Context context, Intent intent, CancellationSignal cancel) {
         long start=SystemClock.elapsedRealtime();

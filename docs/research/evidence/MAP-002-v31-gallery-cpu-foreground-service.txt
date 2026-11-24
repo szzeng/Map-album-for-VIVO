@@ -1,0 +1,5 @@
+INVALID: no query execution confirmed during sampled window; values cannot be attributed to a query.
+query_confirmed_in_window=false gallery_pid=24863 probe_pid=19437 clk_tck=100
+baseline_wall_s=3.047 baseline_cpu_ticks=655 baseline_one_core_percent=215.0
+second_window_wall_s=4.156 second_window_cpu_ticks=1684 second_window_one_core_percent=405.2
+gallery_pss_before_kib=1379236 gallery_pss_after_kib=1711877
