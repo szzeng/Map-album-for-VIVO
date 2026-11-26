@@ -10,10 +10,12 @@ android {
     defaultConfig.manifestPlaceholders.baiduMapAk = baiduAk
     sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/map002')
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    packagingOptions { jniLibs { keepDebugSymbols += '**/liblocSDK8b.so' } }
 }
 dependencies {
     implementation 'com.baidu.lbsyun:BaiduMapSDK_Map:9.0.0'
     implementation 'com.baidu.lbsyun:BaiduMapSDK_Util:9.0.0'
+    implementation 'com.baidu.lbsyun:BaiduMapSDK_Location:9.7.0'
 }
 tasks.register('reuseMap002Sources', Sync) {
     from('../../map002-provider-probe/src')

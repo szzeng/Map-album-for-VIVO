@@ -1,13 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" tools:node="remove" />
     <uses-permission android:name="com.android.gallery3d.permission.GalleryDataProvider" />
-    <queries><provider android:authorities="com.android.gallery3d.dataprovider" /></queries>
+    <queries><provider android:authorities="com.android.gallery3d.dataprovider" /><package android:name="com.vivo.gallery" /><package android:name="com.android.gallery3d" /></queries>
     <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="图迹" android:allowBackup="false" android:usesCleartextTraffic="false">
         <meta-data android:name="com.baidu.lbsapi.API_KEY" android:value="${baiduMapAk}" />
         <activity android:name=".IdentityCheckActivity" android:exported="false" />
+        <activity android:name=".PhotoPreviewActivity" android:exported="false" />
+        <service android:name="com.baidu.location.f" android:enabled="true" android:exported="false" android:process=":remote" />
         <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
     </application>
 </manifest>

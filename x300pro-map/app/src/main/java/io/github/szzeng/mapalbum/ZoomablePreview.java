@@ -2,10 +2,12 @@ package io.github.szzeng.mapalbum;
 
 import android.content.Context;
 import android.graphics.Matrix;
+import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.ViewConfiguration;
 import android.widget.ImageView;
 
 /** Zooms the in-memory preview thumbnail; the original remains in the native gallery. */
@@ -14,10 +16,15 @@ final class ZoomablePreview extends ImageView {
     private final ScaleGestureDetector detector;
     interface SwipeListener { void onSwipe(boolean next); }
     private SwipeListener swipeListener;
+    private Runnable tapListener;
+    private Runnable longPressListener;
     private float baseScale=1,zoom=1,lastX,lastY,startX,startY;
-    private boolean dragging,multiTouch;
+    private final int touchSlop;
+    private int activePointer=-1;
+    private boolean dragging,multiTouch,moved,gestureStartedZoomed,longPressHandled;
+    private final Runnable longPress=()->{if(dragging&&!multiTouch&&!moved){longPressHandled=true;performLongClick();}};
     ZoomablePreview(Context context){
-        super(context);setScaleType(ScaleType.MATRIX);setContentDescription("照片预览，可双指缩放");
+        super(context);setScaleType(ScaleType.MATRIX);setContentDescription("照片预览，可双指缩放；点击在原生相册查看原图，长按隐藏或显示控件");setClickable(true);setLongClickable(true);touchSlop=ViewConfiguration.get(context).getScaledTouchSlop();
         detector=new ScaleGestureDetector(context,new ScaleGestureDetector.SimpleOnScaleGestureListener(){
             @Override public boolean onScale(ScaleGestureDetector gesture){
                 float next=Math.max(1,Math.min(4,zoom*gesture.getScaleFactor()));float factor=next/zoom;zoom=next;
@@ -26,8 +33,16 @@ final class ZoomablePreview extends ImageView {
         });
     }
     void setSwipeListener(SwipeListener listener){swipeListener=listener;}
+    void setTapListener(Runnable listener){tapListener=listener;}
+    void setLongPressListener(Runnable listener){longPressListener=listener;}
     @Override protected void onSizeChanged(int w,int h,int oldW,int oldH){super.onSizeChanged(w,h,oldW,oldH);fit();}
-    void resetPreview(){post(this::fit);}
+    void resetPreview(){zoom=1;transform.reset();setImageMatrix(transform);fit();}
+    void replacePreview(Bitmap bitmap){
+        Drawable current=getDrawable();float oldZoom=zoom,focusX=.5f,focusY=.5f;
+        if(current!=null&&current.getIntrinsicWidth()>0&&current.getIntrinsicHeight()>0){RectF bounds=new RectF(0,0,current.getIntrinsicWidth(),current.getIntrinsicHeight());transform.mapRect(bounds);if(bounds.width()>0&&bounds.height()>0){focusX=(getWidth()/2f-bounds.left)/bounds.width();focusY=(getHeight()/2f-bounds.top)/bounds.height();}}
+        setImageBitmap(bitmap);fit();
+        if(oldZoom>1&&getDrawable()!=null){zoom=oldZoom;transform.postScale(oldZoom,oldZoom,getWidth()/2f,getHeight()/2f);RectF bounds=new RectF(0,0,getDrawable().getIntrinsicWidth(),getDrawable().getIntrinsicHeight());transform.mapRect(bounds);transform.postTranslate(getWidth()/2f-(bounds.left+focusX*bounds.width()),getHeight()/2f-(bounds.top+focusY*bounds.height()));constrain();}
+    }
     private void fit(){
         Drawable d=getDrawable();if(d==null||d.getIntrinsicWidth()<=0||d.getIntrinsicHeight()<=0||getWidth()<=0||getHeight()<=0)return;
         baseScale=Math.min((float)getWidth()/d.getIntrinsicWidth(),(float)getHeight()/d.getIntrinsicHeight());zoom=1;
@@ -45,24 +60,28 @@ final class ZoomablePreview extends ImageView {
         transform.postTranslate(dx,dy);setImageMatrix(transform);
     }
     @Override public boolean onTouchEvent(MotionEvent event){
-        if(getDrawable()==null)return false;
-        detector.onTouchEvent(event);
+        if(getDrawable()!=null)detector.onTouchEvent(event);
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                getParent().requestDisallowInterceptTouchEvent(true);startX=lastX=event.getX();startY=lastY=event.getY();dragging=true;multiTouch=false;return true;
-            case MotionEvent.ACTION_POINTER_DOWN: dragging=false;multiTouch=true;break;
+                getParent().requestDisallowInterceptTouchEvent(true);activePointer=event.getPointerId(0);startX=lastX=event.getX();startY=lastY=event.getY();dragging=true;multiTouch=false;moved=false;longPressHandled=false;gestureStartedZoomed=zoom>1.01f;postDelayed(longPress,ViewConfiguration.getLongPressTimeout());return true;
+            case MotionEvent.ACTION_POINTER_DOWN: removeCallbacks(longPress);dragging=false;multiTouch=true;break;
             case MotionEvent.ACTION_MOVE:
-                if(dragging&&!detector.isInProgress()&&zoom>1){transform.postTranslate(event.getX()-lastX,event.getY()-lastY);constrain();}
-                lastX=event.getX();lastY=event.getY();break;
+                int at=event.findPointerIndex(activePointer);if(at<0)break;float x=event.getX(at),y=event.getY(at);
+                if(Math.abs(x-startX)>touchSlop||Math.abs(y-startY)>touchSlop){moved=true;removeCallbacks(longPress);}
+                if(dragging&&!detector.isInProgress()&&zoom>1){transform.postTranslate(x-lastX,y-lastY);constrain();}
+                lastX=x;lastY=y;break;
             case MotionEvent.ACTION_POINTER_UP:
-                if(event.getPointerCount()==2){int remaining=event.getActionIndex()==0?1:0;lastX=event.getX(remaining);lastY=event.getY(remaining);dragging=true;}else dragging=false;break;
+                if(event.getPointerCount()==2){int remaining=event.getActionIndex()==0?1:0;activePointer=event.getPointerId(remaining);lastX=event.getX(remaining);lastY=event.getY(remaining);dragging=true;}else dragging=false;break;
             case MotionEvent.ACTION_UP:
                 float dx=event.getX()-startX,dy=event.getY()-startY;
-                if(!multiTouch&&zoom<=1.01f&&Math.abs(dx)>64*getResources().getDisplayMetrics().density&&Math.abs(dx)>Math.abs(dy)*1.3f&&swipeListener!=null)swipeListener.onSwipe(dx<0);
-                dragging=false;getParent().requestDisallowInterceptTouchEvent(false);break;
+                removeCallbacks(longPress);if(!multiTouch&&!gestureStartedZoomed&&zoom<=1.01f&&Math.abs(dx)>64*getResources().getDisplayMetrics().density&&Math.abs(dx)>Math.abs(dy)*1.3f&&swipeListener!=null)swipeListener.onSwipe(dx<0);
+                else if(!longPressHandled&&!multiTouch&&!moved&&Math.abs(dx)<=touchSlop&&Math.abs(dy)<=touchSlop)performClick();
+                removeCallbacks(longPress);dragging=false;activePointer=-1;getParent().requestDisallowInterceptTouchEvent(false);break;
             case MotionEvent.ACTION_CANCEL:
-                dragging=false;getParent().requestDisallowInterceptTouchEvent(false);break;
+                dragging=false;activePointer=-1;getParent().requestDisallowInterceptTouchEvent(false);break;
         }
         return true;
     }
+    @Override public boolean performClick(){super.performClick();if(tapListener!=null)tapListener.run();return true;}
+    @Override public boolean performLongClick(){super.performLongClick();if(longPressListener!=null){longPressListener.run();return true;}return false;}
 }
