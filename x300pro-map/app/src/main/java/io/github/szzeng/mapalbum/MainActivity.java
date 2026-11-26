@@ -1,4 +1,4 @@
-package org.example.mapalbum;
+package io.github.szzeng.mapalbum;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
