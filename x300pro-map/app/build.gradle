@@ -1,15 +1,30 @@
 plugins { id 'com.android.application' }
+def localConfig = new Properties()
+def localConfigFile = rootProject.file('local.properties')
+if (localConfigFile.exists()) localConfigFile.withInputStream { localConfig.load(it) }
+def baiduAk = localConfig.getProperty('baidu.map.ak', '').trim()
 android {
     namespace 'io.github.szzeng.mapalbum'
     compileSdk 34
     defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 1; versionName '0.1' }
+    defaultConfig.manifestPlaceholders.baiduMapAk = baiduAk
     sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/map002')
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
-dependencies { implementation 'org.maplibre.gl:android-sdk:13.7.1' }
+dependencies {
+    implementation 'com.baidu.lbsyun:BaiduMapSDK_Map:9.0.0'
+    implementation 'com.baidu.lbsyun:BaiduMapSDK_Util:9.0.0'
+}
 tasks.register('reuseMap002Sources', Sync) {
     from('../../map002-provider-probe/src')
     include 'org/example/map002probe/PrimaryPhotoSource.java', 'org/example/map002probe/PrimitiveLocationSet.java', 'org/example/map002probe/ViewportFilter.java'
     into layout.buildDirectory.dir('generated/map002')
 }
 tasks.withType(JavaCompile).configureEach { dependsOn tasks.named('reuseMap002Sources') }
+
+tasks.register('validateBaiduAk') {
+    doLast {
+        if (baiduAk.isEmpty()) throw new GradleException('请在 local.properties 中设置 baidu.map.ak 后构建百度地图应用')
+    }
+}
+tasks.matching { it.name == 'preDebugBuild' || it.name == 'preReleaseBuild' }.configureEach { dependsOn tasks.named('validateBaiduAk') }

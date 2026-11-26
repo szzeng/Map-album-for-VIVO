@@ -16,17 +16,15 @@ import android.widget.*;
 import java.util.*;
 import java.util.concurrent.*;
 import org.example.map002probe.SamplePhotoRepository;
-import org.maplibre.android.annotations.*;
-import org.maplibre.android.camera.CameraUpdateFactory;
-import org.maplibre.android.geometry.LatLngBounds;
-import org.maplibre.android.MapLibre;
-import org.maplibre.android.maps.*;
-import org.maplibre.android.camera.CameraPosition;
-import org.maplibre.android.geometry.LatLng;
+import com.baidu.mapapi.CoordType;
+import com.baidu.mapapi.SDKInitializer;
+import com.baidu.mapapi.map.*;
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.model.LatLngBounds;
 
 public class MainActivity extends Activity {
     private MapView view;
-    private MapLibreMap map;
+    private BaiduMap map;
     private final ExecutorService worker=Executors.newSingleThreadExecutor();
     private CancellationSignal pending;
     private long generation;
@@ -34,28 +32,35 @@ public class MainActivity extends Activity {
     private TextView count;
     private AlertDialog previewDialog;
     private final List<SamplePhotoRepository.Sample> samples=new ArrayList<>();
-    private final Map<Long,SamplePhotoRepository.Sample> markers=new HashMap<>();
+    private final List<BitmapDescriptor> descriptors=new ArrayList<>();
+    private final List<Bitmap> markerBitmaps=new ArrayList<>();
+    private final Map<SamplePhotoRepository.Sample,LatLng> positions=new IdentityHashMap<>();
     @Override public void onCreate(Bundle state) {
-        super.onCreate(state); org.maplibre.android.log.Logger.setVerbosity(org.maplibre.android.log.Logger.NONE); MapLibre.getInstance(this);
-        FrameLayout root = new FrameLayout(this); view = new MapView(this); root.addView(view); setContentView(root);
-        view.onCreate(state);
-        TextView credit = new TextView(this); credit.setText("© 天地图 · GS（2025）1508号"); credit.setTextSize(10); credit.setBackgroundColor(0xCCFFFFFF);
-        FrameLayout.LayoutParams pos = new FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.RIGHT); root.addView(credit,pos);
-        Button settings = new Button(this); settings.setText("地图配置");
-        FrameLayout.LayoutParams settingsPos = new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.RIGHT); root.addView(settings,settingsPos);
-        settings.setOnClickListener(v -> configureKey());
-        LinearLayout controls=new LinearLayout(this); controls.setOrientation(LinearLayout.VERTICAL);
-        count=new TextView(this); count.setText("照片 0 · 位置待核验"); count.setBackgroundColor(0xDDFFFFFF); controls.addView(count);
-        Button select=new Button(this); select.setText("选择照片"); controls.addView(select);
-        Button clear=new Button(this); clear.setText("清空"); controls.addView(clear);
-        FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.LEFT);root.addView(controls,cp);
-        select.setOnClickListener(v -> choosePhotos());clear.setOnClickListener(v -> clearSamples());
-        view.getMapAsync(map -> {
-            this.map = map;
-            map.setOnMarkerClickListener(marker -> { SamplePhotoRepository.Sample sample=markers.get(marker.getId()); if(sample!=null)showNearbyPhotos(sample); return true; });
-            map.setCameraPosition(new CameraPosition.Builder().target(new LatLng(23.13,113.27)).zoom(5).build());
-            loadMap();
-        });
+        super.onCreate(state);
+        TextView text=new TextView(this);text.setText("百度地图样本验证：等待隐私选择");setContentView(text);
+        new AlertDialog.Builder(this).setTitle("百度地图隐私说明")
+            .setMessage("本验证使用北京百度网讯科技有限公司的百度地图 SDK。SDK 可能处理设备、网络和地图视野等信息。请先阅读百度地图隐私政策；不同意时不初始化 SDK。")
+            .setNeutralButton("查看隐私政策",(d,w)->{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://map.baidu.com/zt/client/privacy/index.html")));finish();})
+            .setNegativeButton("不同意",(d,w)->finish())
+            .setPositiveButton("同意并打开",(d,w)->initializeMap())
+            .setOnCancelListener(d->finish()).show();
+    }
+    private void initializeMap() {
+        try {
+            SDKInitializer.setAgreePrivacy(getApplicationContext(),true);
+            SDKInitializer.initialize(getApplicationContext());
+            SDKInitializer.setCoordType(CoordType.BD09LL);
+            MapStatus initial=new MapStatus.Builder().target(new LatLng(23.1291,113.2644)).zoom(14).build();
+            FrameLayout root=new FrameLayout(this);view=new MapView(this,new BaiduMapOptions().mapStatus(initial));root.addView(view);setContentView(root);view.onResume();
+            map=view.getMap();map.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+            map.setOnMarkerClickListener(marker->{Bundle info=marker.getExtraInfo();int index=info==null?-1:info.getInt("sample",-1);if(index>=0&&index<samples.size())showNearbyPhotos(samples.get(index));return true;});
+            LinearLayout controls=new LinearLayout(this);controls.setOrientation(LinearLayout.VERTICAL);
+            count=new TextView(this);count.setText("照片 0 · 坐标待核验");count.setBackgroundColor(0xDDFFFFFF);controls.addView(count);
+            Button select=new Button(this);select.setText("选择照片");controls.addView(select);
+            Button clear=new Button(this);clear.setText("清空");controls.addView(clear);
+            root.addView(controls,new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.LEFT));
+            select.setOnClickListener(v->choosePhotos());clear.setOnClickListener(v->clearSamples());
+        } catch(RuntimeException ex){new AlertDialog.Builder(this).setMessage("百度地图初始化失败").setPositiveButton("关闭",(d,w)->finish()).show();}
     }
     private void choosePhotos() {
         clearSamples(); picking=true;
@@ -88,12 +93,28 @@ public class MainActivity extends Activity {
         Bitmap scaled=Bitmap.createScaledBitmap(original,n-12,n-12,false); Paint image=new Paint(Paint.ANTI_ALIAS_FLAG); image.setShader(new BitmapShader(scaled,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP));
         canvas.save();canvas.translate(6,6);canvas.drawRoundRect(new RectF(0,0,n-12,n-12),16,16,image);canvas.restore();if(scaled!=original)scaled.recycle();return output;
     }
+    private void clearMarkers() {
+        if(map!=null)map.clear();positions.clear();
+        for(BitmapDescriptor d:descriptors)d.recycle();descriptors.clear();
+        for(Bitmap b:markerBitmaps)if(!b.isRecycled())b.recycle();markerBitmaps.clear();
+    }
     private void showMarkers() {
-        if(map==null||samples.isEmpty())return;LatLngBounds.Builder bounds=new LatLngBounds.Builder();
-        for(SamplePhotoRepository.Sample s:samples){LatLng p=new LatLng(s.latitude,s.longitude);bounds.include(p);Bitmap icon=markerBitmap(s.thumbnail);
-            Marker marker=map.addMarker(new MarkerOptions().position(p).icon(IconFactory.getInstance(this).fromBitmap(icon)));markers.put(marker.getId(),s);}
-        if(samples.size()==1)map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(samples.get(0).latitude,samples.get(0).longitude),14));
-        else try{map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(),120));}catch(Exception ignored){map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(samples.get(0).latitude,samples.get(0).longitude),14));}
+        if(map==null)return;clearMarkers();if(samples.isEmpty())return;
+        LatLngBounds.Builder bounds=new LatLngBounds.Builder();LatLng first=null;int shown=0,excluded=0;
+        for(int i=0;i<samples.size();i++){
+            SamplePhotoRepository.Sample sample=samples.get(i);
+            // This temporary probe is restricted to the confirmed Guangzhou-area samples.
+            if(sample.latitude<22 || sample.latitude>24.5 || sample.longitude<112 || sample.longitude>115){excluded++;continue;}
+            LatLng p=CoordinateAdapter.adapt(sample.latitude,sample.longitude);if(p==null){excluded++;continue;}
+            positions.put(sample,p);bounds.include(p);if(first==null)first=p;shown++;
+            Bitmap icon=markerBitmap(sample.thumbnail);markerBitmaps.add(icon);BitmapDescriptor descriptor=BitmapDescriptorFactory.fromBitmap(icon);descriptors.add(descriptor);
+            Bundle info=new Bundle();info.putInt("sample",i);
+            map.addOverlay(new MarkerOptions().position(p).icon(descriptor).anchor(0.5f,0.5f).extraInfo(info));
+        }
+        if(excluded>0)Toast.makeText(this,"本次仅验证广州附近样本，部分照片未显示",Toast.LENGTH_LONG).show();
+        if(first==null)return;
+        if(shown==1)map.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(first,14));
+        else try{map.animateMapStatus(MapStatusUpdateFactory.newLatLngBounds(bounds.build()));}catch(Exception ignored){map.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(first,14));}
     }
     private void showPhoto(SamplePhotoRepository.Sample sample) {
         ImageView image=new ImageView(this);image.setImageBitmap(sample.thumbnail);image.setAdjustViewBounds(true);
@@ -110,11 +131,13 @@ public class MainActivity extends Activity {
         });
     }
     private void showNearbyPhotos(SamplePhotoRepository.Sample selected) {
-        android.graphics.PointF origin=map.getProjection().toScreenLocation(new LatLng(selected.latitude,selected.longitude));
+        LatLng selectedPosition=positions.get(selected);if(selectedPosition==null)return;
+        android.graphics.Point origin=map.getProjection().toScreenLocation(selectedPosition);
         float radius=48*getResources().getDisplayMetrics().density;
         List<SamplePhotoRepository.Sample> nearby=new ArrayList<>();
         for(SamplePhotoRepository.Sample sample:samples){
-            android.graphics.PointF p=map.getProjection().toScreenLocation(new LatLng(sample.latitude,sample.longitude));
+            LatLng position=positions.get(sample);if(position==null)continue;
+            android.graphics.Point p=map.getProjection().toScreenLocation(position);
             if(Math.hypot(p.x-origin.x,p.y-origin.y)<=radius)nearby.add(sample);
         }
         if(nearby.size()<=1){showPhoto(selected);return;}
@@ -130,38 +153,11 @@ public class MainActivity extends Activity {
         ScrollView scroll=new ScrollView(this);scroll.addView(list);dialog.setView(scroll);dialog.show();
     }
     private void clearSamples() {
-        generation++;if(previewDialog!=null)previewDialog.dismiss();if(pending!=null){pending.cancel();pending=null;}if(map!=null)map.removeAnnotations();markers.clear();
+        generation++;if(previewDialog!=null)previewDialog.dismiss();if(pending!=null){pending.cancel();pending=null;}clearMarkers();
         for(SamplePhotoRepository.Sample s:samples)s.thumbnail.recycle();samples.clear();if(count!=null)count.setText("照片 0 · 位置待核验");
     }
-    private void configureKey() {
-        EditText input = new EditText(this);
-        input.setSingleLine(true);
-        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        input.setHint("输入天地图 Key");
-        new AlertDialog.Builder(this).setTitle("天地图配置").setView(input)
-            .setNegativeButton("取消", null).setPositiveButton("保存", (dialog, which) -> {
-                String key = input.getText().toString().trim();
-                if (!key.matches("[A-Za-z0-9]+")) { Toast.makeText(this, "Key 格式不正确", Toast.LENGTH_LONG).show(); return; }
-                try (java.io.FileOutputStream out = openFileOutput("tdt_key", MODE_PRIVATE)) {
-                    out.write(key.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                    loadMap();
-                } catch (java.io.IOException e) { Toast.makeText(this, "保存失败", Toast.LENGTH_LONG).show(); }
-            }).show();
-    }
-    private void loadMap() {
-            if (map == null) return;
-            String key; try (java.io.FileInputStream in = openFileInput("tdt_key")) { key = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).trim(); } catch (Exception e) { Toast.makeText(this, "请在地图配置中输入 Key", Toast.LENGTH_LONG).show(); return; }
-            String common="?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&STYLE=default&TILEMATRIXSET=w&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk="+key;
-            String vec="https://t0.tianditu.gov.cn/vec_w/wmts"+common+"&LAYER=vec";
-            String labels="https://t0.tianditu.gov.cn/cva_w/wmts"+common+"&LAYER=cva";
-            String json="{\"version\":8,\"sources\":{\"vec\":{\"type\":\"raster\",\"tiles\":[\""+vec+"\"],\"tileSize\":256,\"maxzoom\":18},\"labels\":{\"type\":\"raster\",\"tiles\":[\""+labels+"\"],\"tileSize\":256,\"maxzoom\":18}},\"layers\":[{\"id\":\"vec\",\"type\":\"raster\",\"source\":\"vec\"},{\"id\":\"labels\",\"type\":\"raster\",\"source\":\"labels\"}]}";
-            map.setStyle(new Style.Builder().fromJson(json));
-    }
-    @Override protected void onStart(){super.onStart();view.onStart();}
-    @Override protected void onResume(){super.onResume();view.onResume();}
-    @Override protected void onPause(){view.onPause();super.onPause();}
-    @Override protected void onStop(){if(!picking)clearSamples();view.onStop();super.onStop();}
-    @Override public void onLowMemory(){super.onLowMemory();view.onLowMemory();}
-    @Override protected void onDestroy(){clearSamples();worker.shutdownNow();view.onDestroy();super.onDestroy();}
-    @Override protected void onSaveInstanceState(Bundle b){super.onSaveInstanceState(b);view.onSaveInstanceState(b);}
+    @Override protected void onResume(){super.onResume();if(view!=null)view.onResume();}
+    @Override protected void onPause(){if(view!=null)view.onPause();super.onPause();}
+    @Override protected void onStop(){if(!picking)clearSamples();super.onStop();}
+    @Override protected void onDestroy(){clearSamples();worker.shutdownNow();if(view!=null)view.onDestroy();super.onDestroy();}
 }
