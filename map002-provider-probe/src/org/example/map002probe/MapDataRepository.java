@@ -172,10 +172,9 @@ final class MapDataRepository implements AutoCloseable {
             Window result=null;
             try {
                 synchronized(data){
-                    localQuery.throwIfCanceled();int[] indexes=new int[data.size()];
-                    int count=data.query(south,north,west,east,indexes,localQuery);
+                    localQuery.throwIfCanceled();int[] indexes=data.queryIndexes(south,north,west,east,localQuery);
                     localQuery.throwIfCanceled();
-                    result=new Window(MapDataRepository.this,data,ticket,signal,queryTicket,localQuery,indexes,count);
+                    result=new Window(MapDataRepository.this,data,ticket,signal,queryTicket,localQuery,indexes,indexes.length);
                 }
             } catch(android.os.OperationCanceledException ignored) {return;}
               catch(RuntimeException failure){if(currentQuery(ticket,signal,queryTicket,localQuery))callback.complete(null);return;}

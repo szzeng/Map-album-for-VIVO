@@ -31,6 +31,8 @@ java -cp map002-provider-probe\build\cache-tests org.example.map002probe.Ephemer
 
 `load_bench` is an experimental, one-shot measurement, not a map data interface. It reads only authorized primary-volume image IDs and queries the vivo Provider in batches of up to 20,000. The arrays are local to the run and capped at 100,000 IDs; `require_complete` fails closed if the currently visible total exceeds that limit. It does not establish media identity or protect a later UI against authorization races. Memory is sampled, not continuously profiled. For the controlled multi-batch measurement only, batches are separated by five seconds, and a 45-second cancellation request is scheduled; this is not a hard timeout or a recurring background strategy.
 
+The optional diagnostic extra `batch_pause_ms` accepts 0–5000 ms for a controlled pacing comparison; the default remains 5000 ms. A successful fast run alone does not establish gallery load or locking safety.
+
 ```powershell
 adb shell am start -S -n org.example.map002probe/.MainActivity --ez no_request true --ez load_bench true --ei load_limit 2000 --ez compare_viewport true
 ```
@@ -42,6 +44,8 @@ adb shell am start -S -n org.example.map002probe/.MainActivity --ez no_request t
 `guard_live_test` is a 500-ID real-data lifecycle experiment. It rechecks the selected IDs in MediaStore and only retains locations in process memory, but it does not prove vendor identity, atomically bind permission state to provider reads, or authorize display in a product. `guard_live_hold` adds a one-time five-second diagnostic pause after the provider query.
 
 `ViewportFilter` is a pure primitive-array experiment. It returns source indexes and total matches, including when the caller-supplied output array is too small. It is not a visibility, identity or lifetime guard; its output must not be exposed to a map before those checks are validated.
+
+The repository's viewport query uses the one-pass `queryIndexes` variant: result storage grows with matches instead of allocating an index for every library point up front. It checks cancellation during scanning and does not truncate matches. This remains a gated prototype; the updated path has not been benchmarked against the real library.
 
 `media_lookup_test` exercises the internal `MediaStoreLookup` helper on one currently visible primary-volume image: metadata, an on-demand URI, a thumbnail, a missing ID, and cancellation. It never verifies vendor GPS identity, nor offers an atomically authorized production interface. `media_lookup_hold` is a one-time diagnostic pause for a lifecycle cancellation test.
 

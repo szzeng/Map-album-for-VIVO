@@ -34,6 +34,10 @@ final class PrimitiveLocationSet {
         if(cancel==null)throw new IllegalArgumentException("cancel");
         return ViewportFilter.query(lat,lon,size,south,north,west,east,result,cancel);
     }
+    int[] queryIndexes(double south,double north,double west,double east,CancellationSignal cancel){
+        if(closed||!sealed)throw new IllegalStateException("unavailable");
+        return ViewportFilter.queryIndexes(lat,lon,size,south,north,west,east,cancel);
+    }
     void close() {
         if(closed)return;
         Arrays.fill(ids,0);Arrays.fill(lat,0);Arrays.fill(lon,0);

@@ -7,6 +7,7 @@
     <queries><provider android:authorities="com.android.gallery3d.dataprovider" /></queries>
     <application android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="图迹" android:allowBackup="false" android:usesCleartextTraffic="false">
         <meta-data android:name="com.baidu.lbsapi.API_KEY" android:value="${baiduMapAk}" />
+        <activity android:name=".IdentityCheckActivity" android:exported="false" />
         <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
     </application>
 </manifest>

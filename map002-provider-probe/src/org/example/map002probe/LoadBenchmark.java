@@ -51,6 +51,7 @@ final class LoadBenchmark {
         Set<String> volumes=MediaStore.getExternalVolumeNames(context);
         if(volumes.size()!=1 || !volumes.contains(MediaStore.VOLUME_EXTERNAL_PRIMARY)){log("stopped=volume_ambiguous");return;}
         final int request=Math.min(CAPACITY,Math.max(1,intent.getIntExtra("load_limit",200)));
+        final int batchPause=Math.max(0,Math.min(5000,intent.getIntExtra("batch_pause_ms",5000)));
         final int pssBefore=pss(); long wall=SystemClock.elapsedRealtime(), cpu=Debug.threadCpuTimeNanos();
         ContentResolver resolver=context.getContentResolver();
         long[] visible=new long[request], ids=new long[request];
@@ -71,7 +72,7 @@ final class LoadBenchmark {
                     previous=id;visible[selected++]=id;
                 }
             }
-            log("visible_total="+available+" selected="+selected+" array_capacity="+request);
+            log("visible_total="+available+" selected="+selected+" array_capacity="+request+" batch_pause_ms="+batchPause);
             for(int base=0;base<selected;base+=BATCH) {
                 cancel.throwIfCanceled();int n=Math.min(BATCH,selected-base);
                 long[] allowed=Arrays.copyOfRange(visible,base,base+n);Arrays.sort(allowed);
@@ -94,7 +95,7 @@ final class LoadBenchmark {
                 long elapsed=SystemClock.elapsedRealtime()-start;providerMs+=elapsed;rows+=batchRows;missing+=n-batchRows;batches++;
                 peak=Math.max(peak,pss());
                 log("batch="+batches+" requested="+n+" returned="+batchRows+" provider_ms="+elapsed+" sampled_pss_kib="+peak);
-                if(base+n<selected)SystemClock.sleep(5000);
+                if(base+n<selected)SystemClock.sleep(batchPause);
             }
             long loadWall=SystemClock.elapsedRealtime()-wall, cpuMs=(Debug.threadCpuTimeNanos()-cpu)/1000000;
             log("result=complete total="+available+" selected="+selected+" rows="+rows+" stored="+stored+" missing="+missing+" null="+empty+" zero="+zero+" invalid="+invalid+" provider_calls="+batches+" load_ms="+loadWall+" provider_ms="+providerMs+" worker_cpu_ms="+cpuMs+" pss_before_kib="+pssBefore+" sampled_max_pss_kib="+peak+" array_payload_bytes="+(32L*request));

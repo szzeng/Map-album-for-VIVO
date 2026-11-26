@@ -21,6 +21,7 @@ final class MapDataRepositoryProbe {
         check(repo.state()==expected);
     }
     static void run(Context context) {
+        ViewportFilterProbe.run(new double[0],new double[0],0);
         Set<String> volumes=new HashSet<>();volumes.add("external_primary");check(PrimaryPhotoSource.acceptsVolumes(volumes));
         volumes.add("external_other");check(!PrimaryPhotoSource.acceptsVolumes(volumes));volumes.clear();check(!PrimaryPhotoSource.acceptsVolumes(volumes));
         MapDataRepository device=MapDataRepository.forDevice(context);device.foreground();

@@ -1,6 +1,7 @@
 package org.example.map002probe;
 
 import android.os.SystemClock;
+import android.os.CancellationSignal;
 import java.util.Arrays;
 
 /** Runs fixture and real-array comparisons; writes no identifiers or coordinates to logs. */
@@ -23,6 +24,11 @@ final class ViewportFilterProbe {
         expect(out,ViewportFilter.query(a,b,8,-1,1,170,180,out),0,1,2,5);
         expect(out,ViewportFilter.query(a,b,8,-1,1,-180,-170,out),0,1,3);
         expect(out,ViewportFilter.query(a,b,8,-1,1,0,0,out),4);
+        CancellationSignal signal=new CancellationSignal();
+        check(Arrays.equals(ViewportFilter.queryIndexes(a,b,8,-1,1,179,-179,signal),new int[]{0,1,2,3,5}));
+        check(ViewportFilter.queryIndexes(a,b,0,-90,90,-180,180,signal).length==0);
+        CancellationSignal cancelled=new CancellationSignal();cancelled.cancel();boolean cancelledObserved=false;
+        try{ViewportFilter.queryIndexes(a,b,8,-90,90,-180,180,cancelled);}catch(android.os.OperationCanceledException expected){cancelledObserved=true;}check(cancelledObserved);
         int[] truncated=new int[2];check(ViewportFilter.query(a,b,8,-1,1,179,-179,truncated)==5 && truncated[0]==0 && truncated[1]==1);
         boolean invalid=false;try{ViewportFilter.query(a,b,8,1,-1,0,1,out);}catch(IllegalArgumentException e){invalid=true;}check(invalid);
         invalid=false;try{ViewportFilter.query(a,b,8,0,1,Double.NaN,1,out);}catch(IllegalArgumentException e){invalid=true;}check(invalid);
@@ -31,6 +37,10 @@ final class ViewportFilterProbe {
         int[] got=new int[count],expected=new int[count],repeat=new int[count],larger=new int[count];
         long start=SystemClock.elapsedRealtimeNanos();int n=ViewportFilter.query(lat,lon,count,south,north,west,east,got);long micros=(SystemClock.elapsedRealtimeNanos()-start)/1000;
         int ref=reference(lat,lon,count,south,north,west,east,expected);check(n==ref && Arrays.equals(Arrays.copyOf(got,n),Arrays.copyOf(expected,ref)));
+        long compactStart=SystemClock.elapsedRealtimeNanos();int[] compact=ViewportFilter.queryIndexes(lat,lon,count,south,north,west,east,signal);
+        long compactMicros=(SystemClock.elapsedRealtimeNanos()-compactStart)/1000;
+        check(Arrays.equals(compact,Arrays.copyOf(expected,ref)));
+        int[] all=ViewportFilter.queryIndexes(lat,lon,count,-90,90,-180,180,signal);check(all.length==count);for(int i=0;i<count;i++)check(all[i]==i);
         // Temporary quadrant counts demonstrate that only filtered points feed aggregation.
         int[] buckets=new int[4],referenceBuckets=new int[4];
         double midLat=(south+north)/2,midLon=(west+east)/2;
@@ -43,6 +53,6 @@ final class ViewportFilterProbe {
         int wrap=ViewportFilter.query(lat,lon,count,-90,90,179,-179,got);int wrapRef=reference(lat,lon,count,-90,90,179,-179,expected);
         check(wrap==wrapRef && Arrays.equals(Arrays.copyOf(got,wrap),Arrays.copyOf(expected,wrapRef)));
         int world=ViewportFilter.query(lat,lon,count,-90,90,-180,180,got);check(world==count);
-        ReadOnlyQuery.log("viewport_array_fixture=true exact_reference=true repeated_exact=true overlap_contains=true aggregation_input_verified=true synthetic_seam=true real_points="+count+" matches="+n+" wider="+wide+" real_wrap="+wrap+" scan_us="+micros);
+        ReadOnlyQuery.log("viewport_array_fixture=true exact_reference=true repeated_exact=true overlap_contains=true aggregation_input_verified=true synthetic_seam=true real_points="+count+" matches="+n+" wider="+wide+" real_wrap="+wrap+" scan_us="+micros+" compact_scan_us="+compactMicros+" compact_indexes="+compact.length);
     }
 }
