@@ -14,16 +14,17 @@ final class ScreenClusters {
         Cluster(int x, int y, int[] members) { this.x = x; this.y = y; this.members = members; }
     }
     private static final class Builder {
-        final int x, y;
+        long sumX, sumY;
         int[] members = new int[4];
         int size;
-        Builder(int x, int y) { this.x = x; this.y = y; }
-        void add(int member) {
+        Builder() { }
+        void add(int member, int x, int y) {
+            sumX += x; sumY += y;
             if (size == members.length) members = Arrays.copyOf(members, members.length * 2);
             members[size++] = member;
         }
         Cluster finish() {
-            return new Cluster(x, y, Arrays.copyOf(members, size));
+            return new Cluster((int)(sumX / size), (int)(sumY / size), Arrays.copyOf(members, size));
         }
     }
     static List<Cluster> group(int[] xs, int[] ys, int initialCellPixels, int maxMarkers) {
@@ -38,8 +39,8 @@ final class ScreenClusters {
                 int column = (int) (xs[i] / cell), row = (int) (ys[i] / cell);
                 long key = ((long) column << 32) | (row & 0xffffffffL);
                 Builder builder = cells.get(key);
-                if (builder == null) { builder = new Builder(xs[i], ys[i]); cells.put(key, builder); }
-                builder.add(i);
+                if (builder == null) { builder = new Builder(); cells.put(key, builder); }
+                builder.add(i, xs[i], ys[i]);
             }
             if (cells.size() <= maxMarkers) break;
             cell *= 2;

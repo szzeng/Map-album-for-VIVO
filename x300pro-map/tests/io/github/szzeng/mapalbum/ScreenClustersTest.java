@@ -10,6 +10,7 @@ public final class ScreenClustersTest {
         for (int i = 0; i < 3; i++) require(same.get(0).members[i] == i);
         List<ScreenClusters.Cluster> close = ScreenClusters.group(new int[]{10, 20, 120}, new int[]{10, 20, 20}, 100, 100);
         require(close.size() == 2 && close.get(0).members.length == 2 && close.get(1).members[0] == 2);
+        require(close.get(0).x == 15 && close.get(0).y == 15);
         List<ScreenClusters.Cluster> zoomed = ScreenClusters.group(new int[]{10, 110, 220}, new int[]{10, 110, 220}, 100, 100);
         require(zoomed.size() == 3);
         int[] xs = new int[1000], ys = new int[1000];
