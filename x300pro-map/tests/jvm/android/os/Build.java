@@ -1,0 +1,1 @@
+package android.os; public final class Build { public static String MANUFACTURER="vivo", MODEL="V2502A", DEVICE="PD2502"; }

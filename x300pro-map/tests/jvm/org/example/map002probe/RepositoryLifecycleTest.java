@@ -1,0 +1,34 @@
+package org.example.map002probe;
+import android.os.CancellationSignal; import android.graphics.Bitmap; import java.util.concurrent.CountDownLatch; import java.util.concurrent.TimeUnit;
+public final class RepositoryLifecycleTest {
+ static void check(boolean b){if(!b)throw new AssertionError();}
+ static void waitState(MapDataRepository r,MapDataRepository.State state)throws Exception{long end=System.currentTimeMillis()+4000;while(r.state()!=state&&System.currentTimeMillis()<end)Thread.sleep(5);check(r.state()==state);}
+ static final class Backend extends MapDataRepository.SyntheticBackend {
+  volatile long[] ids={1,2}; volatile int reads; volatile boolean denied,hold,wrongMetadata; final CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);
+  boolean fixtureEnabled(){return true;} public int batchPauseMillis(){return 0;}
+  public long[] visibleIds(int n,CancellationSignal c){if(denied)throw new SecurityException();return ids.clone();}
+  public void appendBatch(long[] x,int from,int to,PrimitiveLocationSet out,CancellationSignal c){reads++;entered.countDown();if(hold)try{release.await(4,TimeUnit.SECONDS);}catch(InterruptedException e){throw new RuntimeException(e);}for(int i=from;i<to;i++){c.throwIfCanceled();out.add(x[i],23,113);}}
+  public boolean scopeUnchanged(long[] x,CancellationSignal c){return java.util.Arrays.equals(x,ids);}
+  public MediaStoreLookup.Metadata metadata(long id,CancellationSignal c){return new MediaStoreLookup.Metadata(wrongMetadata?id+1:id);} public Bitmap thumbnail(long id,CancellationSignal c){return null;}
+ }
+ public static void main(String[] args)throws Exception {
+  Backend backend=new Backend();MapDataRepository r=MapDataRepository.forSyntheticFixture(backend);r.foreground();waitState(r,MapDataRepository.State.READY);check(backend.reads==1);long originalScope=r.scopeToken();check(originalScope>=0);
+  CountDownLatch first=new CountDownLatch(1);r.query(22,24,112,114,w->{check(w.size()==2);MediaStoreLookup.Metadata[] metadata=r.metadataBatchNow(new long[]{w.pointAt(0).id,w.pointAt(1).id});check(metadata!=null&&metadata.length==2&&metadata[0].id==1&&metadata[1].id==2);first.countDown();});check(first.await(4,TimeUnit.SECONDS));
+  CountDownLatch selected=new CountDownLatch(1);final boolean[] selectedOk={false};check(r.metadataForViewport(new long[]{1,2},values->{selectedOk[0]=values!=null&&values.length==2&&values[0].id==1&&values[1].id==2;selected.countDown();}));check(selected.await(4,TimeUnit.SECONDS)&&selectedOk[0]);
+  r.suspend();check(r.scopeToken()==-1);CountDownLatch resumed=new CountDownLatch(1);r.resumeChecked(v->resumed.countDown());check(resumed.await(4,TimeUnit.SECONDS));waitState(r,MapDataRepository.State.READY);check(backend.reads==1&&r.scopeToken()==originalScope);
+  r.suspend();backend.ids=new long[]{1};CountDownLatch changed=new CountDownLatch(1);r.resumeChecked(v->changed.countDown());check(changed.await(4,TimeUnit.SECONDS));waitState(r,MapDataRepository.State.READY);check(backend.reads==2&&r.visibleCount()==1&&r.scopeToken()!=originalScope);
+  r.suspend();backend.ids=new long[]{2};CountDownLatch preview=new CountDownLatch(1);final boolean[] accepted={true};r.verifyExistingScope(v->{accepted[0]=v;preview.countDown();});check(preview.await(4,TimeUnit.SECONDS));check(!accepted[0]&&r.state()==MapDataRepository.State.SCOPE_CHANGED);r.close();
+  android.content.Context release=new android.content.Context();MapDataRepository blocked=MapDataRepository.forConfirmedExperiment(release,true);blocked.resumeChecked(v->{});check(blocked.state()==MapDataRepository.State.IDENTITY_UNVERIFIED);blocked.close();
+  android.content.Context debug=new android.content.Context(){@Override public android.content.pm.ApplicationInfo getApplicationInfo(){android.content.pm.ApplicationInfo info=new android.content.pm.ApplicationInfo();info.flags=android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE;return info;}};
+  check(MapDataRepository.isSupportedDevice(debug));
+  android.os.Build.DEVICE="OTHER";check(!MapDataRepository.isSupportedDevice(debug));MapDataRepository wrong=MapDataRepository.forConfirmedExperiment(debug,true);wrong.resumeChecked(v->{});check(wrong.state()==MapDataRepository.State.IDENTITY_UNVERIFIED);wrong.close();android.os.Build.DEVICE="PD2502";
+  MapDataRepository unconfirmed=MapDataRepository.forConfirmedExperiment(debug,false);unconfirmed.resumeChecked(v->{});check(unconfirmed.state()==MapDataRepository.State.IDENTITY_UNVERIFIED);unconfirmed.close();
+  Backend large=new Backend();large.ids=new long[100001];MapDataRepository limit=MapDataRepository.forSyntheticFixture(large);limit.foreground();waitState(limit,MapDataRepository.State.CAPACITY_EXCEEDED);check(large.reads==0);limit.close();
+  Backend deny=new Backend();deny.denied=true;MapDataRepository denied=MapDataRepository.forSyntheticFixture(deny);denied.foreground();waitState(denied,MapDataRepository.State.ACCESS_DENIED);check(deny.reads==0);denied.close();
+  Backend race=new Backend();race.hold=true;MapDataRepository changedDuringLoad=MapDataRepository.forSyntheticFixture(race);changedDuringLoad.foreground();check(race.entered.await(4,TimeUnit.SECONDS));race.ids=new long[]{1};race.release.countDown();waitState(changedDuringLoad,MapDataRepository.State.SCOPE_CHANGED);check(changedDuringLoad.validCount()==0);changedDuringLoad.close();
+  Backend mismatch=new Backend();mismatch.wrongMetadata=true;MapDataRepository badMetadata=MapDataRepository.forSyntheticFixture(mismatch);badMetadata.foreground();waitState(badMetadata,MapDataRepository.State.READY);CountDownLatch invalidBatch=new CountDownLatch(1);badMetadata.query(22,24,112,114,w->{check(badMetadata.metadataBatchNow(new long[]{1,2})==null);invalidBatch.countDown();});check(invalidBatch.await(4,TimeUnit.SECONDS));check(badMetadata.state()==MapDataRepository.State.FAILED);badMetadata.close();
+  int[] across=ViewportFilter.queryIndexes(new double[]{0,0,0},new double[]{179.5,-179.5,0},3,-1,1,179,-179,new CancellationSignal());
+  check(java.util.Arrays.equals(across,new int[]{0,1}));
+  System.out.println("RepositoryLifecycleTest: passed");
+ }
+}

@@ -1,0 +1,1 @@
+package android.content; import android.content.pm.ApplicationInfo; public class Context { public ApplicationInfo getApplicationInfo(){return new ApplicationInfo();} }

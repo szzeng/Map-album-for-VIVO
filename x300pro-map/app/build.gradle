@@ -19,7 +19,7 @@ dependencies {
 }
 tasks.register('reuseMap002Sources', Sync) {
     from('../../map002-provider-probe/src')
-    include 'org/example/map002probe/PrimaryPhotoSource.java', 'org/example/map002probe/PrimitiveLocationSet.java', 'org/example/map002probe/ViewportFilter.java'
+    include 'org/example/map002probe/PrimaryPhotoSource.java', 'org/example/map002probe/PrimitiveLocationSet.java', 'org/example/map002probe/ViewportFilter.java', 'org/example/map002probe/MapDataRepository.java', 'org/example/map002probe/MediaStoreLookup.java'
     into layout.buildDirectory.dir('generated/map002')
 }
 tasks.withType(JavaCompile).configureEach { dependsOn tasks.named('reuseMap002Sources') }

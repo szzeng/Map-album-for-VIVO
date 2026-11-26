@@ -15,13 +15,15 @@ final class PrimaryPhotoSource {
     static final class UnsupportedVolumeException extends IllegalStateException { }
     static final class CapacityException extends IllegalStateException { }
     private static final Uri VIVO=Uri.parse("content://com.android.gallery3d.dataprovider/mediaextra");
+    int missingCount, noGpsCount, invalidCount;
+    void resetCounts(){missingCount=noGpsCount=invalidCount=0;}
     private final Context context;
     private final ContentResolver resolver;
     PrimaryPhotoSource(Context context){this.context=context.getApplicationContext();this.resolver=context.getContentResolver();}
     static boolean acceptsVolumes(Set<String> volumes){
         return volumes!=null && volumes.size()==1 && volumes.contains(MediaStore.VOLUME_EXTERNAL_PRIMARY);
     }
-    boolean primaryOnly(){return Build.VERSION.SDK_INT>=30 && acceptsVolumes(MediaStore.getExternalVolumeNames(context));}
+    boolean primaryOnly(){return Build.VERSION.SDK_INT>=29 && acceptsVolumes(MediaStore.getExternalVolumeNames(context));}
     long[] visibleIds(int capacity,CancellationSignal signal) {
         if(signal==null || capacity<0 || capacity>PrimitiveLocationSet.MAX_POINTS)throw new IllegalArgumentException();
         signal.throwIfCanceled();
@@ -55,13 +57,14 @@ final class PrimaryPhotoSource {
                 signal.throwIfCanceled();long id=c.getLong(0);int pos=Arrays.binarySearch(visible,from,to,id);
                 if(pos<0 || seen[pos-from])throw new IllegalStateException("unexpected or duplicate provider id");
                 int i=pos-from;seen[i]=true;
-                if(c.isNull(1)||c.isNull(2))continue;
+                if(c.isNull(1)||c.isNull(2)){noGpsCount++;continue;}
                 double x=c.getDouble(1),y=c.getDouble(2);
-                if(!Double.isFinite(x)||!Double.isFinite(y)||x< -90||x>90||y< -180||y>180||(x==0 && y==0))continue;
+                if(!Double.isFinite(x)||!Double.isFinite(y)||x< -90||x>90||y< -180||y>180||(x==0 && y==0)){invalidCount++;continue;}
                 valid[i]=true;lat[i]=x;lon[i]=y;
             }
         }
         signal.throwIfCanceled();
+        for(boolean present:seen)if(!present)missingCount++;
         for(int i=0;i<n;i++)if(valid[i]){signal.throwIfCanceled();output.add(visible[from+i],lat[i],lon[i]);}
     }
 }

@@ -1,0 +1,18 @@
+<resources>
+    <color name="app_text">#252B32</color>
+    <color name="app_secondary">#68737D</color>
+    <color name="app_accent">#547C91</color>
+    <color name="app_placeholder">#E5E9E7</color>
+    <color name="app_surface">#FFFFFF</color>
+    <color name="app_floating">#F5FFFFFF</color>
+    <color name="app_chip">#EFF3F5</color>
+    <color name="app_divider">#E9EDF0</color>
+    <color name="app_map_background">#EAF0E7</color>
+    <color name="app_menu_icon">#53616A</color>
+    <color name="preview_background">#F1F3F4</color>
+    <color name="preview_card">#FFFFFF</color>
+    <color name="preview_control">#E8ECEE</color>
+    <color name="preview_primary">#252B32</color>
+    <color name="preview_secondary">#626D76</color>
+    <color name="preview_shade">#99FFFFFF</color>
+</resources>

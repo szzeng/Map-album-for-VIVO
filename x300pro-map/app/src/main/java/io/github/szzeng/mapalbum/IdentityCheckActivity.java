@@ -2,6 +2,7 @@ package io.github.szzeng.mapalbum;
 
 import android.app.Activity;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -28,6 +29,7 @@ public final class IdentityCheckActivity extends Activity {
     private CancellationSignal pending;
     private int index, generation;
 
+    @Override protected void attachBaseContext(Context base){super.attachBaseContext(base);Appearance.applyOverride(this,base);}
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         LinearLayout root = new LinearLayout(this);

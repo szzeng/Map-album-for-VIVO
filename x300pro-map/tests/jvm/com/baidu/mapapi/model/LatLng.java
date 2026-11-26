@@ -1,0 +1,1 @@
+package com.baidu.mapapi.model; public final class LatLng { public final double latitude,longitude; public LatLng(double latitude,double longitude){this.latitude=latitude;this.longitude=longitude;} }

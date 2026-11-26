@@ -29,7 +29,7 @@ final class ThumbnailLoader implements AutoCloseable {
     };
     private final Map<String,Pending> pending=new HashMap<>();
     private boolean closed;
-    private int startedCount, canceledCount;
+    private int startedCount, canceledCount, hitCount;
     private static final class Pending {
         final CancellationSignal signal=new CancellationSignal();
         final ArrayList<Callback> callbacks=new ArrayList<>();
@@ -48,7 +48,7 @@ final class ThumbnailLoader implements AutoCloseable {
         final Pending job;
         synchronized(this){
             if(closed)return;
-            Bitmap cached=cache.get(key);if(cached!=null){callback.complete(cached);return;}
+            Bitmap cached=cache.get(key);if(cached!=null){hitCount++;callback.complete(cached);return;}
             Pending existing=pending.get(key);if(existing!=null){existing.callbacks.add(callback);return;}
             job=new Pending();job.callbacks.add(callback);pending.put(key,job);startedCount++;
             try {workers.execute(()->decode(key,uri,size,job,sampled));}
@@ -80,7 +80,7 @@ final class ThumbnailLoader implements AutoCloseable {
     synchronized void cancelPending(){
         canceledCount+=pending.size();for(Pending job:pending.values())job.signal.cancel();pending.clear();workers.getQueue().clear();
     }
-    synchronized String diagnosticCounts(){return "缩略图请求 "+startedCount+" · 已取消 "+canceledCount+" · 进行中 "+pending.size();}
+    synchronized String diagnosticCounts(){return "缩略图请求 "+startedCount+" · 已取消 "+canceledCount+" · 进行中 "+pending.size()+" · 缓存命中 "+hitCount+" · 缓存字节 "+cache.size();}
     synchronized void clear(){cancelPending();cache.evictAll();}
     @Override public synchronized void close(){if(closed)return;clear();closed=true;workers.shutdownNow();}
 }

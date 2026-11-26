@@ -28,16 +28,27 @@ final class ScreenClusters {
         }
     }
     static List<Cluster> group(int[] xs, int[] ys, int initialCellPixels, int maxMarkers) {
+        return group(xs,ys,0,0,initialCellPixels,maxMarkers);
+    }
+    private static final class Cell {
+        final long column,row;
+        Cell(long column,long row){this.column=column;this.row=row;}
+        @Override public boolean equals(Object other){if(!(other instanceof Cell))return false;Cell c=(Cell)other;return column==c.column&&row==c.row;}
+        @Override public int hashCode(){return 31*Long.hashCode(column)+Long.hashCode(row);}
+    }
+    /** Origin follows a fixed map location, keeping grid membership stable when the map pans. */
+    static List<Cluster> group(int[] xs, int[] ys, int originX, int originY, int initialCellPixels, int maxMarkers) {
         if (xs == null || ys == null || xs.length != ys.length || initialCellPixels < 1 || maxMarkers < 1)
             throw new IllegalArgumentException();
         for (int i = 0; i < xs.length; i++) if (xs[i] < 0 || ys[i] < 0) throw new IllegalArgumentException("points must be in viewport");
         long cell = initialCellPixels;
-        Map<Long, Builder> cells;
+        Map<Cell, Builder> cells;
         while (true) {
             cells = new LinkedHashMap<>();
             for (int i = 0; i < xs.length; i++) {
-                int column = (int) (xs[i] / cell), row = (int) (ys[i] / cell);
-                long key = ((long) column << 32) | (row & 0xffffffffL);
+                long column = cell >= (1L<<33) ? 0 : Math.floorDiv((long)xs[i]-originX,cell);
+                long row = cell >= (1L<<33) ? 0 : Math.floorDiv((long)ys[i]-originY,cell);
+                Cell key = new Cell(column,row);
                 Builder builder = cells.get(key);
                 if (builder == null) { builder = new Builder(); cells.put(key, builder); }
                 builder.add(i, xs[i], ys[i]);
@@ -48,6 +59,16 @@ final class ScreenClusters {
         List<Cluster> result = new ArrayList<>(cells.size());
         for (Builder builder : cells.values()) result.add(builder.finish());
         return result;
+    }
+    /** Choose from viewport dimensions so small changes in visible photos do not resize every cluster. */
+    static int stableCellPixels(int width,int height,int initial,int limit){
+        if(width<=0||height<=0||initial<=0||limit<4)throw new IllegalArgumentException();
+        long cell=initial;
+        while((((width-1L)/cell)+2)*(((height-1L)/cell)+2)>limit){
+            cell=Math.max(cell+1,(cell*5+3)/4);
+            if(cell>=Integer.MAX_VALUE)return Integer.MAX_VALUE;
+        }
+        return (int)cell;
     }
     private ScreenClusters() { }
 }
