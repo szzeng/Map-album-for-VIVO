@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <application>
+        <activity android:name=".VideoCheckActivity" android:exported="false" />
         <activity android:name=".IdentityCheckActivity" android:exported="false" />
     </application>
 </manifest>
