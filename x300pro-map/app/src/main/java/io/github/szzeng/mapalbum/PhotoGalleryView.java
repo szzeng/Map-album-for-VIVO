@@ -34,8 +34,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 final class PhotoGalleryView extends LinearLayout {
-    private static final int COLUMNS=4, TILE_GAP_DP=5, SIDE_PADDING_DP=14;
-    private static final int RAIL_WIDTH_DP=12, RAIL_EDGE_DP=1;
+    private static final int COLUMNS=4, TILE_GAP_DP=5, SIDE_PADDING_DP=14, GRID_PADDING_DP=5;
+    private static final int RAIL_WIDTH_DP=24, RAIL_EDGE_DP=1;
     private static final int SCROLL_MONTH_HEIGHT_DP=38;
     private final int primary, secondary, controlText, control, ripple, placeholder;
     private final NumberFormat number=NumberFormat.getIntegerInstance(Locale.CHINA);
@@ -119,7 +119,7 @@ final class PhotoGalleryView extends LinearLayout {
         grid=new ListView(context);
         grid.setDivider(null);
         grid.setDividerHeight(0);
-        grid.setPadding(dp(SIDE_PADDING_DP),dp(4),dp(SIDE_PADDING_DP),dp(14));
+        grid.setPadding(dp(GRID_PADDING_DP),dp(4),dp(GRID_PADDING_DP),dp(14));
         grid.setClipToPadding(true);
         grid.setVerticalScrollBarEnabled(false);
         adapter=new PhotoRows();
@@ -133,7 +133,7 @@ final class PhotoGalleryView extends LinearLayout {
         scrollMonth.setVisibility(View.GONE);
         scrollMonth.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         FrameLayout.LayoutParams bubble=new FrameLayout.LayoutParams(-2,dp(SCROLL_MONTH_HEIGHT_DP),Gravity.TOP|Gravity.END);
-        bubble.setMarginEnd(dp(22));
+        bubble.setMarginEnd(dp(30));
         listArea.addView(scrollMonth,bubble);
 
         ScrollRail rail=new ScrollRail(context);
@@ -391,7 +391,7 @@ final class PhotoGalleryView extends LinearLayout {
         @Override protected void onDetachedFromWindow(){cancel();super.onDetachedFromWindow();}
     }
 
-    /** This sibling of the list occupies only the gutter, outside the photo cells. */
+    /** A translucent scroll handle overlaid on the outer edge of the photos. */
     private final class ScrollRail extends View {
         private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
         private int first,visible,total;
@@ -413,16 +413,16 @@ final class PhotoGalleryView extends LinearLayout {
         }
 
         private float thumbLength(){
-            return Math.min(getHeight(),Math.max(dp(28),getHeight()*(float)visible/total));
+            return Math.min(getHeight(),Math.max(dp(56),getHeight()*(float)visible/total));
         }
 
         @Override protected void onDraw(Canvas canvas){
             if(total<=visible||getHeight()==0)return;
             float length=thumbLength();
             float top=(getHeight()-length)*Math.min(1,first/(float)(total-visible));
-            float x=getWidth()/2f,radius=Math.max(1,dp(3))/2f;
+            float x=getWidth()/2f,radius=dp(dragging?5:3);
             paint.setColor(controlText);
-            paint.setAlpha(dragging?220:132);
+            paint.setAlpha(dragging?200:132);
             canvas.drawRoundRect(x-radius,top,x+radius,top+length,radius,radius,paint);
         }
 
@@ -431,6 +431,7 @@ final class PhotoGalleryView extends LinearLayout {
             switch(event.getActionMasked()){
                 case MotionEvent.ACTION_DOWN:
                     dragging=true;
+                    invalidate();
                     getParent().requestDisallowInterceptTouchEvent(true);
                     scrollTo(event.getY());
                     return true;

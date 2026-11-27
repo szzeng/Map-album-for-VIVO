@@ -80,8 +80,7 @@ public final class PhotoPreviewActivity extends Activity {
         card=new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER_HORIZONTAL);
-        card.setPadding(dp(multiple?8:16),dp(multiple?6:8),dp(multiple?8:16),dp(multiple?4:8));
-        card.setBackground(shape(CARD,22));
+        card.setPadding(dp(multiple?8:16),dp(multiple?6:8),dp(multiple?8:16),dp(multiple?6:8));
         number=text("",13,PRIMARY);
         number.setGravity(Gravity.CENTER);
         number.setIncludeFontPadding(false);
@@ -120,6 +119,7 @@ public final class PhotoPreviewActivity extends Activity {
 
     private ImageView arrow(boolean forward,String description){
         ImageView button=new ImageView(this);
+        button.setScaleType(ImageView.ScaleType.FIT_XY);
         button.setImageDrawable(new PageArrow(forward));
         button.setContentDescription(description);
         button.setBackground(shape(CONTROL,24));
@@ -150,8 +150,8 @@ public final class PhotoPreviewActivity extends Activity {
         @Override public void draw(Canvas canvas){android.graphics.Rect r=getBounds();float cx=r.exactCenterX(),cy=r.exactCenterY(),arm=Math.min(r.width(),r.height())*.26f;paint.setColor(PRIMARY);paint.setStrokeWidth(dp(2));paint.setStyle(Paint.Style.STROKE);paint.setStrokeJoin(Paint.Join.ROUND);paint.setStrokeCap(Paint.Cap.ROUND);Path arrow=new Path();arrow.moveTo(cx+arm*.45f,cy-arm);arrow.lineTo(cx-arm*.55f,cy);arrow.lineTo(cx+arm*.45f,cy+arm);canvas.drawPath(arrow,paint);}
         @Override public void setAlpha(int alpha){paint.setAlpha(alpha);}@Override public void setColorFilter(android.graphics.ColorFilter filter){paint.setColorFilter(filter);}@Override public int getOpacity(){return PixelFormat.TRANSLUCENT;}
     }
-    private void updateInsets(){FrameLayout.LayoutParams t=(FrameLayout.LayoutParams)topControls.getLayoutParams();t.topMargin=topInset+dp(4);topControls.setLayoutParams(t);FrameLayout.LayoutParams s=(FrameLayout.LayoutParams)topShade.getLayoutParams();s.height=topInset+dp(96);topShade.setLayoutParams(s);FrameLayout.LayoutParams c=(FrameLayout.LayoutParams)card.getLayoutParams();c.bottomMargin=bottomInset+dp(12);card.setLayoutParams(c);updatePhotoBounds();}
-    private void updatePhotoBounds(){if(photoArea==null||card==null)return;FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)photoArea.getLayoutParams();int bottom=card.getHeight()+bottomInset+dp(12);if(p.bottomMargin!=bottom){p.bottomMargin=bottom;photoArea.setLayoutParams(p);}}
+    private void updateInsets(){FrameLayout.LayoutParams t=(FrameLayout.LayoutParams)topControls.getLayoutParams();t.topMargin=topInset+dp(4);topControls.setLayoutParams(t);FrameLayout.LayoutParams s=(FrameLayout.LayoutParams)topShade.getLayoutParams();s.height=topInset+dp(96);topShade.setLayoutParams(s);FrameLayout.LayoutParams c=(FrameLayout.LayoutParams)card.getLayoutParams();c.bottomMargin=bottomInset+dp(32);card.setLayoutParams(c);updatePhotoBounds();}
+    private void updatePhotoBounds(){if(photoArea==null||card==null)return;FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)photoArea.getLayoutParams();int bottom=card.getHeight()+bottomInset+dp(32);if(p.bottomMargin!=bottom){p.bottomMargin=bottom;photoArea.setLayoutParams(p);}}
     private void change(int offset){selectIndex(index+offset,true);}
     private void selectIndex(int target,boolean animate){
         if(target<0||target>=photos.size()||target==index)return;
@@ -189,7 +189,7 @@ public final class PhotoPreviewActivity extends Activity {
         final long pixels=current==null?0:(long)current.getWidth()*current.getHeight();
         loader.loadSampled(item.uri,item.mediaVersion,size,b->{if(ticket!=request||isFinishing()||isDestroyed())return;
             if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0&&b!=null)android.util.Log.i("MAP004Preview","sampled preview="+b.getWidth()+"x"+b.getHeight());
-            if(b!=null&&(long)b.getWidth()*b.getHeight()>pixels)displayThumbnail(b,current==null);else if(current==null){error.setText("预览加载失败，双击查看原图");error.setVisibility(View.VISIBLE);}
+            if(b!=null&&(long)b.getWidth()*b.getHeight()>pixels)displayThumbnail(b,current==null);else if(current==null){error.setText("预览加载失败，点击查看原图");error.setVisibility(View.VISIBLE);}
         });
     }
     private void displayThumbnail(Bitmap bitmap,boolean animate){error.setVisibility(View.GONE);if(image.getDrawable()!=null)image.replacePreview(bitmap);else{image.setImageBitmap(bitmap);image.resetPreview();}if(animate&&direction!=0){image.setAlpha(0f);image.setTranslationX(dp(20)*direction);image.animate().alpha(1f).translationX(0).setDuration(180).start();}}

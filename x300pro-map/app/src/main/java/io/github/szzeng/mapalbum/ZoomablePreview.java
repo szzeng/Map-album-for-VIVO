@@ -8,7 +8,6 @@ import android.graphics.drawable.Drawable;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.ViewConfiguration;
 import android.widget.ImageView;
 
 /** Zooms the in-memory preview thumbnail; the original remains in the native gallery. */
@@ -20,14 +19,21 @@ final class ZoomablePreview extends ImageView {
     private SwipeListener swipeListener;
     private Runnable openOriginalListener;
     private float baseScale=1,zoom=1,lastX,lastY,startX,startY;
-    private final int touchSlop;
     private int activePointer=-1;
-    private boolean dragging,multiTouch,moved,gestureStartedZoomed,doubleTap;
+    private boolean dragging,multiTouch,gestureStartedZoomed;
     ZoomablePreview(Context context){
-        super(context);setScaleType(ScaleType.MATRIX);setContentDescription("照片预览，双击在原生相册打开原图");setClickable(true);touchSlop=ViewConfiguration.get(context).getScaledTouchSlop();
+        super(context);setScaleType(ScaleType.MATRIX);setContentDescription("照片预览，单击在原生相册打开原图，双击缩放");setClickable(true);
         taps=new GestureDetector(context,new GestureDetector.SimpleOnGestureListener(){
             @Override public boolean onDown(MotionEvent event){return true;}
-            @Override public boolean onDoubleTap(MotionEvent event){doubleTap=true;return true;}
+            @Override public boolean onSingleTapConfirmed(MotionEvent event){performClick();return true;}
+            @Override public boolean onDoubleTap(MotionEvent event){
+                if(getDrawable()!=null){
+                    float target=zoom>1.01f?1f:2.5f;
+                    if(target==1f)fit();
+                    else{float factor=target/zoom;zoom=target;transform.postScale(factor,factor,event.getX(),event.getY());constrain();}
+                }
+                return true;
+            }
         });
         detector=new ScaleGestureDetector(context,new ScaleGestureDetector.SimpleOnScaleGestureListener(){
             @Override public boolean onScale(ScaleGestureDetector gesture){
@@ -64,16 +70,14 @@ final class ZoomablePreview extends ImageView {
         transform.postTranslate(dx,dy);setImageMatrix(transform);
     }
     @Override public boolean onTouchEvent(MotionEvent event){
-        if(event.getActionMasked()==MotionEvent.ACTION_DOWN)doubleTap=false;
         taps.onTouchEvent(event);
         if(getDrawable()!=null)detector.onTouchEvent(event);
         switch(event.getActionMasked()){
             case MotionEvent.ACTION_DOWN:
-                getParent().requestDisallowInterceptTouchEvent(true);activePointer=event.getPointerId(0);startX=lastX=event.getX();startY=lastY=event.getY();dragging=true;multiTouch=false;moved=false;gestureStartedZoomed=zoom>1.01f;return true;
+                getParent().requestDisallowInterceptTouchEvent(true);activePointer=event.getPointerId(0);startX=lastX=event.getX();startY=lastY=event.getY();dragging=true;multiTouch=false;gestureStartedZoomed=zoom>1.01f;return true;
             case MotionEvent.ACTION_POINTER_DOWN: dragging=false;multiTouch=true;break;
             case MotionEvent.ACTION_MOVE:
                 int at=event.findPointerIndex(activePointer);if(at<0)break;float x=event.getX(at),y=event.getY(at);
-                if(Math.abs(x-startX)>touchSlop||Math.abs(y-startY)>touchSlop)moved=true;
                 if(dragging&&!detector.isInProgress()&&zoom>1){transform.postTranslate(x-lastX,y-lastY);constrain();}
                 lastX=x;lastY=y;break;
             case MotionEvent.ACTION_POINTER_UP:
@@ -81,8 +85,6 @@ final class ZoomablePreview extends ImageView {
             case MotionEvent.ACTION_UP:
                 float dx=event.getX()-startX,dy=event.getY()-startY;
                 if(!multiTouch&&!gestureStartedZoomed&&zoom<=1.01f&&Math.abs(dx)>64*getResources().getDisplayMetrics().density&&Math.abs(dx)>Math.abs(dy)*1.3f&&swipeListener!=null)swipeListener.onSwipe(dx<0);
-                else if(doubleTap&&!multiTouch&&!moved&&Math.abs(dx)<=touchSlop&&Math.abs(dy)<=touchSlop
-                    &&event.getEventTime()-event.getDownTime()<ViewConfiguration.getLongPressTimeout())performClick();
                 dragging=false;activePointer=-1;getParent().requestDisallowInterceptTouchEvent(false);break;
             case MotionEvent.ACTION_CANCEL:
                 dragging=false;activePointer=-1;getParent().requestDisallowInterceptTouchEvent(false);break;

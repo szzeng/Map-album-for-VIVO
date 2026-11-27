@@ -445,7 +445,7 @@ public class MainActivity extends Activity {
         if(!active)return;
         cancelRequests();
         if(experiment!=null && experiment.state()==MapDataRepository.State.READY){
-            handler.postDelayed(viewportRefresh,160);
+            handler.postDelayed(viewportRefresh,40);
         }
     }
 
@@ -474,7 +474,7 @@ public class MainActivity extends Activity {
         ViewportData previous=viewport;
         if(previous!=null&&previous.bounds.covers(visibleBounds.south,visibleBounds.north,visibleBounds.west,visibleBounds.east)){
             viewportCacheHits++;
-            projectViewport(ticket,previous,started);
+            projectViewport(ticket,previous,visibleBounds,started);
             return;
         }
         viewportPhase="正在筛选";
@@ -510,7 +510,7 @@ public class MainActivity extends Activity {
             handler.post(()->{
                 if(!active||ticket!=viewportGeneration||experiment!=repository||repository.scopeToken()!=displayedScope)return;
                 viewport=data;
-                projectViewport(ticket,data,started);
+                projectViewport(ticket,data,visibleBounds,started);
             });
         });
         if(!accepted)showViewportFailure(ticket);
@@ -522,7 +522,7 @@ public class MainActivity extends Activity {
         showGalleryStatus("此范围读取失败 · 重试",this::schedule);
     }
 
-    private void projectViewport(long ticket,ViewportData data,long started){
+    private void projectViewport(long ticket,ViewportData data,ViewportBounds visibleBounds,long started){
         viewportPhase="正在生成地图标记";
         int width=view.getWidth(),height=view.getHeight();
         Projection projection=map.getProjection();
@@ -539,7 +539,7 @@ public class MainActivity extends Activity {
                     int end=Math.min(cursor+64,data.ids.length);
                     for(;cursor<end;cursor++){
                         LatLng position=data.positions[cursor];
-                        if(position==null)continue;
+                        if(position==null||!visibleBounds.contains(position.latitude,position.longitude))continue;
                         Point pixel=projection.toScreenLocation(position);
                         if(pixel!=null&&pixel.x>=0&&pixel.y>=0&&pixel.x<width&&pixel.y<height){
                             xs[size]=pixel.x;

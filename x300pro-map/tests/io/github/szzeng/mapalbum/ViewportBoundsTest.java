@@ -11,6 +11,7 @@ public final class ViewportBoundsTest {
         check(!cached.covers(22,23,111.99,114));
         check(!cached.covers(22,23,113,115.01));
         check(!cached.covers(23,22,113,114));
+        check(cached.contains(23,113));check(!cached.contains(25,113));check(!cached.contains(23,116));
         ViewportBounds europe=GeographicViewport.fromCorners(new double[]{48,51,48,51},new double[]{-1,3,-1,3},1,.1);
         check(europe.covers(48,51,-1,3));check(europe.west<0 && europe.east>0);
         ViewportBounds americas=GeographicViewport.fromCorners(new double[]{-35,45},new double[]{-123,-65},-90,.1);
@@ -19,6 +20,7 @@ public final class ViewportBoundsTest {
         check(dateline.west>dateline.east && dateline.covers(-10,10,179.5,-179.5));
         check(dateline.covers(-10,10,179.5,180));check(dateline.covers(-10,10,-180,-179.5));
         check(!dateline.covers(-10,10,-170,-160));
+        check(dateline.contains(0,179.5));check(dateline.contains(0,-179.5));check(!dateline.contains(0,0));
         ViewportBounds wide=GeographicViewport.fromCorners(new double[]{-10,10},new double[]{-130,130},0,.1);
         check(wide.west==-180 && wide.east==180);
         ViewportBounds edge=GeographicViewport.fromCorners(new double[]{-89.99,89.99},new double[]{-179.99,179.99},0,.1);
