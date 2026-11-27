@@ -9,6 +9,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import io.github.szzeng.mapalbum.BuildConfig;
+import io.github.szzeng.mapalbum.MediaIdentity;
 
 /** Read-only, process-local index. Device access requires an explicit build and manufacturer gate. */
 public final class MapDataRepository implements AutoCloseable {
@@ -35,8 +36,8 @@ public final class MapDataRepository implements AutoCloseable {
     /** Test seam for synthetic data only; not a device identity authority. */
     abstract static class SyntheticBackend implements Backend { abstract boolean fixtureEnabled(); }
     public static final class Point {
-        public final long id;public final double latitude,longitude;
-        Point(long id,double latitude,double longitude){this.id=id;this.latitude=latitude;this.longitude=longitude;}
+        public final long id,mediaVersion;public final double latitude,longitude;
+        Point(long id,double latitude,double longitude,long mediaVersion){this.id=id;this.latitude=latitude;this.longitude=longitude;this.mediaVersion=mediaVersion;}
     }
     /** Contains only indexes; after invalidation it cannot retrieve location data. */
     public static final class Window {
@@ -49,7 +50,7 @@ public final class MapDataRepository implements AutoCloseable {
         public Point pointAt(int index){
             synchronized(owner){
                 if(!owner.currentQuery(epoch,signal,queryEpoch,querySignal)||owner.cache!=data||index<0||index>=count)return null;
-                synchronized(data){int at=indexes[index];return new Point(data.idAt(at),data.latitudeAt(at),data.longitudeAt(at));}
+                synchronized(data){int at=indexes[index];return new Point(data.idAt(at),data.latitudeAt(at),data.longitudeAt(at),data.versionAt(at));}
             }
         }
     }
@@ -108,6 +109,13 @@ public final class MapDataRepository implements AutoCloseable {
     /** Token is usable only with this repository and while the current scope is READY. */
     public synchronized long scopeToken(){return foreground && state==State.READY && cache!=null?epoch:-1;}
     public synchronized int visibleCount(){return visibleCount;}
+    public synchronized int visibleVideoCount(){return backend instanceof DeviceBackend?((DeviceBackend)backend).videoCount:0;}
+    /** Change only while stopped, so no old authorization scope remains displayable. */
+    public synchronized void setMediaMode(int mode){
+        if(mode<0||mode>2||!(backend instanceof DeviceBackend))throw new IllegalArgumentException();
+        if(state!=State.INACTIVE&&state!=State.IDLE)throw new IllegalStateException("repository must be stopped");
+        ((DeviceBackend)backend).mode=mode;
+    }
     public synchronized int validCount(){return validCount;}
     public synchronized String photoLocationSummary(){
         if(state!=State.READY || !(backend instanceof DeviceBackend))return null;
@@ -470,14 +478,26 @@ public final class MapDataRepository implements AutoCloseable {
         }});return true;}catch(RejectedExecutionException e){return false;}
     }
     private static final class DeviceBackend implements Backend {
-        private final PrimaryPhotoSource source;private final MediaStoreLookup media;
-        DeviceBackend(Context context){source=new PrimaryPhotoSource(context);media=new MediaStoreLookup(context);}
+        private final PrimaryPhotoSource source;private final PrimaryVideoSource video;private final MediaStoreLookup media;
+        private volatile int mode,videoCount;
+        DeviceBackend(Context context){source=new PrimaryPhotoSource(context);video=new PrimaryVideoSource(context);media=new MediaStoreLookup(context);}
         // This backend is deliberately unreachable until a vendor identity contract is verified.
         String diagnostics(){return "\n无 GPS "+source.noGpsCount+" · 无效坐标 "+source.invalidCount+" · Provider 缺失 "+source.missingCount;}
         public int batchPauseMillis(){return 0;}
-        public long[] visibleIds(int capacity,CancellationSignal signal){return source.visibleIds(capacity,signal);}
-        public void appendBatch(long[] ids,int from,int to,PrimitiveLocationSet output,CancellationSignal signal){source.appendBatch(ids,from,to,output,signal);}
-        public boolean scopeUnchanged(long[] ids,CancellationSignal signal){return source.primaryOnly() && Arrays.equals(ids,source.visibleIds(CAPACITY,signal));}
+        public long[] visibleIds(int capacity,CancellationSignal signal){
+            long[] photos=mode==2?new long[0]:source.visibleIds(capacity,signal);
+            if(mode==0){videoCount=0;return photos;}
+            long[] videos=video.visibleIds(capacity-photos.length,signal);
+            videoCount=videos.length;
+            long[] both=Arrays.copyOf(photos,photos.length+videos.length);
+            System.arraycopy(videos,0,both,photos.length,videos.length);return both;
+        }
+        public void appendBatch(long[] ids,int from,int to,PrimitiveLocationSet output,CancellationSignal signal){
+            int split=from;while(split<to&&!MediaIdentity.isVideo(ids[split]))split++;
+            if(split>from)source.appendBatch(ids,from,split,output,signal);
+            for(int start=split;start<to;start+=512)video.appendBatch(ids,start,Math.min(to,start+512),output,signal);
+        }
+        public boolean scopeUnchanged(long[] ids,CancellationSignal signal){return source.primaryOnly() && Arrays.equals(ids,visibleIds(CAPACITY,signal));}
         public MediaStoreLookup.Metadata metadata(long id,CancellationSignal signal){return media.lookup(id,signal);}
         public Bitmap thumbnail(long id,CancellationSignal signal){return media.thumbnail(id,signal);}
         @Override public void timelineBatch(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal signal){

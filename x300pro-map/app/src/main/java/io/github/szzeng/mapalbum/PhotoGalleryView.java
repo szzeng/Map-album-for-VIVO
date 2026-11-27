@@ -64,7 +64,7 @@ final class PhotoGalleryView extends LinearLayout {
         setBackgroundColor(context.getColor(R.color.gallery_background));
         setElevation(dp(8));
         setClickable(true);
-        setAccessibilityPaneTitle("此处照片");
+        setAccessibilityPaneTitle("此处媒体");
 
         LinearLayout bar=new LinearLayout(context);
         bar.setGravity(Gravity.CENTER_VERTICAL);
@@ -90,7 +90,7 @@ final class PhotoGalleryView extends LinearLayout {
         identityParams.setMarginEnd(dp(8));
         bar.addView(identity,identityParams);
         TextView title=text(18,primary,true);
-        title.setText("此处照片");
+        title.setText("此处媒体");
         title.setSingleLine();
         title.setEllipsize(TextUtils.TruncateAt.END);
         title.setAccessibilityHeading(true);
@@ -127,7 +127,7 @@ final class PhotoGalleryView extends LinearLayout {
         FrameLayout listArea=new FrameLayout(context);
         listArea.addView(grid,new FrameLayout.LayoutParams(-1,-1));
         loading=text(14,secondary,false);
-        loading.setText("正在读取照片…");
+        loading.setText("正在读取媒体…");
         loading.setGravity(Gravity.CENTER);
         loading.setVisibility(View.GONE);
         listArea.addView(loading,new FrameLayout.LayoutParams(-1,-1));
@@ -157,7 +157,8 @@ final class PhotoGalleryView extends LinearLayout {
         loading.setVisibility(View.GONE);
         sortTarget.setVisibility(View.VISIBLE);
         oldestFirst=oldest;
-        total.setText(number.format(photos==null?0:photos.size())+" 张照片");
+        int videos=photos==null?0:photos.videoCount();
+        total.setText(number.format(photos==null?0:photos.size()-videos)+" 张照片 · "+number.format(videos)+" 个视频");
         String order=oldest?"最早优先":"最新优先";
         sort.setText(order+"  ⇅");
         sortTarget.setContentDescription("照片排序，当前"+order+"，点击切换");
@@ -166,7 +167,7 @@ final class PhotoGalleryView extends LinearLayout {
 
     void showLoading(int totalPhotos){
         adapter.setPhotos(null);
-        total.setText(number.format(totalPhotos)+" 张照片");
+        total.setText(number.format(totalPhotos)+" 项媒体");
         sortTarget.setVisibility(View.INVISIBLE);
         loading.setVisibility(View.VISIBLE);
     }
@@ -341,7 +342,7 @@ final class PhotoGalleryView extends LinearLayout {
             if(heading!=null){
                 date.setText(heading.date);
                 year.setText(heading.year);
-                dayCount.setText(number.format(heading.count)+" 张");
+                dayCount.setText(number.format(heading.count)+" 项");
             }
             for(int i=0;i<COLUMNS;i++)cells[i].bind(i<row.count?photos.get(row.first+i):null,size,row.first+i);
         }
@@ -378,8 +379,15 @@ final class PhotoGalleryView extends LinearLayout {
                 ViewGroup.LayoutParams params=getLayoutParams();
                 if(params.height!=size){params.height=size;setLayoutParams(params);}
             }
-            setContentDescription(photo==null?null:"查看第 "+(index+1)+" 张照片");
+            setContentDescription(photo==null?null:"查看第 "+(index+1)+(photo.video?" 个视频":" 张照片"));
             loadImage();
+        }
+        @Override protected void onDraw(Canvas canvas){
+            super.onDraw(canvas);
+            if(photo==null||!photo.video)return;
+            Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);float radius=dp(12),x=getWidth()-dp(16),y=getHeight()-dp(16);
+            p.setColor(0xaa000000);canvas.drawCircle(x,y,radius,p);p.setColor(android.graphics.Color.WHITE);
+            android.graphics.Path triangle=new android.graphics.Path();triangle.moveTo(x-dp(3),y-dp(6));triangle.lineTo(x+dp(6),y);triangle.lineTo(x-dp(3),y+dp(6));triangle.close();canvas.drawPath(triangle,p);
         }
         void loadImage(){
             if(photo==null||tileSize<=1||getDrawable()!=null||request!=null||retryPending||!canLoad.getAsBoolean())return;

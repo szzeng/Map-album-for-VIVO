@@ -52,10 +52,27 @@ public final class RepositoryLifecycleTest {
   Backend mismatch=new Backend();mismatch.wrongMetadata=true;MapDataRepository badMetadata=MapDataRepository.forSyntheticFixture(mismatch);badMetadata.foreground();waitState(badMetadata,MapDataRepository.State.READY);CountDownLatch invalidBatch=new CountDownLatch(1);badMetadata.query(22,24,112,114,w->{check(badMetadata.metadataBatchNow(new long[]{1,2})==null);invalidBatch.countDown();});check(invalidBatch.await(4,TimeUnit.SECONDS));check(badMetadata.state()==MapDataRepository.State.FAILED);badMetadata.close();
   checkSelectionCancellationAndRecovery();
   checkTimelineCancellationAndOrdering();
+  checkMixedMediaScope();
   checkSinglePreviewScope();
   int[] across=ViewportFilter.queryIndexes(new double[]{0,0,0},new double[]{179.5,-179.5,0},3,-1,1,179,-179,new CancellationSignal());
   check(java.util.Arrays.equals(across,new int[]{0,1}));
   System.out.println("RepositoryLifecycleTest: passed");
+ }
+ private static void checkMixedMediaScope()throws Exception {
+  long photo=io.github.szzeng.mapalbum.MediaIdentity.photo(7),video=io.github.szzeng.mapalbum.MediaIdentity.video(7);
+  Backend source=new Backend();source.ids=new long[]{photo,video};
+  try(MapDataRepository repository=MapDataRepository.forSyntheticFixture(source)){
+   repository.foreground();waitState(repository,MapDataRepository.State.READY);
+   long scope=repository.scopeToken();CountDownLatch viewport=new CountDownLatch(1);
+   check(repository.query(22,24,112,114,window->{check(window.size()==2&&window.pointAt(0).id==photo&&window.pointAt(1).id==video);viewport.countDown();}));
+   check(viewport.await(4,TimeUnit.SECONDS));
+   CountDownLatch timeline=new CountDownLatch(1);
+   check(repository.loadPhotoTimeline(source.ids,result->{check(result!=null&&result.order(false).size()==2);timeline.countDown();})!=null);
+   check(timeline.await(4,TimeUnit.SECONDS));
+   repository.suspend();source.ids=new long[]{photo};CountDownLatch resumed=new CountDownLatch(1);
+   repository.resumeChecked(state->resumed.countDown());check(resumed.await(4,TimeUnit.SECONDS));
+   waitState(repository,MapDataRepository.State.READY);check(repository.scopeToken()!=scope&&repository.visibleCount()==1);
+  }
  }
  private static void checkSinglePreviewScope()throws Exception {
   java.util.concurrent.atomic.AtomicInteger fullChecks=new java.util.concurrent.atomic.AtomicInteger();

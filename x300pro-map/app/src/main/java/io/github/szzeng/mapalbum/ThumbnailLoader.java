@@ -85,7 +85,7 @@ final class ThumbnailLoader implements AutoCloseable {
                     if(largest>size){double scale=(double)size/largest;decoder.setTargetSize(Math.max(1,(int)Math.round(width*scale)),Math.max(1,(int)Math.round(height*scale)));}
                 });
             }else bitmap=resolver.loadThumbnail(uri,new Size(size,size),job.signal);job.signal.throwIfCanceled();
-            if(BuildConfig.DEBUG)android.util.Log.d("MAP004Thumb","loaded="+(bitmap!=null)+" requested_px="+size+" elapsed_ms="+(android.os.SystemClock.elapsedRealtime()-started));}
+            if(BuildConfig.DEBUG)android.util.Log.d("MAP004Thumb","type="+(uri.getPathSegments().contains("video")?"video":"photo")+" loaded="+(bitmap!=null)+" requested_px="+size+" elapsed_ms="+(android.os.SystemClock.elapsedRealtime()-started));}
         catch(Exception error) {if(bitmap!=null){bitmap.recycle();bitmap=null;}if(BuildConfig.DEBUG&&!job.signal.isCanceled())android.util.Log.d("MAP004Thumb","failed="+error.getClass().getSimpleName());}
         final Bitmap ready=bitmap;
         main.post(()->{

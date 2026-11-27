@@ -60,6 +60,9 @@ public class MainActivity extends Activity {
     private LocationClient locationClient; private BDAbstractLocationListener locationListener;
     private static MapStatus transientMapStatus;
     private static MapDataRepository experiment;
+    private static int repositoryMediaMode=-1;
+    private int mediaMode=0, pendingMediaMode=0;
+    private TextView mediaFilter;
     private static PendingPhotoReturn pendingPhotoReturn;
     private PendingPhotoReturn retainedGallery;
     private static final class PendingPhotoReturn {
@@ -97,11 +100,12 @@ public class MainActivity extends Activity {
     }
     private static final class ViewportData {
         final ViewportBounds bounds;
-        final long[] ids;
+        final long[] ids,versions;
         final LatLng[] positions;
         ViewportData(ViewportBounds bounds,int size){
             this.bounds=bounds;
             ids=new long[size];
+            versions=new long[size];
             positions=new LatLng[size];
         }
     }
@@ -190,6 +194,7 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state){super.onCreate(state);saved=state;darkMode=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
         TEXT=getColor(R.color.app_text);SECONDARY=getColor(R.color.app_secondary);ACCENT=getColor(R.color.app_accent);PLACEHOLDER=getColor(R.color.app_placeholder);SURFACE=getColor(R.color.app_surface);FLOATING=getColor(R.color.app_floating);MAP_BACKGROUND=getColor(R.color.app_map_background);MENU_ICON=getColor(R.color.app_menu_icon);
         retainedGallery=(PendingPhotoReturn)getLastNonConfigurationInstance();
+        mediaMode=getPreferences(MODE_PRIVATE).getInt("media_mode",0);if(mediaMode<0||mediaMode>2)mediaMode=0;
         thumbnails=new ThumbnailLoader(getContentResolver());
         TextView waiting=label("等待隐私选择",14,TEXT);setContentView(waiting);
         if(PrivacyConsent.isCurrent(getPreferences(MODE_PRIVATE).getInt(PrivacyConsent.KEY,0))){initializeMap();return;}
@@ -216,7 +221,10 @@ public class MainActivity extends Activity {
         });
         map.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener(){public void onMapStatusChangeStart(MapStatus s){cancelRequests();}public void onMapStatusChangeStart(MapStatus s,int reason){cancelRequests();}public void onMapStatusChange(MapStatus s){}public void onMapStatusChangeFinish(MapStatus s){schedule(true);}});
         buildUi();
-        if(experiment==null && getPreferences(MODE_PRIVATE).getBoolean(confirmationKey(),false) && supportedGallery())experiment=createGallery();
+        if(mediaMode!=0&&!hasVideoAccess()){mediaMode=0;getPreferences(MODE_PRIVATE).edit().putInt("media_mode",0).apply();}
+        updateMediaFilter();
+        if(experiment==null && getPreferences(MODE_PRIVATE).getBoolean(confirmationKey(),false) && supportedGallery()){experiment=createGallery();experiment.setMediaMode(mediaMode);repositoryMediaMode=mediaMode;}
+        else if(experiment!=null&&repositoryMediaMode!=mediaMode){experiment.stopAndClear();experiment.setMediaMode(mediaMode);repositoryMediaMode=mediaMode;}
         if(saved!=null)oldestFirst=saved.getBoolean("oldestFirst");
         if(active)resumeExperiment();
         schedule();
@@ -237,6 +245,8 @@ public class MainActivity extends Activity {
         FrameLayout.LayoutParams statusParams=new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.START);
         statusParams.setMarginStart(dp(16));statusParams.setMarginEnd(dp(76));statusParams.topMargin=dp(72);
         root.addView(count,statusParams);
+        mediaFilter=label("",13,ACCENT);mediaFilter.setGravity(Gravity.CENTER);mediaFilter.setPadding(dp(12),0,dp(12),0);mediaFilter.setBackground(floatingBackground(16));mediaFilter.setElevation(dp(3));
+        FrameLayout.LayoutParams filterParams=new FrameLayout.LayoutParams(-2,dp(40),Gravity.TOP|Gravity.RIGHT);filterParams.setMargins(0,dp(72),dp(16),0);root.addView(mediaFilter,filterParams);updateMediaFilter();mediaFilter.setOnClickListener(v->chooseMediaMode());
         showInitialGalleryStatus();
         TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");menu.setBackground(floatingBackground(24));menu.setElevation(dp(3));menu.setOnClickListener(v->showMenu(menu));
         FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.RIGHT);bp.setMargins(0,dp(12),dp(16),0);root.addView(menu,bp);
@@ -293,7 +303,7 @@ public class MainActivity extends Activity {
         p.getMenu().add("刷新照片数据").setOnMenuItemClickListener(i->{if(experiment==null)enableExperiment();else reloadGallery();return true;});
         p.getMenu().add("照片 GPS 情况").setOnMenuItemClickListener(i->{showPhotoLocationSummary();return true;});
         p.getMenu().add("百度地图 AK").setOnMenuItemClickListener(i->{showBaiduAkSettings();return true;});
-        p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片和位置仅在设备内存中处理。冷启动时及点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。图库仅访问当前授权的主卷照片。照片位置已开放全球；跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
+        p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片、视频及其已有位置仅在本机只读处理，媒体索引仅保存在内存中；图迹不上传照片、视频、GPS 或媒体索引。图库仅访问当前授权的主卷媒体。冷启动时及点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
         p.getMenu().add("关于图迹 for VIVO").setOnMenuItemClickListener(i->{showAbout();return true;});
         if(BuildConfig.PERSONAL_DEVICE_RELEASE){
             p.getMenu().add("启用图库地图").setOnMenuItemClickListener(i->{enableExperiment();return true;});
@@ -357,7 +367,8 @@ public class MainActivity extends Activity {
         Toast.makeText(this,"已保存，正在重新加载地图；AK 能否使用取决于百度鉴权",Toast.LENGTH_LONG).show();recreate();
     }
     private void showPhotoLocationSummary(){
-        String summary=experiment==null?null:experiment.photoLocationSummary();
+        String summary=experiment==null||mediaMode!=0?null:experiment.photoLocationSummary();
+        if(mediaMode!=0)summary="照片 GPS 统计请切换到照片模式后查看。";
         if(summary==null)summary=count==null?"请先启用图库地图并授权照片访问。":count.getText().toString()+"\n请在照片数据读取完成后查看。";
         new AlertDialog.Builder(this).setTitle("照片 GPS 情况").setMessage(summary).setPositiveButton("知道了",null).show();
     }
@@ -368,6 +379,26 @@ public class MainActivity extends Activity {
     private String confirmationKey(){return BuildConfig.PERSONAL_DEVICE_RELEASE?"personal_gallery_confirmed":"experiment_confirmed";}
     private boolean supportedGallery(){return BuildConfig.PERSONAL_DEVICE_RELEASE?MapDataRepository.isSupportedPersonalRelease(this):MapDataRepository.isSupportedDevice(this);}
     private MapDataRepository createGallery(){return BuildConfig.PERSONAL_DEVICE_RELEASE?MapDataRepository.forConfirmedPersonalRelease(getApplicationContext(),true):MapDataRepository.forConfirmedExperiment(getApplicationContext(),true);}
+    private boolean hasVideoAccess(){
+        if(android.os.Build.VERSION.SDK_INT>=34)return checkSelfPermission("android.permission.READ_MEDIA_VIDEO")==android.content.pm.PackageManager.PERMISSION_GRANTED||checkSelfPermission("android.permission.READ_MEDIA_VISUAL_USER_SELECTED")==android.content.pm.PackageManager.PERMISSION_GRANTED;
+        if(android.os.Build.VERSION.SDK_INT>=33)return checkSelfPermission("android.permission.READ_MEDIA_VIDEO")==android.content.pm.PackageManager.PERMISSION_GRANTED;
+        return checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE")==android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+    private void updateMediaFilter(){if(mediaFilter!=null)mediaFilter.setText(mediaMode==0?"照片 ▾":mediaMode==1?"全部 ▾":"视频 ▾");}
+    private void chooseMediaMode(){
+        new AlertDialog.Builder(this).setTitle("地图显示").setSingleChoiceItems(new String[]{"照片","全部","视频"},mediaMode,(dialog,which)->{
+            dialog.dismiss();if(which==mediaMode)return;
+            if(which!=0&&android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission("android.permission.READ_MEDIA_VIDEO")!=android.content.pm.PackageManager.PERMISSION_GRANTED){
+                pendingMediaMode=which;
+                if(android.os.Build.VERSION.SDK_INT>=34)requestPermissions(new String[]{"android.permission.READ_MEDIA_VIDEO","android.permission.READ_MEDIA_VISUAL_USER_SELECTED"},104);
+                else requestPermissions(new String[]{"android.permission.READ_MEDIA_VIDEO"},104);
+            }else applyMediaMode(which);
+        }).setNegativeButton("取消",null).show();
+    }
+    private void applyMediaMode(int mode){
+        mediaMode=mode;getPreferences(MODE_PRIVATE).edit().putInt("media_mode",mode).apply();updateMediaFilter();
+        if(experiment!=null){experiment.stopAndClear();clearData();experiment.setMediaMode(mode);repositoryMediaMode=mode;resumeExperiment();}
+    }
     private void showGalleryStatus(String message,Runnable action){
         if(count==null)return;
         if(message!=null && !message.contentEquals(count.getText()))count.setText(message);
@@ -386,7 +417,7 @@ public class MainActivity extends Activity {
             .setMessage("图迹 for VIVO 专为 vivo 手机设计。\n\n读取手机已授权的照片及其已有位置信息，在地图上展示。仅访问主卷，读取结果保存在内存中；授权范围变化时会重新检查。\n\n已在 vivo X300 Pro 上完成实机验证，其他 vivo 机型可以尝试使用，实际兼容性取决于手机系统及图库接口。")
             .setNegativeButton("取消",null).setPositiveButton("确认启用",(d,w)->{
                 getPreferences(MODE_PRIVATE).edit().putBoolean(confirmationKey(),true).apply();
-                if(experiment==null)experiment=createGallery();
+                if(experiment==null){experiment=createGallery();experiment.setMediaMode(mediaMode);repositoryMediaMode=mediaMode;}
                 requestPhotoAccess();
             }).show();
     }
@@ -403,6 +434,7 @@ public class MainActivity extends Activity {
     }
     private void resumeExperiment(){
         if(!active||map==null||experiment==null)return;
+        if(mediaMode!=0&&!hasVideoAccess()){applyMediaMode(0);return;}
         if(!hasPhotoAccess(this)){
             pendingPhotoReturn=null;
             retainedGallery=null;
@@ -429,7 +461,13 @@ public class MainActivity extends Activity {
         if(!active||experiment==null||count==null)return;
         MapDataRepository.State state=experiment.state();
         handler.removeCallbacks(checkLoad);
+        if(state==MapDataRepository.State.ACCESS_DENIED&&mediaMode!=0&&hasPhotoAccess(this)){
+            Toast.makeText(this,"视频访问不可用，已切回照片",Toast.LENGTH_SHORT).show();applyMediaMode(0);return;
+        }
         if(state==MapDataRepository.State.READY){
+            if(mediaMode!=0&&android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission("android.permission.READ_MEDIA_VIDEO")!=android.content.pm.PackageManager.PERMISSION_GRANTED&&experiment.visibleVideoCount()==0){
+                Toast.makeText(this,"没有可访问的视频，已切回照片",Toast.LENGTH_SHORT).show();applyMediaMode(0);return;
+            }
             long token=experiment.scopeToken();
             if(token<0)return;
             if(displayedScope!=token){clearData();displayedScope=token;}
@@ -460,7 +498,7 @@ public class MainActivity extends Activity {
             return;
         }
         switch(state){
-            case CAPACITY_EXCEEDED: showGalleryStatus("照片超过 10 万张 · 调整授权",this::openPhotoPermissionSettings);break;
+            case CAPACITY_EXCEEDED: showGalleryStatus("授权媒体超过 10 万条 · 调整授权",this::openPhotoPermissionSettings);break;
             case PROVIDER_INCOMPATIBLE: showGalleryStatus("图库接口不可用或不兼容 · 查看详情",()->new AlertDialog.Builder(this).setTitle("图库接口不兼容").setMessage("无法读取 vivo 图库的位置接口，可能是接口不存在、访问被拒绝、字段或照片关联不兼容。请检查系统和图库权限后重试；当前设备可能暂不支持图库地图。") .setNegativeButton("关闭",null).setPositiveButton("重试",(d,w)->reloadGallery()).show());break;
             case ACCESS_DENIED: showGalleryStatus("照片访问被拒绝 · 调整权限",this::openPhotoPermissionSettings);break;
             case VOLUME_UNSUPPORTED: showGalleryStatus("当前存储卷不符合主卷限制",null);break;
@@ -471,8 +509,8 @@ public class MainActivity extends Activity {
     private void showViewportStatus(boolean emptyViewport){
         if(!emptyViewport)showGalleryStatus(null,null);
         else if(experiment.validCount()==0){
-            showGalleryStatus("授权照片中没有可用的位置 · 查看详情",this::showPhotoLocationSummary);
-        }else showGalleryStatus("此范围没有照片",null);
+            showGalleryStatus(mediaMode==0?"授权照片中没有可用的位置 · 查看详情":"授权媒体中没有可用的位置",mediaMode==0?this::showPhotoLocationSummary:null);
+        }else showGalleryStatus(mediaMode==0?"此范围没有照片":"此范围没有媒体",null);
     }
     private void restorePreviewReturn(){
         PendingPhotoReturn pending=pendingPhotoReturn!=null?pendingPhotoReturn:retainedGallery;
@@ -576,7 +614,7 @@ public class MainActivity extends Activity {
         }catch(Exception e){stopLocation();Toast.makeText(this,"定位暂不可用",Toast.LENGTH_SHORT).show();}
     }
     private void stopLocation(){handler.removeCallbacks(locationTimeout);LocationClient client=locationClient;locationClient=null;if(client!=null){if(locationListener!=null)client.unRegisterLocationListener(locationListener);client.stop();}locationListener=null;}
-    @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==103){resumeExperiment();return;}if(request==102){if(checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED||checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED)requestCurrentLocation();else Toast.makeText(this,"未授予位置权限，仍可浏览照片地图",Toast.LENGTH_LONG).show();}}
+    @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==104){if(hasVideoAccess())applyMediaMode(pendingMediaMode);else Toast.makeText(this,"未授予视频权限，继续显示照片",Toast.LENGTH_SHORT).show();return;}if(request==103){resumeExperiment();return;}if(request==102){if(checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED||checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED)requestCurrentLocation();else Toast.makeText(this,"未授予位置权限，仍可浏览照片地图",Toast.LENGTH_LONG).show();}}
     private void schedule(){schedule(false);}
     private void schedule(boolean panReuse){
         if(!active)return;
@@ -665,6 +703,7 @@ public class MainActivity extends Activity {
                 MapDataRepository.Point point=window.pointAt(i);
                 if(point==null)return;
                 data.ids[i]=point.id;
+                data.versions[i]=point.mediaVersion;
                 // Both windows keep media IDs in ascending order. Reuse coordinates in their overlap.
                 if(previous!=null){
                     while(prior<previous.ids.length&&previous.ids[prior]<point.id)prior++;
@@ -793,6 +832,7 @@ public class MainActivity extends Activity {
                 continue;
             }
             Bitmap bitmap=markerBitmap(null,key.ids.length);
+            if(key.ids.length==1&&MediaIdentity.isVideo(key.ids[0]))drawVideoBadge(bitmap);
             BitmapDescriptor descriptor=BitmapDescriptorFactory.fromBitmap(bitmap);
             long markerId=++nextMarkerId;
             Bundle info=new Bundle();
@@ -831,6 +871,7 @@ public class MainActivity extends Activity {
         if(openingCluster)return;
         long[] ids=resource.key.ids;
         if(ids.length==1){
+            if(MediaIdentity.isVideo(ids[0])){openVideo(ids[0]);return;}
             openingCluster=true;
             pendingPhotoReturn=null;
             openPreviewSession(new PreviewSessionStore.Session(Collections.emptyList(),repository,displayedScope,ids[0]),0);
@@ -901,14 +942,21 @@ public class MainActivity extends Activity {
             ||resource.coverRequest!=null||resource.coverRetry!=null
             ||resource.coverAttempt>=Math.min(MAX_COVER_ATTEMPTS,ids.length))return;
         long id=ids[ids.length-1-resource.coverAttempt];
-        Uri collection=android.provider.MediaStore.Images.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY);
-        Uri uri=android.content.ContentUris.withAppendedId(collection,id);
-        resource.coverRequest=thumbnails.tryLoad(uri,0,160,bitmap->{
+        ViewportData data=viewport;int at=data==null?-1:Arrays.binarySearch(data.ids,id);
+        if(at<0){retryMarkerCover(resource);return;}
+        loadMarkerBitmap(resource,id,data.versions[at]);
+    }
+    private void loadMarkerBitmap(MarkerResource resource,long id,long version){
+        long[] ids=resource.key.ids;
+        Uri collection=MediaIdentity.isVideo(id)?android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY):android.provider.MediaStore.Images.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        Uri uri=android.content.ContentUris.withAppendedId(collection,MediaIdentity.id(id));
+        resource.coverRequest=thumbnails.tryLoad(uri,version,160,bitmap->{
             resource.coverRequest=null;
             if(!active||groupMode||markerClicks.get(resource.clickId)!=resource
                 ||experiment==null||experiment.scopeToken()!=displayedScope)return;
             if(bitmap==null){resource.coverAttempt++;loadMarkerCover(resource);return;}
             Bitmap next=markerBitmap(bitmap,ids.length);
+            if(ids.length==1&&MediaIdentity.isVideo(id))drawVideoBadge(next);
             BitmapDescriptor descriptor=BitmapDescriptorFactory.fromBitmap(next);
             resource.marker.setIcon(descriptor);
             resource.descriptor.recycle();
@@ -917,11 +965,9 @@ public class MainActivity extends Activity {
             resource.bitmap=next;
             resource.hasCover=true;
         });
-        if(resource.coverRequest==null){
-            resource.coverRetry=()->{resource.coverRetry=null;loadMarkerCover(resource);};
-            handler.postDelayed(resource.coverRetry,120);
-        }
+        if(resource.coverRequest==null)retryMarkerCover(resource);
     }
+    private void retryMarkerCover(MarkerResource resource){if(resource.coverRetry!=null)return;resource.coverRetry=()->{resource.coverRetry=null;loadMarkerCover(resource);};handler.postDelayed(resource.coverRetry,120);}
 
     private void cancelMarkerCover(MarkerResource resource){
         if(resource.coverRequest!=null){resource.coverRequest.cancel();resource.coverRequest=null;}
@@ -945,8 +991,24 @@ public class MainActivity extends Activity {
         if(experiment!=null&&session!=null&&session.repository==experiment)experiment.suspend();
     }
     private void openPhoto(int position){
-        if(canLoadGalleryImages()&&group!=null)openPreview(group,position);
+        if(!canLoadGalleryImages()||group==null)return;
+        PhotoItem item=group.get(position);if(item.video){openVideoUri(item.uri);return;}
+        if(group.videoCount()==0){openPreview(group,position);return;}
+        GalleryPhotoList source=group;int[] indexes=new int[source.size()-source.videoCount()];int count=0,selected=0;
+        for(int i=0;i<source.size();i++){if(!source.isVideo(i)){if(i==position)selected=count;indexes[count++]=i;}}
+        List<PhotoItem> photos=new java.util.AbstractList<PhotoItem>(){
+            @Override public int size(){return indexes.length;}
+            @Override public PhotoItem get(int index){return source.get(indexes[index]);}
+        };
+        openPreview(photos,selected);
     }
+    private void openVideo(long key){Uri uri=android.content.ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY),MediaIdentity.id(key));openVideoUri(uri);}
+    private void openVideoUri(Uri uri){
+        try{Intent intent=new Intent(Intent.ACTION_VIEW);intent.setDataAndType(uri,"video/*");intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);startActivity(intent);}
+        catch(android.content.ActivityNotFoundException unavailable){Toast.makeText(this,"没有可用的视频播放器",Toast.LENGTH_SHORT).show();}
+        catch(SecurityException denied){Toast.makeText(this,"视频权限已失效，请重新授权",Toast.LENGTH_SHORT).show();}
+    }
+    private void drawVideoBadge(Bitmap bitmap){Canvas canvas=new Canvas(bitmap);Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);float x=bitmap.getWidth()-dp(11),y=bitmap.getHeight()-dp(11);paint.setColor(0xbb000000);canvas.drawCircle(x,y,dp(9),paint);paint.setColor(Color.WHITE);Path path=new Path();path.moveTo(x-dp(2),y-dp(5));path.lineTo(x+dp(5),y);path.lineTo(x-dp(2),y+dp(5));path.close();canvas.drawPath(path,paint);}
     private void openPreview(List<PhotoItem> source,int index){
         if(experiment==null||index<0||index>=source.size())return;
         pendingPhotoReturn=source.size()>1?snapshotGallery():null;

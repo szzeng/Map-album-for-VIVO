@@ -12,6 +12,7 @@ import android.provider.MediaStore;
 import android.util.Size;
 import java.util.Set;
 import java.util.Arrays;
+import io.github.szzeng.mapalbum.MediaIdentity;
 
 /** Read-only photo metadata helper. This does not establish any vendor GPS identity. */
 public final class MediaStoreLookup {
@@ -32,9 +33,10 @@ public final class MediaStoreLookup {
         if(cancel==null)throw new IllegalArgumentException();
         cancel.throwIfCanceled();
         if(id<0 || !primaryOnly())return null;
-        Uri collection=MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-        try(Cursor c=resolver.query(collection,new String[]{"_id","datetaken","date_modified","date_added","relative_path","_display_name"},"_id=?",new String[]{Long.toString(id)},null,cancel)) {
-            if(c==null || !c.moveToFirst() || c.getLong(0)!=id)return null;
+        boolean video=MediaIdentity.isVideo(id);long rawId=MediaIdentity.id(id);
+        Uri collection=video?MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY):MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        try(Cursor c=resolver.query(collection,new String[]{"_id","datetaken","date_modified","date_added","relative_path","_display_name"},"_id=?",new String[]{Long.toString(rawId)},null,cancel)) {
+            if(c==null || !c.moveToFirst() || c.getLong(0)!=rawId)return null;
             long raw=c.isNull(1)?0:c.getLong(1); boolean fallback=raw<=0;
             long version=c.isNull(2)?0:c.getLong(2);
             if(fallback){long seconds=version>0?version:(c.isNull(3)?0:c.getLong(3));if(seconds>0&&seconds<=Long.MAX_VALUE/1000)raw=seconds*1000;}
@@ -42,7 +44,7 @@ public final class MediaStoreLookup {
             String path=c.isNull(4)||c.isNull(5)?null:c.getString(4)+c.getString(5);
             if(c.moveToNext())return null;
             cancel.throwIfCanceled();
-            return new Metadata(id,ContentUris.withAppendedId(collection,id),date,fallback,version,path);
+            return new Metadata(id,ContentUris.withAppendedId(collection,rawId),date,fallback,version,path);
         } catch(SecurityException e){return null;}
     }
     /** One bounded MediaStore query; every returned identity must match the requested scope. */
@@ -50,6 +52,10 @@ public final class MediaStoreLookup {
         if(ids==null||ids.length>512||cancel==null)throw new IllegalArgumentException();
         cancel.throwIfCanceled();if(!primaryOnly())throw new PrimaryPhotoSource.UnsupportedVolumeException();
         Metadata[] result=new Metadata[ids.length];if(ids.length==0)return result;
+        if(MediaIdentity.isVideo(ids[ids.length-1])){
+            for(int i=0;i<ids.length;i++){cancel.throwIfCanceled();result[i]=lookup(ids[i],cancel);if(result[i]==null)throw new MapDataRepository.MediaScopeChangedException();}
+            return result;
+        }
         StringBuilder where=new StringBuilder("_id IN (");String[] args=new String[ids.length];
         for(int i=0;i<ids.length;i++){if(ids[i]<0||(i>0&&ids[i]<=ids[i-1]))throw new IllegalArgumentException("invalid identities");if(i>0)where.append(',');where.append('?');args[i]=Long.toString(ids[i]);}
         where.append(')');Uri collection=MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -71,23 +77,28 @@ public final class MediaStoreLookup {
         if(to-from>512||from<0||to>ids.length||from>=to)throw new IllegalArgumentException();
         cancel.throwIfCanceled();
         if(!primaryOnly())throw new PrimaryPhotoSource.UnsupportedVolumeException();
+        int split=from;while(split<to&&!MediaIdentity.isVideo(ids[split]))split++;
+        if(split>from)lookupTimelineType(ids,from,split,dates,versions,cancel,false);
+        if(split<to)lookupTimelineType(ids,split,to,dates,versions,cancel,true);
+    }
+    private void lookupTimelineType(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal cancel,boolean video){
         StringBuilder where=new StringBuilder("_id IN (");
         String[] args=new String[to-from];
         for(int i=from;i<to;i++){
             if(i>from)where.append(',');
             where.append('?');
-            args[i-from]=Long.toString(ids[i]);
+            args[i-from]=Long.toString(MediaIdentity.id(ids[i]));
         }
         where.append(')');
         Arrays.fill(dates,from,to,-1);
-        Uri collection=MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        Uri collection=video?MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY):MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
         try(Cursor cursor=resolver.query(collection,new String[]{"_id","datetaken","date_modified","date_added"},
             where.toString(),args,null,cancel)){
             if(cursor==null)throw new IllegalStateException("null media cursor");
             while(cursor.moveToNext()){
                 cancel.throwIfCanceled();
                 if(cursor.isNull(0))throw new IllegalStateException("missing identity");
-                int index=Arrays.binarySearch(ids,from,to,cursor.getLong(0));
+                long raw=cursor.getLong(0);int index=Arrays.binarySearch(ids,from,to,video?MediaIdentity.video(raw):MediaIdentity.photo(raw));
                 if(index<0||dates[index]!=-1)throw new IllegalStateException("unexpected media identity");
                 long date=cursor.isNull(1)?0:cursor.getLong(1);
                 long modified=cursor.isNull(2)?0:cursor.getLong(2);
