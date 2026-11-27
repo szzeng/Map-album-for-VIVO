@@ -12,11 +12,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextPaint;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.view.*;
 import android.widget.*;
 import java.util.*;
@@ -281,24 +276,24 @@ public class MainActivity extends Activity {
         p.show();
     }
     private void showAbout(){
-        String heading="图迹 for VIVO "+BuildConfig.VERSION_NAME+"\n个人使用版\n编译日期 "+BuildConfig.BUILD_DATE+"\n";
-        SpannableString message=new SpannableString(heading+"作者 : sz_zeng(wx)");
-        message.setSpan(new ClickableSpan(){
-            @Override public void updateDrawState(TextPaint paint){
-                super.updateDrawState(paint);
-                paint.setUnderlineText(false);
+        LinearLayout box=new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(24),0,dp(24),0);
+        TextView details=label("个人使用版  " + BuildConfig.VERSION_NAME + "\n编译日期  " + BuildConfig.BUILD_DATE + "\n作者  sz_zeng(wx)",14,SECONDARY);
+        details.setLineSpacing(dp(6),1f);
+        LinearLayout.LayoutParams detailsLayout=new LinearLayout.LayoutParams(-1,-2);
+        box.addView(details,detailsLayout);
+        TextView github=label("本项目GitHub",14,ACCENT);
+        github.setMinHeight(dp(48));
+        github.setOnClickListener(v->{
+            try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/szzeng/x300pro-map")));}
+            catch(android.content.ActivityNotFoundException unavailable){
+                Toast.makeText(this,"找不到可打开 GitHub 的应用",Toast.LENGTH_SHORT).show();
             }
-            @Override public void onClick(View widget){
-                try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/szzeng/x300pro-map")));}
-                catch(android.content.ActivityNotFoundException unavailable){
-                    Toast.makeText(MainActivity.this,"找不到可打开 GitHub 的应用",Toast.LENGTH_SHORT).show();
-                }
-            }
-        },heading.length(),message.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("关于图迹 for VIVO").setMessage(message)
+        });
+        box.addView(github);
+        new AlertDialog.Builder(this).setTitle("关于图迹 for VIVO").setView(box)
             .setPositiveButton("知道了",null).show();
-        TextView body=dialog.findViewById(android.R.id.message);
-        if(body!=null)body.setMovementMethod(LinkMovementMethod.getInstance());
     }
     private String effectiveBaiduAk(){
         String custom=getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).getString(CUSTOM_BAIDU_AK,null);
