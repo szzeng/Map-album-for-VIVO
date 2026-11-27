@@ -61,7 +61,8 @@ public class MainActivity extends Activity {
     private static MapStatus transientMapStatus;
     private static MapDataRepository experiment;
     private static int repositoryMediaMode=-1;
-    private int mediaMode=0, pendingMediaMode=0;
+    private int mediaMode=1, pendingMediaMode=0;
+    private boolean initialMediaChoice;
     private TextView mediaFilter;
     private static PendingPhotoReturn pendingPhotoReturn;
     private PendingPhotoReturn retainedGallery;
@@ -194,7 +195,8 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state){super.onCreate(state);saved=state;darkMode=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
         TEXT=getColor(R.color.app_text);SECONDARY=getColor(R.color.app_secondary);ACCENT=getColor(R.color.app_accent);PLACEHOLDER=getColor(R.color.app_placeholder);SURFACE=getColor(R.color.app_surface);FLOATING=getColor(R.color.app_floating);MAP_BACKGROUND=getColor(R.color.app_map_background);MENU_ICON=getColor(R.color.app_menu_icon);
         retainedGallery=(PendingPhotoReturn)getLastNonConfigurationInstance();
-        mediaMode=getPreferences(MODE_PRIVATE).getInt("media_mode",0);if(mediaMode<0||mediaMode>2)mediaMode=0;
+        initialMediaChoice=!getPreferences(MODE_PRIVATE).contains("media_mode");
+        mediaMode=getPreferences(MODE_PRIVATE).getInt("media_mode",1);if(mediaMode<0||mediaMode>2)mediaMode=1;
         thumbnails=new ThumbnailLoader(getContentResolver());
         TextView waiting=label("等待隐私选择",14,TEXT);setContentView(waiting);
         if(PrivacyConsent.isCurrent(getPreferences(MODE_PRIVATE).getInt(PrivacyConsent.KEY,0))){initializeMap();return;}
@@ -221,7 +223,7 @@ public class MainActivity extends Activity {
         });
         map.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener(){public void onMapStatusChangeStart(MapStatus s){cancelRequests();}public void onMapStatusChangeStart(MapStatus s,int reason){cancelRequests();}public void onMapStatusChange(MapStatus s){}public void onMapStatusChangeFinish(MapStatus s){schedule(true);}});
         buildUi();
-        if(mediaMode!=0&&!hasVideoAccess()){mediaMode=0;getPreferences(MODE_PRIVATE).edit().putInt("media_mode",0).apply();}
+        if(!initialMediaChoice&&mediaMode!=0&&!hasVideoAccess()){mediaMode=0;getPreferences(MODE_PRIVATE).edit().putInt("media_mode",0).apply();}
         updateMediaFilter();
         if(experiment==null && getPreferences(MODE_PRIVATE).getBoolean(confirmationKey(),false) && supportedGallery()){experiment=createGallery();experiment.setMediaMode(mediaMode);repositoryMediaMode=mediaMode;}
         else if(experiment!=null&&repositoryMediaMode!=mediaMode){experiment.stopAndClear();experiment.setMediaMode(mediaMode);repositoryMediaMode=mediaMode;}
@@ -396,7 +398,7 @@ public class MainActivity extends Activity {
         }).setNegativeButton("取消",null).show();
     }
     private void applyMediaMode(int mode){
-        mediaMode=mode;getPreferences(MODE_PRIVATE).edit().putInt("media_mode",mode).apply();updateMediaFilter();
+        initialMediaChoice=false;mediaMode=mode;getPreferences(MODE_PRIVATE).edit().putInt("media_mode",mode).apply();updateMediaFilter();
         if(experiment!=null){experiment.stopAndClear();clearData();experiment.setMediaMode(mode);repositoryMediaMode=mode;resumeExperiment();}
     }
     private void showGalleryStatus(String message,Runnable action){
@@ -434,7 +436,6 @@ public class MainActivity extends Activity {
     }
     private void resumeExperiment(){
         if(!active||map==null||experiment==null)return;
-        if(mediaMode!=0&&!hasVideoAccess()){applyMediaMode(0);return;}
         if(!hasPhotoAccess(this)){
             pendingPhotoReturn=null;
             retainedGallery=null;
@@ -445,6 +446,17 @@ public class MainActivity extends Activity {
             showGalleryStatus("照片未授权 · 调整权限",this::openPhotoPermissionSettings);
             return;
         }
+        if(initialMediaChoice){
+            initialMediaChoice=false;
+            if(!hasVideoAccess()&&android.os.Build.VERSION.SDK_INT>=33){
+                pendingMediaMode=1;
+                if(android.os.Build.VERSION.SDK_INT>=34)requestPermissions(new String[]{"android.permission.READ_MEDIA_VIDEO","android.permission.READ_MEDIA_VISUAL_USER_SELECTED"},104);
+                else requestPermissions(new String[]{"android.permission.READ_MEDIA_VIDEO"},104);
+                return;
+            }
+            getPreferences(MODE_PRIVATE).edit().putInt("media_mode",mediaMode).apply();
+        }
+        if(mediaMode!=0&&!hasVideoAccess()){applyMediaMode(0);return;}
         scopeLabel=android.os.Build.VERSION.SDK_INT>=34 && checkSelfPermission("android.permission.READ_MEDIA_IMAGES")!=android.content.pm.PackageManager.PERMISSION_GRANTED?"部分照片":"完整照片";
         if(displayedScope>=0)showScopeCover();
         showGalleryStatus("正在检查照片授权",null);
@@ -617,7 +629,7 @@ public class MainActivity extends Activity {
         }catch(Exception e){stopLocation();Toast.makeText(this,"定位暂不可用",Toast.LENGTH_SHORT).show();}
     }
     private void stopLocation(){handler.removeCallbacks(locationTimeout);LocationClient client=locationClient;locationClient=null;if(client!=null){if(locationListener!=null)client.unRegisterLocationListener(locationListener);client.stop();}locationListener=null;}
-    @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==104){if(hasVideoAccess())applyMediaMode(pendingMediaMode);else Toast.makeText(this,"未授予视频权限，继续显示照片",Toast.LENGTH_SHORT).show();return;}if(request==103){resumeExperiment();return;}if(request==102){if(checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED||checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED)requestCurrentLocation();else Toast.makeText(this,"未授予位置权限，仍可浏览照片地图",Toast.LENGTH_LONG).show();}}
+    @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==104){if(hasVideoAccess())applyMediaMode(pendingMediaMode);else {Toast.makeText(this,"未授予视频权限，继续显示照片",Toast.LENGTH_SHORT).show();applyMediaMode(0);}return;}if(request==103){resumeExperiment();return;}if(request==102){if(checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED||checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED)requestCurrentLocation();else Toast.makeText(this,"未授予位置权限，仍可浏览照片地图",Toast.LENGTH_LONG).show();}}
     private void schedule(){schedule(false);}
     private void schedule(boolean panReuse){
         if(!active)return;
