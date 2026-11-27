@@ -73,6 +73,7 @@ public final class MapDataRepository implements AutoCloseable {
     }
     private State state=State.INACTIVE;
     private State lastFailure;
+    private String providerFailure;
     private long epoch;
     private CancellationSignal current;
     private PrimitiveLocationSet cache;
@@ -92,20 +93,33 @@ public final class MapDataRepository implements AutoCloseable {
     }
     public static boolean isSupportedDevice(Context context) {
         return (context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0
-            && "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER);
+            && (BuildConfig.ALL_DEVICES_TEST || "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER));
     }
     public static boolean isSupportedPersonalRelease(Context context) {
         return BuildConfig.PERSONAL_DEVICE_RELEASE
             && (context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0
-            && "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER);
+            && (BuildConfig.ALL_DEVICES_TEST || "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER));
     }
     public static MapDataRepository forConfirmedPersonalRelease(Context context, boolean confirmed) {
         return new MapDataRepository(new DeviceBackend(context),null,confirmed && isSupportedPersonalRelease(context));
     }
     public synchronized String diagnostics() {
-        return "身份："+(deviceEnabled?"vivo 已确认":"未验证")+" · 状态："+state
+        return "身份："+(deviceEnabled?"已确认":"未验证")+" · 状态："+state
             +"\n可见照片 "+visibleCount+" · 有效 GPS "+validCount
             +(backend instanceof DeviceBackend?((DeviceBackend)backend).diagnostics():"")+"\n加载耗时 "+loadMillis+" ms · 区域筛选 "+filterMillis+" ms";
+    }
+    public synchronized String providerFailureDetails(){return state==State.PROVIDER_INCOMPATIBLE?providerFailure:null;}
+    private static String describeProviderFailure(PrimaryPhotoSource.ProviderException failure){
+        Throwable cause=failure.getCause();
+        String type=cause==null?"未知异常":cause.getClass().getSimpleName();
+        if(!type.matches("[A-Za-z0-9_$]{1,80}"))type="未知异常";
+        String kind=cause instanceof SecurityException?"访问被拒绝":cause instanceof IllegalArgumentException?"查询字段或参数可能不兼容":"图库接口读取失败";
+        String message=cause==null?null:cause.getMessage();
+        // Only known fixed messages are safe to display; provider messages may contain personal data.
+        String detail="异常信息已隐藏，避免泄露照片信息";
+        if("null provider cursor".equals(message)){kind="接口无响应";detail="图库接口返回空结果对象";}
+        else if("unexpected or duplicate provider id".equals(message)){kind="照片 ID 异常";detail="图库接口返回了范围外或重复的照片 ID";}
+        return "错误类型："+kind+"\n异常："+type+"\n异常信息："+detail;
     }
     /** Token is usable only with this repository and while the current scope is READY. */
     public synchronized long scopeToken(){return foreground && state==State.READY && cache!=null?epoch:-1;}
@@ -346,7 +360,7 @@ public final class MapDataRepository implements AutoCloseable {
     void background(){synchronized(this){foreground=false;}cancelAndRelease(State.INACTIVE);}
     void clear(){State next;synchronized(this){next=foreground?State.IDLE:State.INACTIVE;}cancelAndRelease(next);}
     void cancel(){clear();}
-    @Override public void close(){synchronized(this){foreground=false;}cancelAndRelease(State.CLOSED);worker.shutdownNow();}
+    @Override public void close(){synchronized(this){foreground=false;providerFailure=null;}cancelAndRelease(State.CLOSED);worker.shutdownNow();}
     private synchronized boolean current(long expected,CancellationSignal signal){return foreground && state!=State.CLOSED && epoch==expected && current==signal && !signal.isCanceled();}
     private void failIfCurrent(long expected,CancellationSignal signal){
         failIfCurrent(expected,signal,0,null,State.FAILED);
@@ -370,7 +384,7 @@ public final class MapDataRepository implements AutoCloseable {
         synchronized(this){
             if(!foreground || state==State.CLOSED)return false;
             if(state==State.LOADING)return true;
-            lastFailure=null;
+            lastFailure=null;providerFailure=null;
             if(!deviceEnabled && (synthetic==null || !synthetic.fixtureEnabled())){
                 // A fixture-only gate never enables the unverified vendor device backend.
                 epoch++;queryEpoch++;previous=current;previousQuery=querySignal;current=null;querySignal=null;
@@ -424,7 +438,7 @@ public final class MapDataRepository implements AutoCloseable {
         } catch(android.os.OperationCanceledException ignored) {
         } catch(PrimaryPhotoSource.UnsupportedVolumeException failure){synchronized(this){if(current(ticket,signal)){state=State.VOLUME_UNSUPPORTED;lastFailure=State.VOLUME_UNSUPPORTED;}}}
           catch(PrimaryPhotoSource.CapacityException failure){synchronized(this){if(current(ticket,signal)){state=State.CAPACITY_EXCEEDED;lastFailure=State.CAPACITY_EXCEEDED;}}}
-          catch(PrimaryPhotoSource.ProviderException failure){synchronized(this){if(current(ticket,signal)){state=State.PROVIDER_INCOMPATIBLE;lastFailure=State.PROVIDER_INCOMPATIBLE;}}}
+          catch(PrimaryPhotoSource.ProviderException failure){synchronized(this){if(current(ticket,signal)){state=State.PROVIDER_INCOMPATIBLE;lastFailure=State.PROVIDER_INCOMPATIBLE;providerFailure=describeProviderFailure(failure);}}}
           catch(SecurityException failure){synchronized(this){if(current(ticket,signal)){state=State.ACCESS_DENIED;lastFailure=State.ACCESS_DENIED;}}}
           catch(Exception failure){synchronized(this){if(current(ticket,signal)){state=State.FAILED;lastFailure=State.FAILED;}}}
         finally {if(candidate!=null)candidate.close();}

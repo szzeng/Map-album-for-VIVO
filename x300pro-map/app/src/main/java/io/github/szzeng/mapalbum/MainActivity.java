@@ -416,7 +416,7 @@ public class MainActivity extends Activity {
     private void enableExperiment(){
         if(!supportedGallery()){new AlertDialog.Builder(this).setMessage("图库地图目前仅向 vivo 手机开放，且需要符合当前构建的安全限制。").setPositiveButton("知道了",null).show();return;}
         new AlertDialog.Builder(this).setTitle("启用图库地图")
-            .setMessage("图迹 for VIVO 专为 vivo 手机设计。\n\n读取手机已授权的照片及其已有位置信息，在地图上展示。仅访问主卷，读取结果保存在内存中；授权范围变化时会重新检查。\n\n已在 vivo X300 Pro 上完成实机验证，其他 vivo 机型可以尝试使用，实际兼容性取决于手机系统及图库接口。")
+            .setMessage(BuildConfig.ALL_DEVICES_TEST?"兼容性测试版允许所有手机尝试读取已授权的主卷照片及其已有位置。使用 vivo 图库接口，其他手机可能无法读取或照片关联不正确；读取结果仅保存在内存中。":"图迹 for VIVO 专为 vivo 手机设计。\n\n读取手机已授权的照片及其已有位置信息，在地图上展示。仅访问主卷，读取结果保存在内存中；授权范围变化时会重新检查。\n\n已在 vivo X300 Pro 上完成实机验证，其他 vivo 机型可以尝试使用，实际兼容性取决于手机系统及图库接口。")
             .setNegativeButton("取消",null).setPositiveButton("确认启用",(d,w)->{
                 getPreferences(MODE_PRIVATE).edit().putBoolean(confirmationKey(),true).apply();
                 if(experiment==null){experiment=createGallery();experiment.setMediaMode(mediaMode);repositoryMediaMode=mediaMode;}
@@ -514,12 +514,20 @@ public class MainActivity extends Activity {
         }
         switch(state){
             case CAPACITY_EXCEEDED: showGalleryStatus("授权媒体超过 10 万条 · 调整授权",this::openPhotoPermissionSettings);break;
-            case PROVIDER_INCOMPATIBLE: showGalleryStatus("图库接口不可用或不兼容 · 查看详情",()->new AlertDialog.Builder(this).setTitle("图库接口不兼容").setMessage("无法读取 vivo 图库的位置接口，可能是接口不存在、访问被拒绝、字段或照片关联不兼容。请检查系统和图库权限后重试；当前设备可能暂不支持图库地图。") .setNegativeButton("关闭",null).setPositiveButton("重试",(d,w)->reloadGallery()).show());break;
+            case PROVIDER_INCOMPATIBLE: showGalleryStatus("图库接口不可用或不兼容 · 查看详情",this::showProviderFailure);break;
             case ACCESS_DENIED: showGalleryStatus("照片访问被拒绝 · 调整权限",this::openPhotoPermissionSettings);break;
             case VOLUME_UNSUPPORTED: showGalleryStatus("当前存储卷不符合主卷限制",null);break;
             case IDENTITY_UNVERIFIED: showGalleryStatus("设备未通过照片地图校验",null);break;
             default: showGalleryStatus("照片位置读取失败 · 重试",this::reloadGallery);
         }
+    }
+    private void showProviderFailure(){
+        String detail=experiment==null?null:experiment.providerFailureDetails();
+        String message="当前手机无法通过图库接口读取照片位置。\n\n"+(detail==null?"诊断信息已失效，请重试。":detail);
+        new AlertDialog.Builder(this).setTitle("图库接口读取失败").setMessage(message)
+            .setNegativeButton("关闭",null)
+            .setNeutralButton("复制诊断信息",(d,w)->{android.content.ClipboardManager clip=(android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);if(clip!=null)clip.setPrimaryClip(android.content.ClipData.newPlainText("图库接口诊断",message));})
+            .setPositiveButton("重试",(d,w)->reloadGallery()).show();
     }
     private void showViewportStatus(boolean emptyViewport){
         if(!emptyViewport)showGalleryStatus(null,null);

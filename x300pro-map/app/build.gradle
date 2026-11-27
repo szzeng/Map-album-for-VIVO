@@ -8,6 +8,7 @@ def signingFile = rootProject.file('keystore.properties')
 if (signingFile.exists()) signingFile.withInputStream { signingProperties.load(it) }
 def arm64DebugOnly = providers.gradleProperty('mapAlbumArm64Only').map { it.toBoolean() }.getOrElse(false)
 def sideBySideDebug = providers.gradleProperty('mapAlbumSideBySideDebug').map { it.toBoolean() }.getOrElse(false)
+def allDevicesTest = providers.gradleProperty('mapAlbumAllDevicesTest').map { it.toBoolean() }.getOrElse(false)
 def buildDate = java.time.LocalDate.now(java.time.ZoneId.of('Asia/Shanghai')).toString()
 android {
     namespace 'io.github.szzeng.mapalbum'
@@ -18,6 +19,7 @@ android {
         targetSdk 34
         versionCode 5
         versionName '0.4.0'
+        buildConfigField 'boolean', 'ALL_DEVICES_TEST', allDevicesTest.toString()
         buildConfigField 'String', 'BUILD_DATE', '"' + buildDate + '"'
     }
     buildFeatures { buildConfig true }
@@ -49,7 +51,7 @@ android {
         }
     }
     defaultConfig.manifestPlaceholders.baiduMapAk = baiduAk
-    defaultConfig.manifestPlaceholders.mapAlbumLabel = '图迹 for VIVO'
+    defaultConfig.manifestPlaceholders.mapAlbumLabel = allDevicesTest ? '图迹兼容性测试' : '图迹 for VIVO'
     sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/map002')
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     packagingOptions { jniLibs { keepDebugSymbols += '**/liblocSDK8b.so' } }
