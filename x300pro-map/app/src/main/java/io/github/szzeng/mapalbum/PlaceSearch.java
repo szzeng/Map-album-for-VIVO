@@ -17,6 +17,8 @@ import com.baidu.mapapi.search.geocode.*;
 import com.baidu.mapapi.search.poi.*;
 import com.baidu.mapapi.search.sug.*;
 import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 /** A map-local search surface. Each request owns its listener and generation. */
 final class PlaceSearch {
@@ -25,7 +27,7 @@ final class PlaceSearch {
     private final int text, secondary, surface, accent; private final Handler handler=new Handler(Looper.getMainLooper());
     private LinearLayout overlay, results; private EditText input; private TextView status;
     private GeoCoder geo; private SuggestionSearch sug; private PoiSearch poi;
-    private long generation; private Runnable debounce; private String city, lastSug, lastPoi, cityError; private LatLng cityCenter;
+    private long generation; private Runnable debounce; private String city, lastSug, lastPoi, cityError, pendingQuery; private LatLng cityCenter;
     PlaceSearch(Activity activity,FrameLayout root,Host host,int text,int secondary,int surface,int accent){this.activity=activity;this.root=root;this.host=host;this.text=text;this.secondary=secondary;this.surface=surface;this.accent=accent;}
     private int dp(float n){return Math.round(n*activity.getResources().getDisplayMetrics().density);}
     private GradientDrawable shape(int color,int radius){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(radius));return d;}
@@ -42,7 +44,7 @@ final class PlaceSearch {
         ScrollView scroll=new ScrollView(activity);results=new LinearLayout(activity);results.setOrientation(LinearLayout.VERTICAL);scroll.addView(results);overlay.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         input.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int st,int c,int a){} public void onTextChanged(CharSequence s,int st,int before,int count){changed();}public void afterTextChanged(Editable e){}});
         input.setOnEditorActionListener((v,action,event)->{if(action==android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH||(event!=null&&event.getKeyCode()==KeyEvent.KEYCODE_ENTER&&event.getAction()==KeyEvent.ACTION_UP)){submit(input.getText().toString().trim());return true;}return false;});
-        resolveCity();input.requestFocus();input.postDelayed(()->{if(isOpen())((InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(input,InputMethodManager.SHOW_IMPLICIT);},150);
+        showHistory();resolveCity();input.requestFocus();if(readHistory().isEmpty())input.postDelayed(()->{if(isOpen())((InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE)).showSoftInput(input,InputMethodManager.SHOW_IMPLICIT);},150);
     }
     private void resolveCity(){
         LatLng center=host.center();if(center==null){message("无法获取地图中心，请返回地图后重试");return;}
@@ -51,14 +53,15 @@ final class PlaceSearch {
         request.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener(){public void onGetGeoCodeResult(GeoCodeResult r){} public void onGetReverseGeoCodeResult(ReverseGeoCodeResult r){
             if(!isOpen()||geo!=request)return;geo=null;request.destroy();
             if(r==null||r.error!=SearchResult.ERRORNO.NO_ERROR||r.getAddressDetail()==null||empty(r.getAddressDetail().city)){cityError=r==null?"无法获取城市，请检查网络后重新打开搜索":error(r.error,"无法获取地图所在城市，请重新打开搜索");message(cityError);return;}
-            city=r.getAddressDetail().city;cityCenter=center;changed();
+            city=r.getAddressDetail().city;cityCenter=center;if(pendingQuery!=null){String query=pendingQuery;pendingQuery=null;submit(query);}else changed();
         }});
         if(!request.reverseGeoCode(new ReverseGeoCodeOption().location(center))){geo=null;request.destroy();cityError="无法获取地图所在城市，请重新打开搜索";message(cityError);}
     }
     private static boolean empty(String s){return s==null||s.trim().isEmpty();}
     private static boolean valid(LatLng p){return p!=null&&PlaceSearchRules.validCoordinate(p.latitude,p.longitude);}
     private void changed(){
-        invalidate();lastSug=null;lastPoi=null;results.removeAllViews();String q=input.getText().toString().trim();
+        invalidate();pendingQuery=null;lastSug=null;lastPoi=null;results.removeAllViews();String q=input.getText().toString().trim();
+        if(q.isEmpty()){message("输入地点名称搜索");showHistory();return;}
         if(q.codePointCount(0,q.length())<2){message("输入至少两个字开始搜索");return;} if(city==null){message(cityError==null?"正在获取地图所在城市…":cityError);return;}
         long ticket=generation;message("正在搜索…");debounce=()->suggest(q,ticket);handler.postDelayed(debounce,300);
     }
@@ -68,12 +71,17 @@ final class PlaceSearch {
         if(!current(ticket)||q.equals(lastSug))return;lastSug=q;sug=SuggestionSearch.newInstance();SuggestionSearch request=sug;
         request.setOnGetSuggestionResultListener(r->{if(!current(ticket)||sug!=request)return;sug=null;request.destroy();results.removeAllViews();
             if(r==null||r.error!=SearchResult.ERRORNO.NO_ERROR){lastSug=null;message(r==null?"搜索暂不可用，请重试":error(r.error,"没有找到相关地点"));return;}
-            List<SuggestionResult.SuggestionInfo> list=r.getAllSuggestions();if(list!=null)for(SuggestionResult.SuggestionInfo item:list){if(item==null||empty(item.key))continue;row(item.key,join(item.city,item.district,item.address),()->{switch(PlaceSearchRules.route(valid(item.pt),item.uid)){case DIRECT: choose(item.pt,zoom(item.key,item.city,item.district,item.tag));break;case DETAIL: detail(item.uid,item.key);break;default: submit(item.key);}});}
+            List<SuggestionResult.SuggestionInfo> list=r.getAllSuggestions();if(list!=null)for(SuggestionResult.SuggestionInfo item:list){if(item==null||empty(item.key))continue;row(item.key,join(item.city,item.district,item.address),()->{switch(PlaceSearchRules.route(valid(item.pt),item.uid)){case DIRECT: remember(item.key);choose(item.pt,zoom(item.key,item.city,item.district,item.tag));break;case DETAIL: detail(item.uid,item.key);break;default: submit(item.key);}});}
             message(results.getChildCount()==0?"没有找到相关地点，可尝试提交搜索":"选择地点，或按搜索键查看更多结果");
         });
         if(!request.requestSuggestion(new SuggestionSearchOption().city(city).keyword(q))){sug=null;request.destroy();lastSug=null;message("搜索暂不可用，请重试");}
     }
-    private void submit(String q){submitInCity(q,city);}
+    private void submit(String q){
+        if(empty(q))return;
+        q=q.trim();remember(q);
+        if(city==null&&geo!=null){pendingQuery=q;invalidate();message("正在获取地图所在城市…");return;}
+        submitInCity(q,city);
+    }
     private void submitInCity(String q,String searchCity){if(empty(q))return;if(empty(searchCity)){message("无法获取地图所在城市，请重新打开搜索");return;} String requestKey=searchCity+"\n"+q;if(requestKey.equals(lastPoi))return;invalidate();lastPoi=requestKey;long ticket=generation;message("正在搜索地点…");results.removeAllViews();poi=PoiSearch.newInstance();PoiSearch request=poi;
         request.setOnGetPoiSearchResultListener(new PoiListener(){@Override public void onGetPoiResult(PoiResult r){if(!current(ticket)||poi!=request)return;poi=null;request.destroy();
             if(r!=null&&r.getSuggestCityList()!=null&&!r.getSuggestCityList().isEmpty()){
@@ -81,13 +89,13 @@ final class PlaceSearch {
                 if(results.getChildCount()>0){message("请选择搜索结果所在城市");return;}
             }
             if(r==null||r.error!=SearchResult.ERRORNO.NO_ERROR){lastPoi=null;message(r==null?"搜索暂不可用，请重试":error(r.error,"没有找到相关地点"));return;}
-            List<PoiInfo> list=r.getAllPoi();if(list!=null)for(PoiInfo item:list){if(item==null||empty(item.name)||!valid(item.location))continue;row(item.name,join(item.city,item.area,item.address),()->choose(item.location,zoom(item.name,item.city,item.area,item.tag)));}
+            List<PoiInfo> list=r.getAllPoi();if(list!=null)for(PoiInfo item:list){if(item==null||empty(item.name)||!valid(item.location))continue;row(item.name,join(item.city,item.area,item.address),()->{remember(item.name);choose(item.location,zoom(item.name,item.city,item.area,item.tag));});}
             message(results.getChildCount()==0?"没有找到可定位的地点，请换个关键词":"选择一个地点");
         }});
         if(!request.searchInCity(new PoiCitySearchOption().city(searchCity).keyword(q).cityLimit(false).pageNum(0).pageCapacity(10))){poi=null;request.destroy();lastPoi=null;message("搜索暂不可用，请重试");}
     }
     private void detail(String uid,String name){invalidate();long ticket=generation;message("正在获取地点…");poi=PoiSearch.newInstance();PoiSearch request=poi;
-        request.setOnGetPoiSearchResultListener(new PoiListener(){@Override public void onGetPoiDetailResult(PoiDetailResult r){if(!current(ticket)||poi!=request)return;poi=null;request.destroy();if(r!=null&&r.error==SearchResult.ERRORNO.NO_ERROR&&valid(r.location))choose(r.location,zoom(r.name,null,null,r.tag));else if(r!=null&&(r.error==SearchResult.ERRORNO.NETWORK_ERROR||r.error==SearchResult.ERRORNO.NETWORK_TIME_OUT||r.error==SearchResult.ERRORNO.KEY_ERROR||r.error==SearchResult.ERRORNO.PERMISSION_UNFINISHED))message(error(r.error,"地点详情不可用"));else submit(name);}});
+        request.setOnGetPoiSearchResultListener(new PoiListener(){@Override public void onGetPoiDetailResult(PoiDetailResult r){if(!current(ticket)||poi!=request)return;poi=null;request.destroy();if(r!=null&&r.error==SearchResult.ERRORNO.NO_ERROR&&valid(r.location)){remember(empty(r.name)?name:r.name);choose(r.location,zoom(r.name,null,null,r.tag));}else if(r!=null&&(r.error==SearchResult.ERRORNO.NETWORK_ERROR||r.error==SearchResult.ERRORNO.NETWORK_TIME_OUT||r.error==SearchResult.ERRORNO.KEY_ERROR||r.error==SearchResult.ERRORNO.PERMISSION_UNFINISHED))message(error(r.error,"地点详情不可用"));else submit(name);}});
         if(!request.searchPoiDetail(new PoiDetailSearchOption().poiUid(uid))){poi=null;request.destroy();submit(name);}
     }
     private static abstract class PoiListener implements OnGetPoiSearchResultListener {public void onGetPoiResult(PoiResult r){}public void onGetPoiDetailResult(PoiDetailResult r){}public void onGetPoiDetailResult(PoiDetailSearchResult r){}public void onGetPoiIndoorResult(PoiIndoorResult r){}}
@@ -95,7 +103,27 @@ final class PlaceSearch {
     private static float zoom(String name,String city,String district,String tag){if(!empty(name)&&(name.equals(city)||name.equals(district)||(!empty(tag)&&(tag.contains("行政区划")||tag.contains("城市")))))return 11f;return 16f;}
     private static String join(String... parts){LinkedHashSet<String> values=new LinkedHashSet<>();for(String p:parts)if(!empty(p))values.add(p.trim());return android.text.TextUtils.join(" · ",values);}
     private void row(String title,String subtitle,Runnable click){LinearLayout box=new LinearLayout(activity);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(20),dp(12),dp(20),dp(12));TextView t=label(title,16,text);box.addView(t);if(!empty(subtitle)){TextView sub=label(subtitle,13,secondary);sub.setPadding(0,dp(5),0,0);box.addView(sub);}box.setOnClickListener(v->click.run());results.addView(box);View line=new View(activity);line.setBackgroundColor(0x22888888);results.addView(line,new LinearLayout.LayoutParams(-1,dp(1)));}
+    private List<String> readHistory(){
+        List<String> items=new ArrayList<>();
+        try{JSONArray array=new JSONArray(activity.getPreferences(Context.MODE_PRIVATE).getString("place_search_history","[]"));for(int i=0;i<array.length()&&items.size()<SearchHistory.LIMIT;i++){String value=array.optString(i,"").trim();if(!value.isEmpty())items.add(value);}}
+        catch(JSONException ignored){}
+        return items;
+    }
+    private void remember(String keyword){
+        if(empty(keyword))return;
+        List<String> updated=SearchHistory.record(readHistory(),keyword);
+        activity.getPreferences(Context.MODE_PRIVATE).edit().putString("place_search_history",new JSONArray(updated).toString()).apply();
+    }
+    private void showHistory(){
+        if(!isOpen()||results==null)return;
+        List<String> history=readHistory();if(history.isEmpty())return;
+        LinearLayout header=new LinearLayout(activity);header.setGravity(Gravity.CENTER_VERTICAL);header.setPadding(dp(20),dp(8),dp(12),dp(4));
+        TextView title=label("搜索历史",14,secondary);header.addView(title,new LinearLayout.LayoutParams(0,dp(40),1));
+        TextView clear=label("清除历史记录",14,accent);clear.setGravity(Gravity.CENTER);clear.setPadding(dp(8),0,dp(8),0);header.addView(clear,new LinearLayout.LayoutParams(-2,dp(48)));
+        clear.setOnClickListener(v->{activity.getPreferences(Context.MODE_PRIVATE).edit().remove("place_search_history").apply();results.removeAllViews();message("搜索历史已清除");});results.addView(header);
+        for(String item:history)row(item,"",()->{input.setText(item);input.setSelection(input.length());submit(item);});
+    }
     private void message(String s){if(status!=null)status.setText(s);}
     private static String error(SearchResult.ERRORNO e,String fallback){if(e==SearchResult.ERRORNO.KEY_ERROR||e==SearchResult.ERRORNO.PERMISSION_UNFINISHED||e==SearchResult.ERRORNO.NO_ADVANCED_PERMISSION)return "百度地图鉴权失败，请检查 AK 和检索权限";if(e==SearchResult.ERRORNO.NETWORK_ERROR||e==SearchResult.ERRORNO.NETWORK_TIME_OUT)return "网络连接失败，请检查网络后重试";return fallback;}
-    void close(){if(!isOpen())return;invalidate();if(geo!=null){geo.destroy();geo=null;}((InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(input.getWindowToken(),0);root.removeView(overlay);overlay=null;input=null;status=null;results=null;lastSug=null;lastPoi=null;}
+    void close(){if(!isOpen())return;invalidate();if(geo!=null){geo.destroy();geo=null;}((InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(input.getWindowToken(),0);root.removeView(overlay);overlay=null;input=null;status=null;results=null;lastSug=null;lastPoi=null;pendingQuery=null;}
 }
