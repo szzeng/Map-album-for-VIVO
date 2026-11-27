@@ -30,6 +30,7 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 
 public class MainActivity extends Activity {
+    private static final String MAP_SETTINGS="map_settings", CUSTOM_BAIDU_AK="baidu_ak";
     private int TEXT, SECONDARY, ACCENT, PLACEHOLDER, SURFACE, FLOATING, CHIP, DIVIDER, MAP_BACKGROUND, MENU_ICON;
     private boolean darkMode;
     private MapView view; private BaiduMap map; private FrameLayout root; private LinearLayout panel, header;
@@ -97,6 +98,7 @@ public class MainActivity extends Activity {
             .setNegativeButton("不同意",(d,w)->finish()).setPositiveButton("同意并打开",(d,w)->{if(!getPreferences(MODE_PRIVATE).edit().putInt(PrivacyConsent.KEY,PrivacyConsent.VERSION).commit()){Toast.makeText(this,"无法保存隐私选择，请重试",Toast.LENGTH_LONG).show();finish();return;}privacyAccepted=true;initializeMap();}).setOnCancelListener(d->finish()).show();
     }
     private void initializeMap(){try {
+        String ak=effectiveBaiduAk();if(ak!=null){SDKInitializer.setApiKey(ak);LocationClient.setKey(ak);}
         SDKInitializer.setAgreePrivacy(getApplicationContext(),true);SDKInitializer.initialize(getApplicationContext());SDKInitializer.setCoordType(CoordType.BD09LL);
         BaiduMapOptions options=new BaiduMapOptions();
         if(saved!=null&&transientMapStatus!=null)options.mapStatus(transientMapStatus);
@@ -108,7 +110,7 @@ public class MainActivity extends Activity {
         if(saved!=null){expanded=saved.getBoolean("expanded");oldestFirst=saved.getBoolean("oldestFirst");restorePosition=saved.getInt("scroll",0);restoreOffset=saved.getInt("scrollOffset",0);updatePanel();}
         if(active)resumeExperiment();
         schedule();
-    }catch(RuntimeException e){TextView failure=label("地图加载失败，请重新打开图迹",14,SECONDARY);failure.setGravity(Gravity.CENTER);setContentView(failure);}}
+    }catch(RuntimeException e){LinearLayout failure=new LinearLayout(this);failure.setOrientation(LinearLayout.VERTICAL);failure.setGravity(Gravity.CENTER);TextView message=label("地图加载失败，请检查百度地图 AK",14,SECONDARY);message.setGravity(Gravity.CENTER);failure.addView(message);Button settings=new Button(this);settings.setText("设置百度地图 AK");settings.setOnClickListener(v->showBaiduAkSettings());failure.addView(settings);setContentView(failure);}}
     private void buildUi(){
         count=label(galleryStatus("未启用"),12,ACCENT);
         TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");menu.setBackground(shape(FLOATING,24));menu.setElevation(dp(3));menu.setOnClickListener(v->showMenu(menu));
@@ -135,6 +137,7 @@ public class MainActivity extends Activity {
         android.view.MenuItem night=p.getMenu().add("暗夜模式");night.setCheckable(true);night.setChecked(darkMode);night.setOnMenuItemClickListener(i->{Appearance.setManual(this,!darkMode);recreate();return true;});
         p.getMenu().add("刷新照片数据").setOnMenuItemClickListener(i->{if(experiment!=null){experiment.stopAndClear();resumeExperiment();}return true;});
         p.getMenu().add("照片 GPS 情况").setOnMenuItemClickListener(i->{showPhotoLocationSummary();return true;});
+        p.getMenu().add("百度地图 AK").setOnMenuItemClickListener(i->{showBaiduAkSettings();return true;});
         p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片和位置仅在设备内存中处理。点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。图库仅限 V2502A / PD2502 当前授权主卷。照片位置已开放全球；跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
         p.getMenu().add("关于图迹").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setTitle("关于图迹").setMessage("图迹 0.2.0\n个人使用版").setPositiveButton("知道了",null).show();return true;});
         if(BuildConfig.PERSONAL_DEVICE_RELEASE){
@@ -148,6 +151,34 @@ public class MainActivity extends Activity {
             p.getMenu().add("数据诊断").setOnMenuItemClickListener(i->{showDiagnostics();return true;});
         }
         p.show();
+    }
+    private String effectiveBaiduAk(){
+        String custom=getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).getString(CUSTOM_BAIDU_AK,null);
+        if(custom!=null&&!custom.isEmpty())return custom;
+        try {android.content.pm.ApplicationInfo info=getPackageManager().getApplicationInfo(getPackageName(),android.content.pm.PackageManager.GET_META_DATA);return info.metaData==null?null:info.metaData.getString("com.baidu.lbsapi.API_KEY");}
+        catch(android.content.pm.PackageManager.NameNotFoundException e){return null;}
+    }
+    private void showBaiduAkSettings(){
+        EditText input=new EditText(this);input.setSingleLine(true);input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);input.setHint("输入百度地图 AK");
+        String custom=getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).getString(CUSTOM_BAIDU_AK,"");input.setText(custom);input.setSelection(input.length());
+        LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(24),0,dp(24),0);TextView note=label("AK 用于地图和定位，需在百度控制台绑定图迹的包名和签名。",14,SECONDARY);box.addView(note);box.addView(input);
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("百度地图 AK").setView(box).setNegativeButton("取消",null).setNeutralButton("恢复内置 AK",null).setPositiveButton("保存",null).create();
+        dialog.setOnShowListener(ignored->{
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
+                String value=input.getText().toString().trim();
+                if(value.isEmpty()||value.length()>256||value.matches(".*\\s+.*")){input.setError("请输入有效的 AK，不能包含空格");return;}
+                if(!getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).edit().putString(CUSTOM_BAIDU_AK,value).commit()){input.setError("保存失败，请重试");return;}
+                dialog.dismiss();reloadBaiduAk();
+            });
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v->{
+                if(!getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).edit().remove(CUSTOM_BAIDU_AK).commit()){input.setError("保存失败，请重试");return;}
+                dialog.dismiss();reloadBaiduAk();
+            });
+        });dialog.show();
+    }
+    private void reloadBaiduAk(){
+        stopLocation();String ak=effectiveBaiduAk();if(ak!=null){SDKInitializer.setApiKey(ak);LocationClient.setKey(ak);}
+        Toast.makeText(this,"已保存，正在重新加载地图；AK 能否使用取决于百度鉴权",Toast.LENGTH_LONG).show();recreate();
     }
     private void showPhotoLocationSummary(){
         String summary=experiment==null?null:experiment.photoLocationSummary();
