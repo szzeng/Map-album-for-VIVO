@@ -9,6 +9,11 @@
     <color name="app_divider">#E9EDF0</color>
     <color name="app_map_background">#EAF0E7</color>
     <color name="app_menu_icon">#53616A</color>
+    <color name="gallery_background">#F4F6F5</color>
+    <color name="gallery_header">#FFFFFF</color>
+    <color name="gallery_control">#E8EEED</color>
+    <color name="gallery_control_text">#365954</color>
+    <color name="gallery_ripple">#26365954</color>
     <color name="preview_background">#F1F3F4</color>
     <color name="preview_card">#FFFFFF</color>
     <color name="preview_control">#E8ECEE</color>

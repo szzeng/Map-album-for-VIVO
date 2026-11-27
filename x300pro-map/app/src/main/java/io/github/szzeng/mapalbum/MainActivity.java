@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.*;
 import android.widget.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import org.example.map002probe.MapDataRepository;
@@ -33,11 +32,12 @@ public class MainActivity extends Activity {
     private static final String MAP_SETTINGS="map_settings", CUSTOM_BAIDU_AK="baidu_ak";
     private static final int MAX_CLUSTER_PHOTOS=10000, MAX_COVER_ATTEMPTS=3;
     private static final long PROJECTION_BUDGET_NANOS=4_000_000;
-    private int TEXT, SECONDARY, ACCENT, PLACEHOLDER, SURFACE, FLOATING, CHIP, DIVIDER, MAP_BACKGROUND, MENU_ICON;
+    private int TEXT, SECONDARY, ACCENT, PLACEHOLDER, SURFACE, FLOATING, MAP_BACKGROUND, MENU_ICON;
     private boolean darkMode;
-    private MapView view; private BaiduMap map; private FrameLayout root; private LinearLayout panel, header;
-    private TextView count, title, quantity, empty, networkStatus; private ListView grid; private ImageView fit;
-    private AreaAdapter adapter; private ThumbnailLoader thumbnails;
+    private MapView view; private BaiduMap map; private FrameLayout root;
+    private PhotoGalleryView panel;
+    private TextView count,networkStatus; private ImageView fit;
+    private ThumbnailLoader thumbnails;
     private final ThreadPoolExecutor clusterWorker=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<>(1),new ThreadPoolExecutor.DiscardOldestPolicy());
     private final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
@@ -47,6 +47,8 @@ public class MainActivity extends Activity {
     private final Map<Long,MarkerResource> markerClicks=new HashMap<>();
     private long nextMarkerId, photoSelection;
     private boolean groupMode, oldestFirst, rebuiltAfterMediaChange, openingCluster;
+    private boolean galleryBars;
+    private int mapBarFlags,mapStatusColor,mapNavigationColor;
     private int restorePosition=-1, restoreOffset, bottomInset;
     private boolean networkCallbackRegistered;
     private Bundle saved;
@@ -54,6 +56,7 @@ public class MainActivity extends Activity {
     private static MapStatus transientMapStatus;
     private static MapDataRepository experiment;
     private static PendingPhotoReturn pendingPhotoReturn;
+    private PendingPhotoReturn retainedGallery;
     private static final class PendingPhotoReturn {
         final MapDataRepository repository;final long scopeToken;final ArrayList<PhotoItem> photos;
         final boolean oldestFirst;final int scroll,offset;
@@ -130,7 +133,8 @@ public class MainActivity extends Activity {
     private TextView label(String text,int size,int color){TextView t=new TextView(this);t.setText(text);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER_VERTICAL);return t;}
     @Override protected void attachBaseContext(Context base){super.attachBaseContext(base);Appearance.applyOverride(this,base);}
     @Override public void onCreate(Bundle state){super.onCreate(state);saved=state;darkMode=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
-        TEXT=getColor(R.color.app_text);SECONDARY=getColor(R.color.app_secondary);ACCENT=getColor(R.color.app_accent);PLACEHOLDER=getColor(R.color.app_placeholder);SURFACE=getColor(R.color.app_surface);FLOATING=getColor(R.color.app_floating);CHIP=getColor(R.color.app_chip);DIVIDER=getColor(R.color.app_divider);MAP_BACKGROUND=getColor(R.color.app_map_background);MENU_ICON=getColor(R.color.app_menu_icon);
+        TEXT=getColor(R.color.app_text);SECONDARY=getColor(R.color.app_secondary);ACCENT=getColor(R.color.app_accent);PLACEHOLDER=getColor(R.color.app_placeholder);SURFACE=getColor(R.color.app_surface);FLOATING=getColor(R.color.app_floating);MAP_BACKGROUND=getColor(R.color.app_map_background);MENU_ICON=getColor(R.color.app_menu_icon);
+        retainedGallery=(PendingPhotoReturn)getLastNonConfigurationInstance();
         thumbnails=new ThumbnailLoader(getContentResolver());
         TextView waiting=label("等待隐私选择",14,TEXT);setContentView(waiting);
         if(PrivacyConsent.isCurrent(getPreferences(MODE_PRIVATE).getInt(PrivacyConsent.KEY,0))){initializeMap();return;}
@@ -177,21 +181,21 @@ public class MainActivity extends Activity {
         networkStatus=label("网络不可用，地图可能无法加载",12,SECONDARY);networkStatus.setPadding(dp(12),0,dp(12),0);networkStatus.setBackground(shape(FLOATING,12));
         FrameLayout.LayoutParams np=new FrameLayout.LayoutParams(-2,dp(36),Gravity.TOP|Gravity.LEFT);np.setMargins(dp(16),dp(76),0,0);root.addView(networkStatus,np);updateNetworkStatus();
         fit=new ImageView(this);fit.setImageDrawable(new FitIcon());fit.setPadding(dp(12),dp(12),dp(12),dp(12));fit.setBackground(shape(SURFACE,24));fit.setElevation(dp(3));fit.setContentDescription("定位当前位置");fit.setOnClickListener(v->requestCurrentLocation());root.addView(fit,new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.RIGHT|Gravity.BOTTOM));
-        panel=new LinearLayout(this);panel.setOrientation(LinearLayout.VERTICAL);panel.setBackgroundColor(SURFACE);panel.setElevation(dp(8));panel.setClickable(true);
-        header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);header.setPadding(dp(8),0,dp(16),0);
-        ImageView close=new ImageView(this);close.setImageDrawable(new BackArrowIcon());close.setPadding(dp(14),dp(14),dp(14),dp(14));close.setContentDescription("返回地图");close.setOnClickListener(v->closePhotoPanel());header.addView(close,new LinearLayout.LayoutParams(dp(48),dp(56)));
-        title=label("此处照片",17,TEXT);title.setTypeface(null,Typeface.BOLD);header.addView(title,new LinearLayout.LayoutParams(0,dp(56),1));
-        TextView sort=label("排序 ▾",13,ACCENT);sort.setGravity(Gravity.CENTER);sort.setBackground(shape(CHIP,16));sort.setContentDescription("调整照片排序");sort.setOnClickListener(v->showSortMenu(sort));LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(dp(72),dp(48));sp.topMargin=dp(4);sp.bottomMargin=dp(4);header.addView(sort,sp);panel.addView(header);
-        quantity=label("0 张照片",13,SECONDARY);quantity.setPadding(dp(16),0,dp(16),0);panel.addView(quantity,new LinearLayout.LayoutParams(-1,dp(36)));
-        View divider=new View(this);divider.setBackgroundColor(DIVIDER);LinearLayout.LayoutParams line=new LinearLayout.LayoutParams(-1,dp(1));line.leftMargin=dp(16);line.rightMargin=dp(16);panel.addView(divider,line);
-        empty=label("暂无照片",13,SECONDARY);empty.setGravity(Gravity.CENTER);empty.setPadding(dp(16),0,dp(16),0);panel.addView(empty,new LinearLayout.LayoutParams(-1,dp(64)));
-        grid=new DraggableScrollList();grid.setDivider(null);grid.setDividerHeight(0);grid.setPadding(dp(16),0,dp(16),dp(16));grid.setClipToPadding(false);adapter=new AreaAdapter();grid.setAdapter(adapter);
-        grid.setRecyclerListener(scrap->{if(scrap instanceof PhotoGridRow)((PhotoGridRow)scrap).clearImages();});
-        panel.addView(grid,new LinearLayout.LayoutParams(-1,0,1));
-        root.addView(panel,new FrameLayout.LayoutParams(-1,-1));root.setOnApplyWindowInsetsListener((v,insets)->{int safe=android.os.Build.VERSION.SDK_INT>=30?insets.getInsets(WindowInsets.Type.systemGestures()).bottom:insets.getSystemWindowInsetBottom();if(bottomInset!=safe){bottomInset=safe;panel.setPadding(0,0,0,safe);updatePanel();}return insets;});renderList();updatePanel();
+        panel=new PhotoGalleryView(this,thumbnails,this::canLoadGalleryImages,
+            this::closePhotoPanel,this::setPhotoOrder,this::openPhoto);
+        root.addView(panel,new FrameLayout.LayoutParams(-1,-1));
+        root.setOnApplyWindowInsetsListener((v,insets)->{
+            int safe=android.os.Build.VERSION.SDK_INT>=30?insets.getInsets(WindowInsets.Type.systemGestures()).bottom:insets.getSystemWindowInsetBottom();
+            if(bottomInset!=safe){
+                bottomInset=safe;
+                panel.setPadding(0,0,0,safe);
+                updatePanel();
+            }
+            return insets;
+        });
+        renderList();
     }
-    private void showSortMenu(View anchor){PopupMenu menu=new PopupMenu(this,anchor);android.view.MenuItem latest=menu.getMenu().add("拍摄时间：最新在前");android.view.MenuItem earliest=menu.getMenu().add("拍摄时间：最早在前");latest.setCheckable(true);earliest.setCheckable(true);latest.setChecked(!oldestFirst);earliest.setChecked(oldestFirst);latest.setOnMenuItemClickListener(item->{setPhotoOrder(false);return true;});earliest.setOnMenuItemClickListener(item->{setPhotoOrder(true);return true;});menu.show();}
-    private void setPhotoOrder(boolean oldest){if(oldestFirst==oldest)return;oldestFirst=oldest;sortGroup();restorePosition=-1;renderList();grid.setSelection(0);}
+    private void setPhotoOrder(boolean oldest){if(oldestFirst==oldest)return;oldestFirst=oldest;sortGroup();restorePosition=-1;renderList();panel.scrollToPhoto(0,0);}
     private void sortGroup(){Collections.sort(group,(a,b)->{if(a.dateTaken==null)return b.dateTaken==null?0:1;if(b.dateTaken==null)return -1;return oldestFirst?Long.compare(a.dateTaken,b.dateTaken):Long.compare(b.dateTaken,a.dateTaken);});}
     private void showMenu(View anchor){
         PopupMenu p=new PopupMenu(this,anchor);
@@ -290,6 +294,7 @@ public class MainActivity extends Activity {
         if(!active||map==null||experiment==null)return;
         if(!hasPhotoAccess()){
             pendingPhotoReturn=null;
+            retainedGallery=null;
             experiment.stopAndClear();
             clearData();
             hideScopeCover();
@@ -335,6 +340,7 @@ public class MainActivity extends Activity {
             return;
         }
         pendingPhotoReturn=null;
+        retainedGallery=null;
         clearData();
         hideScopeCover();
         if(state==MapDataRepository.State.SCOPE_CHANGED && !rebuiltAfterMediaChange){
@@ -357,7 +363,10 @@ public class MainActivity extends Activity {
         }else showGalleryStatus("此范围没有照片",null);
     }
     private void restorePreviewReturn(){
-        PendingPhotoReturn pending=pendingPhotoReturn;if(pending==null)return;pendingPhotoReturn=null;
+        PendingPhotoReturn pending=pendingPhotoReturn!=null?pendingPhotoReturn:retainedGallery;
+        pendingPhotoReturn=null;
+        retainedGallery=null;
+        if(pending==null)return;
         if(pending.repository!=experiment||pending.scopeToken<0||pending.scopeToken!=experiment.scopeToken()){
             Toast.makeText(this,"照片授权范围已变化，请重新选择照片",Toast.LENGTH_LONG).show();return;
         }
@@ -369,16 +378,46 @@ public class MainActivity extends Activity {
         String message="数据模式："+(experiment==null?"未启用":"主卷实验")+"\n授权范围："+scopeLabel+"\n"+(experiment==null?"身份：未验证":experiment.diagnostics())+"\n视野状态："+viewportPhase+" · 匹配 "+viewportMatches+" · 已读取 "+viewportLoaded+" · 地图标记 "+markers.size()+" · 视野复用 "+viewportCacheHits+"\n"+thumbnails.diagnosticCounts();
         new AlertDialog.Builder(this).setTitle("数据诊断").setMessage(message).setNegativeButton("关闭",null).setPositiveButton("复制",(d,w)->{android.content.ClipboardManager clip=(android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);if(clip!=null)clip.setPrimaryClip(android.content.ClipData.newPlainText("图迹诊断",message));}).show();
     }
-    private void updatePanel(){if(panel==null)return;panel.setVisibility(groupMode?View.VISIBLE:View.GONE);FrameLayout.LayoutParams f=(FrameLayout.LayoutParams)fit.getLayoutParams();f.rightMargin=dp(16);f.bottomMargin=bottomInset+dp(16);fit.setLayoutParams(f);fit.setVisibility(groupMode?View.GONE:View.VISIBLE);grid.setVisibility(adapter.items.isEmpty()?View.GONE:View.VISIBLE);empty.setVisibility(adapter.items.isEmpty()?View.VISIBLE:View.GONE);}
+    private void updatePanel(){
+        if(panel==null)return;
+        panel.setVisibility(groupMode?View.VISIBLE:View.GONE);
+        FrameLayout.LayoutParams position=(FrameLayout.LayoutParams)fit.getLayoutParams();
+        int margin=bottomInset+dp(16);
+        if(position.rightMargin!=dp(16)||position.bottomMargin!=margin){
+            position.rightMargin=dp(16);
+            position.bottomMargin=margin;
+            fit.setLayoutParams(position);
+        }
+        fit.setVisibility(groupMode?View.GONE:View.VISIBLE);
+        updateGalleryBars();
+    }
+    private void updateGalleryBars(){
+        if(galleryBars==groupMode)return;
+        Window window=getWindow();
+        View decor=window.getDecorView();
+        if(groupMode){
+            mapBarFlags=decor.getSystemUiVisibility();
+            mapStatusColor=window.getStatusBarColor();
+            mapNavigationColor=window.getNavigationBarColor();
+            int lightFlags=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            decor.setSystemUiVisibility(darkMode?mapBarFlags&~lightFlags:mapBarFlags|lightFlags);
+            window.setStatusBarColor(getColor(R.color.gallery_header));
+            window.setNavigationBarColor(getColor(R.color.gallery_background));
+        }else{
+            decor.setSystemUiVisibility(mapBarFlags);
+            window.setStatusBarColor(mapStatusColor);
+            window.setNavigationBarColor(mapNavigationColor);
+        }
+        galleryBars=groupMode;
+    }
     private void closePhotoPanel(){clearVisibleImages();groupMode=false;group.clear();renderList();loadMarkerCovers();}
     @Override public void onBackPressed(){if(groupMode){closePhotoPanel();return;}super.onBackPressed();}
     private void renderList(){
-        if(adapter==null)return;
-        adapter.setPhotos(group);
-        quantity.setText(group.size()+" 张照片");
+        if(panel==null)return;
+        panel.setPhotos(group,oldestFirst);
         updatePanel();
-        if(restorePosition>=0&&groupMode&&!adapter.items.isEmpty()){
-            grid.setSelectionFromTop(restorePosition,restoreOffset);
+        if(restorePosition>=0&&groupMode&&!group.isEmpty()){
+            panel.scrollToPhoto(restorePosition,restoreOffset);
             restorePosition=-1;
             restoreOffset=0;
         }
@@ -598,7 +637,7 @@ public class MainActivity extends Activity {
             if(metadata!=null){
                 items=new ArrayList<>(metadata.length);
                 for(MediaStoreLookup.Metadata item:metadata){
-                    items.add(new PhotoItem(item.uri,item.dateTaken,item.dateFallback,item.mediaVersion,item.relativePath));
+                    items.add(new PhotoItem(item.uri,item.dateTaken,item.mediaVersion));
                 }
                 Comparator<Long> newest=Comparator.nullsLast(Comparator.reverseOrder());
                 items.sort((a,b)->newest.compare(a.dateTaken,b.dateTaken));
@@ -630,7 +669,7 @@ public class MainActivity extends Activity {
         groupMode=true;
         restorePosition=-1;
         renderList();
-        grid.setSelection(0);
+        panel.scrollToPhoto(0,0);
     }
 
     private void cancelRequests(){
@@ -691,184 +730,24 @@ public class MainActivity extends Activity {
     }
     static void suspendPreviewScope(){if(experiment!=null)experiment.suspend();}
     private void openPhoto(PhotoItem photo){
-        if(active&&groupMode&&experiment!=null&&experiment.scopeToken()==displayedScope)openPreview(group,photo);
+        if(canLoadGalleryImages())openPreview(group,photo);
     }
     private void openPreview(List<PhotoItem> source,PhotoItem selected){
         if(source.isEmpty()||experiment==null)return;int index=source.indexOf(selected);if(index<0)return;
-        int scroll=groupMode&&grid!=null?grid.getFirstVisiblePosition():0;View first=grid==null?null:grid.getChildAt(0);int offset=first==null?0:first.getTop()-grid.getPaddingTop();
-        pendingPhotoReturn=source.size()>1?new PendingPhotoReturn(experiment,experiment.scopeToken(),source,oldestFirst,scroll,offset):null;
+        pendingPhotoReturn=source.size()>1?snapshotGallery():null;
         startActivity(new Intent(this,PhotoPreviewActivity.class).putExtra("session",PreviewSessionStore.put(source)).putExtra("index",index));
     }
-    private final class DraggableScrollList extends ListView {
-        private boolean dragging;
-        private float startY, startFraction, travel;
-        DraggableScrollList(){super(MainActivity.this);}
-        @Override public boolean onInterceptTouchEvent(MotionEvent event){
-            if(event.getActionMasked()==MotionEvent.ACTION_DOWN && event.getX()>=getWidth()-dp(24)){
-                int range=computeVerticalScrollRange(), extent=computeVerticalScrollExtent(), offset=computeVerticalScrollOffset();
-                int track=getHeight()-getPaddingTop()-getPaddingBottom();
-                if(range>extent && extent>0 && track>0){
-                    float thumb=Math.max(dp(24),track*(float)extent/range);
-                    travel=Math.max(1,track-thumb);
-                    startFraction=Math.max(0,Math.min(1,offset/(float)(range-extent)));
-                    float top=getPaddingTop()+travel*startFraction;
-                    if(event.getY()>=top-dp(16)&&event.getY()<=top+thumb+dp(16)){
-                        dragging=true;startY=event.getY();awakenScrollBars();return true;
-                    }
-                }
-            }
-            return super.onInterceptTouchEvent(event);
-        }
-        @Override public boolean onTouchEvent(MotionEvent event){
-            if(!dragging)return super.onTouchEvent(event);
-            switch(event.getActionMasked()){
-                case MotionEvent.ACTION_MOVE:
-                    float fraction=Math.max(0,Math.min(1,startFraction+(event.getY()-startY)/travel));
-                    int last=Math.max(0,getCount()-1);
-                    if(fraction>=1)setSelection(last);
-                    else setSelection(Math.round(fraction*Math.max(0,getCount()-getChildCount())));
-                    awakenScrollBars();return true;
-                case MotionEvent.ACTION_UP: case MotionEvent.ACTION_CANCEL:
-                    dragging=false;awakenScrollBars();return true;
-                default:return true;
-            }
-        }
+    private PendingPhotoReturn snapshotGallery(){
+        if(!groupMode||displayedScope<0||experiment==null||panel==null)return null;
+        return new PendingPhotoReturn(experiment,displayedScope,group,oldestFirst,panel.firstVisiblePhoto(),panel.scrollOffset());
     }
-    private final class AreaAdapter extends BaseAdapter {
-        final ArrayList<PhotoItem> items=new ArrayList<>();
-        final ArrayList<PhotoRow> rows=new ArrayList<>();
-        final SimpleDateFormat dayLabel=new SimpleDateFormat("yyyy年M月d日",Locale.CHINA);
-        final Calendar calendar=Calendar.getInstance();
-        final class PhotoRow {String heading;final ArrayList<PhotoItem> photos=new ArrayList<>();}
-        void setPhotos(List<PhotoItem> photos){
-            items.clear();items.addAll(photos);rows.clear();int prior=-1;PhotoRow row=null;
-            for(PhotoItem sample:items){
-                int day=0;
-                if(sample.dateTaken!=null){
-                    calendar.setTimeInMillis(sample.dateTaken);
-                    day=calendar.get(Calendar.YEAR)*366+calendar.get(Calendar.DAY_OF_YEAR);
-                }
-                if(day!=prior){
-                    row=new PhotoRow();
-                    row.heading=sample.dateTaken==null?"日期未知":dayLabel.format(new Date(sample.dateTaken));
-                    rows.add(row);
-                    prior=day;
-                }else if(row.photos.size()==4){row=new PhotoRow();rows.add(row);}
-                row.photos.add(sample);
-            }
-            notifyDataSetChanged();
-        }
-        public int getCount(){return rows.size();}public PhotoRow getItem(int position){return rows.get(position);}public long getItemId(int position){return position;}
-        public View getView(int position,View recycled,ViewGroup parent){
-            PhotoGridRow cell=recycled instanceof PhotoGridRow?(PhotoGridRow)recycled:new PhotoGridRow();
-            int parentWidth=parent.getWidth()>0?parent.getWidth():root.getWidth();
-            int width=Math.max(1,(parentWidth-parent.getPaddingLeft()-parent.getPaddingRight()-dp(12))/4);
-            AreaAdapter.PhotoRow row=getItem(position);
-            cell.bind(row.heading,row.photos,width);
-            return cell;
-        }
+    @Override public Object onRetainNonConfigurationInstance(){return snapshotGallery();}
+    private boolean canLoadGalleryImages(){
+        return active&&groupMode&&displayedScope>=0&&experiment!=null&&experiment.scopeToken()==displayedScope;
     }
-    private final class PhotoGridRow extends LinearLayout {
-        final TextView heading;
-        final PhotoCell[] cells=new PhotoCell[4];
-        PhotoGridRow(){
-            super(MainActivity.this);
-            setOrientation(VERTICAL);
-            heading=label("",13,TEXT);
-            heading.setTypeface(null,Typeface.BOLD);
-            addView(heading,new LinearLayout.LayoutParams(-1,dp(40)));
-            LinearLayout photos=new LinearLayout(MainActivity.this);
-            photos.setPadding(0,0,0,dp(4));
-            addView(photos);
-            for(int i=0;i<cells.length;i++){
-                cells[i]=new PhotoCell();
-                LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(0,0,1);
-                if(i>0)params.leftMargin=dp(4);
-                photos.addView(cells[i],params);
-            }
-        }
-        void bind(String day,List<PhotoItem> photos,int width){
-            heading.setVisibility(day==null?View.GONE:View.VISIBLE);
-            heading.setText(day);
-            for(int i=0;i<cells.length;i++)cells[i].bind(i<photos.size()?photos.get(i):null,width);
-        }
-        void clearImages(){for(PhotoCell cell:cells)cell.bind(null,cell.imageSize);}
-        void cancelImages(){for(PhotoCell cell:cells)cell.cancelImage();}
-        void restartImages(){for(PhotoCell cell:cells)cell.loadImage();}
-    }
-    private final class PhotoCell extends ImageView {
-        private PhotoItem photo;
-        private int imageSize;
-        private ThumbnailLoader.Request imageRequest;
-        private boolean retryPending;
-        private final Runnable retry=()->{retryPending=false;loadImage();};
-        PhotoCell(){
-            super(MainActivity.this);
-            setScaleType(ScaleType.CENTER_CROP);
-            setBackground(shape(PLACEHOLDER,4));
-            setClipToOutline(true);
-            setContentDescription("查看照片");
-            setOnClickListener(v->{if(photo!=null)openPhoto(photo);});
-        }
-        void bind(PhotoItem next,int size){
-            if(photo!=next||imageSize!=size){
-                cancelImage();
-                setImageDrawable(null);
-                photo=next;
-                imageSize=size;
-                setVisibility(photo==null?View.INVISIBLE:View.VISIBLE);
-                if(getLayoutParams().height!=size){
-                    ViewGroup.LayoutParams params=getLayoutParams();
-                    params.height=size;
-                    setLayoutParams(params);
-                }
-            }
-            loadImage();
-        }
-        void loadImage(){
-            if(!active||!groupMode||photo==null||getDrawable()!=null||imageRequest!=null||retryPending
-                ||experiment==null||experiment.scopeToken()!=displayedScope)return;
-            PhotoItem bound=photo;
-            imageRequest=thumbnails.tryLoad(bound.uri,bound.mediaVersion,imageSize,bitmap->{
-                imageRequest=null;
-                if(bound==photo&&active&&groupMode&&experiment!=null&&experiment.scopeToken()==displayedScope){
-                    setImageBitmap(bitmap);
-                }
-            });
-            if(imageRequest==null){
-                retryPending=true;
-                handler.postDelayed(retry,120);
-            }
-        }
-        void cancelImage(){
-            if(imageRequest!=null){imageRequest.cancel();imageRequest=null;}
-            if(retryPending){handler.removeCallbacks(retry);retryPending=false;}
-        }
-        @Override protected void onDetachedFromWindow(){cancelImage();super.onDetachedFromWindow();}
-    }
-    private void cancelVisibleImages(){
-        if(grid==null)return;
-        for(int i=0;i<grid.getChildCount();i++){
-            if(grid.getChildAt(i) instanceof PhotoGridRow)((PhotoGridRow)grid.getChildAt(i)).cancelImages();
-        }
-    }
-    private void restartVisibleImages(){
-        if(grid==null)return;
-        for(int i=0;i<grid.getChildCount();i++){
-            if(grid.getChildAt(i) instanceof PhotoGridRow)((PhotoGridRow)grid.getChildAt(i)).restartImages();
-        }
-    }
-    private void clearVisibleImages(){
-        if(grid==null)return;
-        for(int i=0;i<grid.getChildCount();i++){
-            if(grid.getChildAt(i) instanceof PhotoGridRow)((PhotoGridRow)grid.getChildAt(i)).clearImages();
-        }
-    }
-    private final class BackArrowIcon extends android.graphics.drawable.Drawable{
-        private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
-        public void draw(Canvas c){android.graphics.Rect b=getBounds();float x=b.exactCenterX(),y=b.exactCenterY(),r=Math.min(b.width(),b.height())*.27f;p.setColor(TEXT);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeJoin(Paint.Join.ROUND);Path path=new Path();path.moveTo(x+r*.5f,y-r);path.lineTo(x-r*.5f,y);path.lineTo(x+r*.5f,y+r);c.drawPath(path,p);}
-        public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
-    }
+    private void cancelVisibleImages(){if(panel!=null)panel.cancelImages();}
+    private void restartVisibleImages(){if(panel!=null)panel.restartImages();}
+    private void clearVisibleImages(){if(panel!=null)panel.clearImages();}
     private void clearData(){
         displayedScope=-1;
         cancelRequests();
