@@ -10,16 +10,18 @@
 
 用户在 X300 Pro 的一次完整照片授权测试中反馈地图已显示、加载速度可接受，随后确认地图拖动的体验可以。用户随后确认部分授权及拒绝、恢复权限，原生相册返回与重新打开应用，以及当前位置授权和定位结果均无问题。该确认不等于逐张照片身份、精确定位或海外坐标已验证。此前至少 30 张照片的人工核对结果及其证据限制见 [MAP-004 测试记录](../docs/research/MAP-004-device-test.md)。
 
+地图顶部支持境内地点搜索：以地图中心逆地理编码得到的城市为搜索上下文，输入联想或提交 POI 搜索后可定位；选点后复用地图视口刷新照片。搜索标记是临时覆盖物，不保存为照片。搜索功能已编译并通过结果分流 JVM 检查；真实百度检索、跨城市召回及地图照片联动尚未记录真机验收。
+
 右下角按钮由用户主动触发单次前台定位，使用百度基础定位 SDK 9.7.0；应用不后台持续定位或保存位置历史。首次打开地图须阅读并同意地图及定位隐私说明。定位需要前台位置权限和可用的百度 AK；实机精度和海外结果仍需验收。
 
 ## 本地构建
 
-使用 Gradle 8.6、Android Gradle Plugin 8.4.2、compileSdk 34。地图组件、坐标工具及基础定位使用百度 Maven 依赖 `BaiduMapSDK_Map:9.0.0`、`BaiduMapSDK_Util:9.0.0` 和 `BaiduMapSDK_Location:9.7.0`；复用 `../map002-provider-probe/src` 中原有数据读取和筛选源文件。
+使用 Gradle 8.6、Android Gradle Plugin 8.4.2、compileSdk 34。地图、搜索、坐标工具及基础定位使用百度 Maven 依赖 `BaiduMapSDK_Map:9.0.0`、`BaiduMapSDK_Search:9.0.0`、`BaiduMapSDK_Util:9.0.0` 和 `BaiduMapSDK_Location:9.7.0`；复用 `../map002-provider-probe/src` 中原有数据读取和筛选源文件。
 
 在 Git 忽略的 `local.properties` 中设置 Android SDK 路径及 `baidu.map.ak`，缺少 AK 时构建会明确报错。AK 会被打入 APK，APK 不是保密存储；请配置百度控制台的包名和签名限制，不要将本地配置或签名密钥提交 Git。首次打开地图须阅读并同意百度隐私说明；SDK 初始化发生在同意后。
 
 国内地图非商业服务及境外底图计费边界、实机结果和未验证项见 `../docs/research/MAP-003B-baidu-progress.md`。旧 MapLibre / 天地图实现可从 Git 历史基线 `754bb2f` 找回。
 
-无需手机的本地检查可运行 `powershell -File tests/run-jvm-tests.ps1`；Gradle 的 `testDebugUnitTest` 当前为 NO-SOURCE。
+无需手机的本地检查可运行 `powershell -File tests/run-jvm-tests.ps1`；搜索结果分流检查可运行 `powershell -File tests/run-search-tests.ps1`；Gradle 的 `testDebugUnitTest` 当前为 NO-SOURCE。
 
 百度官方说明境外底图为付费服务，按请求的地图网格计费；请以 [百度境外地图服务说明](https://lbsyun.baidu.com/docs/android?title=androidsdk/guide/create-map/showmap/abroad) 及实际账号配置为准。

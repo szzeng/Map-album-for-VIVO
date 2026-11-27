@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
     private boolean darkMode;
     private MapView view; private BaiduMap map; private FrameLayout root;
     private PhotoGalleryView panel;
+    private PlaceSearch placeSearch; private Marker searchMarker; private BitmapDescriptor searchDescriptor; private Bitmap searchBitmap;
     private TextView count,networkStatus; private ImageView fit;
     private ThumbnailLoader thumbnails;
     private final ThreadPoolExecutor clusterWorker=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,
@@ -172,19 +173,25 @@ public class MainActivity extends Activity {
         schedule();
     }catch(RuntimeException e){LinearLayout failure=new LinearLayout(this);failure.setOrientation(LinearLayout.VERTICAL);failure.setGravity(Gravity.CENTER);TextView message=label("地图加载失败，请检查百度地图 AK",14,SECONDARY);message.setGravity(Gravity.CENTER);failure.addView(message);Button settings=new Button(this);settings.setText("设置百度地图 AK");settings.setOnClickListener(v->showBaiduAkSettings());failure.addView(settings);setContentView(failure);}}
     private void buildUi(){
+        placeSearch=new PlaceSearch(this,root,new PlaceSearch.Host(){
+            public LatLng center(){return map.getMapStatus().target;}
+            public void select(LatLng point,float zoom){showSearchMarker(point);map.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(point,zoom));}
+        },TEXT,SECONDARY,SURFACE,ACCENT);
+        TextView search=label("⌕  搜索地点，如：杭州西湖",15,SECONDARY);search.setPadding(dp(16),0,dp(12),0);search.setBackground(shape(FLOATING,16));search.setElevation(dp(3));search.setContentDescription("搜索地点");search.setOnClickListener(v->placeSearch.open());
+        FrameLayout.LayoutParams searchParams=new FrameLayout.LayoutParams(-1,dp(48),Gravity.TOP|Gravity.START);searchParams.setMargins(dp(16),dp(12),dp(76),0);root.addView(search,searchParams);
         count=label("",13,ACCENT);
         count.setMinHeight(dp(48));
         count.setPadding(dp(12),dp(6),dp(12),dp(6));
         count.setBackground(shape(FLOATING,16));
         count.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         FrameLayout.LayoutParams statusParams=new FrameLayout.LayoutParams(-2,-2,Gravity.TOP|Gravity.START);
-        statusParams.setMarginStart(dp(16));statusParams.setMarginEnd(dp(76));statusParams.topMargin=dp(12);
+        statusParams.setMarginStart(dp(16));statusParams.setMarginEnd(dp(76));statusParams.topMargin=dp(72);
         root.addView(count,statusParams);
         showInitialGalleryStatus();
         TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");menu.setBackground(shape(FLOATING,24));menu.setElevation(dp(3));menu.setOnClickListener(v->showMenu(menu));
         FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.RIGHT);bp.setMargins(0,dp(12),dp(16),0);root.addView(menu,bp);
         networkStatus=label("网络不可用，地图可能无法加载",12,SECONDARY);networkStatus.setPadding(dp(12),0,dp(12),0);networkStatus.setBackground(shape(FLOATING,12));
-        FrameLayout.LayoutParams np=new FrameLayout.LayoutParams(-2,dp(36),Gravity.TOP|Gravity.LEFT);np.setMargins(dp(16),dp(76),0,0);root.addView(networkStatus,np);updateNetworkStatus();
+        FrameLayout.LayoutParams np=new FrameLayout.LayoutParams(-2,dp(36),Gravity.TOP|Gravity.LEFT);np.setMargins(dp(16),dp(130),0,0);root.addView(networkStatus,np);updateNetworkStatus();
         fit=new ImageView(this);fit.setImageDrawable(new FitIcon());fit.setPadding(dp(12),dp(12),dp(12),dp(12));fit.setBackground(shape(SURFACE,24));fit.setElevation(dp(3));fit.setContentDescription("定位当前位置");fit.setOnClickListener(v->requestCurrentLocation());root.addView(fit,new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.RIGHT|Gravity.BOTTOM));
         panel=new PhotoGalleryView(this,thumbnails,this::canLoadGalleryImages,
             this::closePhotoPanel,this::setPhotoOrder,this::openPhoto);
@@ -422,7 +429,7 @@ public class MainActivity extends Activity {
         galleryBars=groupMode;
     }
     private void closePhotoPanel(){cancelPhotoLoad();clearVisibleImages();groupMode=false;group=null;renderList();loadMarkerCovers();}
-    @Override public void onBackPressed(){if(groupMode){closePhotoPanel();return;}super.onBackPressed();}
+    @Override public void onBackPressed(){if(placeSearch!=null&&placeSearch.isOpen()){placeSearch.close();return;}if(groupMode){closePhotoPanel();return;}super.onBackPressed();}
     private void renderList(){
         if(panel==null)return;
         panel.setPhotos(group,oldestFirst);
@@ -433,7 +440,12 @@ public class MainActivity extends Activity {
             restoreOffset=0;
         }
     }
+    private void clearSearchMarker(){if(searchMarker!=null){searchMarker.remove();searchMarker=null;}if(searchDescriptor!=null){searchDescriptor.recycle();searchDescriptor=null;}if(searchBitmap!=null){searchBitmap.recycle();searchBitmap=null;}}
+    private void showSearchMarker(LatLng point){
+        clearSearchMarker();int size=dp(40);searchBitmap=Bitmap.createBitmap(size,size,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(searchBitmap);Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(ACCENT);Path pin=new Path();pin.moveTo(size*.5f,size*.95f);pin.cubicTo(size*.38f,size*.75f,size*.12f,size*.55f,size*.12f,size*.38f);pin.cubicTo(size*.12f,-size*.08f,size*.88f,-size*.08f,size*.88f,size*.38f);pin.cubicTo(size*.88f,size*.55f,size*.62f,size*.75f,size*.5f,size*.95f);canvas.drawPath(pin,paint);paint.setColor(Color.WHITE);canvas.drawCircle(size*.5f,size*.37f,size*.13f,paint);searchDescriptor=BitmapDescriptorFactory.fromBitmap(searchBitmap);searchMarker=(Marker)map.addOverlay(new MarkerOptions().position(point).icon(searchDescriptor).anchor(.5f,.95f).zIndex(10000));
+    }
     private void requestCurrentLocation(){
+        clearSearchMarker();
         if(checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)!=android.content.pm.PackageManager.PERMISSION_GRANTED&&checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)!=android.content.pm.PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION,android.Manifest.permission.ACCESS_COARSE_LOCATION},102);return;}
         android.location.LocationManager manager=(android.location.LocationManager)getSystemService(LOCATION_SERVICE);
         if(manager==null||!manager.isLocationEnabled()){Toast.makeText(this,"请先开启系统定位服务",Toast.LENGTH_SHORT).show();return;}
@@ -822,6 +834,7 @@ public class MainActivity extends Activity {
     @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();}}
     @Override protected void onPause(){
         active=false;
+        if(placeSearch!=null)placeSearch.close();
         if(displayedScope>=0)showScopeCover();
         boolean needsRedraw=viewportDirty;
         cancelRequests();
@@ -834,6 +847,6 @@ public class MainActivity extends Activity {
         if(view!=null&&mapResumed){view.onPause();mapResumed=false;}
         super.onPause();
     }
-    @Override protected void onDestroy(){clearData();thumbnails.close();clusterWorker.shutdownNow();if(view!=null)view.onDestroy();if(!isChangingConfigurations()&&isFinishing()&&experiment!=null){experiment.close();experiment=null;pendingPhotoReturn=null;}super.onDestroy();}
+    @Override protected void onDestroy(){if(placeSearch!=null)placeSearch.close();clearSearchMarker();clearData();thumbnails.close();clusterWorker.shutdownNow();if(view!=null)view.onDestroy();if(!isChangingConfigurations()&&isFinishing()&&experiment!=null){experiment.close();experiment=null;pendingPhotoReturn=null;}super.onDestroy();}
     private final class FitIcon extends android.graphics.drawable.Drawable{private final Paint p=new Paint(3);public void draw(Canvas c){android.graphics.Rect b=getBounds();float x=b.exactCenterX(),y=b.exactCenterY(),r=Math.min(b.width(),b.height())*.32f;p.setColor(ACCENT);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));p.setStrokeCap(Paint.Cap.ROUND);c.drawCircle(x,y,r,p);c.drawLine(x,b.top,x,y-r,p);c.drawLine(x,y+r,x,b.bottom,p);c.drawLine(b.left,y,x-r,y,p);c.drawLine(x+r,y,b.right,y,p);p.setStyle(Paint.Style.FILL);c.drawCircle(x,y,dp(2),p);}public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}}
 }
