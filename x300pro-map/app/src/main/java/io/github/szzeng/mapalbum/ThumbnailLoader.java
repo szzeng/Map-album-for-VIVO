@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 /** Bounded in-memory thumbnail loading. Cached bitmaps are never persisted. */
 final class ThumbnailLoader implements AutoCloseable {
     interface Callback { void complete(Bitmap bitmap); }
+    interface Request { void cancel(); }
+    private static final Request COMPLETE = () -> {};
     private static final int LIMIT_BYTES=32*1024*1024;
     private final ContentResolver resolver;
     private final Handler main=new Handler(Looper.getMainLooper());
@@ -33,27 +35,45 @@ final class ThumbnailLoader implements AutoCloseable {
     private static final class Pending {
         final CancellationSignal signal=new CancellationSignal();
         final ArrayList<Callback> callbacks=new ArrayList<>();
+        Runnable task;
     }
     ThumbnailLoader(ContentResolver resolver){this.resolver=resolver;}
     void load(Uri uri,long version,int size,Callback callback){
-        enqueue(uri,version,size,false,callback);
+        if(enqueue(uri,version,size,false,callback)==null)main.post(()->callback.complete(null));
+    }
+    /** A full queue is temporary. A null bitmap from an accepted request is a decode failure. */
+    Request tryLoad(Uri uri,long version,int size,Callback callback){
+        return enqueue(uri,version,size,false,callback);
     }
     /** Decode a bounded preview only when the provider supplies an undersized thumbnail. */
     void loadSampled(Uri uri,long version,int size,Callback callback){
-        enqueue(uri,version,size,true,callback);
+        if(enqueue(uri,version,size,true,callback)==null)main.post(()->callback.complete(null));
     }
-    private void enqueue(Uri uri,long version,int size,boolean sampled,Callback callback){
+    private Request enqueue(Uri uri,long version,int size,boolean sampled,Callback callback){
         if(uri==null||size<=0||callback==null)throw new IllegalArgumentException();
         String key=uri.toString()+"|"+version+"|"+size+(sampled?"|sampled":"|thumbnail");
-        final Pending job;
         synchronized(this){
-            if(closed)return;
-            Bitmap cached=cache.get(key);if(cached!=null){hitCount++;callback.complete(cached);return;}
-            Pending existing=pending.get(key);if(existing!=null){existing.callbacks.add(callback);return;}
-            job=new Pending();job.callbacks.add(callback);pending.put(key,job);startedCount++;
-            try {workers.execute(()->decode(key,uri,size,job,sampled));}
-            catch(RejectedExecutionException e){pending.remove(key);callback.complete(null);}
+            if(closed)return null;
+            Bitmap cached=cache.get(key);if(cached!=null){hitCount++;callback.complete(cached);return COMPLETE;}
+            Pending existing=pending.get(key);
+            if(existing!=null){
+                existing.callbacks.add(callback);
+                return ()->cancel(key,existing,callback);
+            }
+            final Pending job=new Pending();
+            job.callbacks.add(callback);
+            job.task=()->decode(key,uri,size,job,sampled);
+            pending.put(key,job);
+            try {workers.execute(job.task);startedCount++;}
+            catch(RejectedExecutionException e){pending.remove(key);return null;}
+            return ()->cancel(key,job,callback);
         }
+    }
+    private synchronized void cancel(String key,Pending job,Callback callback){
+        if(pending.get(key)!=job||!job.callbacks.remove(callback)||!job.callbacks.isEmpty())return;
+        pending.remove(key);
+        canceledCount++;
+        if(!workers.remove(job.task))job.signal.cancel();
     }
     private void decode(String key,Uri uri,int size,Pending job,boolean sampled){
         Bitmap bitmap=null;long started=android.os.SystemClock.elapsedRealtime();
@@ -65,8 +85,8 @@ final class ThumbnailLoader implements AutoCloseable {
                     if(largest>size){double scale=(double)size/largest;decoder.setTargetSize(Math.max(1,(int)Math.round(width*scale)),Math.max(1,(int)Math.round(height*scale)));}
                 });
             }else bitmap=resolver.loadThumbnail(uri,new Size(size,size),job.signal);job.signal.throwIfCanceled();
-            android.util.Log.i("MAP004Thumb","loaded="+(bitmap!=null)+" requested_px="+size+" elapsed_ms="+(android.os.SystemClock.elapsedRealtime()-started));}
-        catch(Exception error) {if(bitmap!=null){bitmap.recycle();bitmap=null;}android.util.Log.i("MAP004Thumb","failed="+error.getClass().getSimpleName());}
+            if(BuildConfig.DEBUG)android.util.Log.d("MAP004Thumb","loaded="+(bitmap!=null)+" requested_px="+size+" elapsed_ms="+(android.os.SystemClock.elapsedRealtime()-started));}
+        catch(Exception error) {if(bitmap!=null){bitmap.recycle();bitmap=null;}if(BuildConfig.DEBUG&&!job.signal.isCanceled())android.util.Log.d("MAP004Thumb","failed="+error.getClass().getSimpleName());}
         final Bitmap ready=bitmap;
         main.post(()->{
             ArrayList<Callback> callbacks;

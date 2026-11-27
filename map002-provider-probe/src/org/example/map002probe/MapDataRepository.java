@@ -13,6 +13,7 @@ import io.github.szzeng.mapalbum.BuildConfig;
 /** Read-only, process-local index. Device access requires the explicit, debug-only experiment gate. */
 public final class MapDataRepository implements AutoCloseable {
     public enum State { INACTIVE, IDLE, LOADING, READY, IDENTITY_UNVERIFIED, VOLUME_UNSUPPORTED, CAPACITY_EXCEEDED, ACCESS_DENIED, SCOPE_CHANGED, FAILED, CLOSED }
+    static final class MediaScopeChangedException extends IllegalStateException { }
     public interface Callback<T> { void complete(T value); }
     interface Backend {
         int batchPauseMillis();
@@ -116,6 +117,10 @@ public final class MapDataRepository implements AutoCloseable {
     public MediaStoreLookup.Metadata[] metadataBatchNow(long[] ids) {
         final PrimitiveLocationSet data;final CancellationSignal signal,query;final long ticket,queryTicket;
         synchronized(this){if(state!=State.READY||cache==null||querySignal==null)return null;data=cache;signal=current;query=querySignal;ticket=epoch;queryTicket=queryEpoch;}
+        return metadataBatch(ids,data,signal,query,ticket,queryTicket);
+    }
+    private MediaStoreLookup.Metadata[] metadataBatch(long[] ids,PrimitiveLocationSet data,
+        CancellationSignal signal,CancellationSignal query,long ticket,long queryTicket){
         try {
             synchronized(data){for(long id:ids){query.throwIfCanceled();if(!data.contains(id))throw new IllegalStateException("outside indexed scope");}}
             MediaStoreLookup.Metadata[] result;
@@ -124,16 +129,24 @@ public final class MapDataRepository implements AutoCloseable {
             for(int i=0;i<ids.length;i++)if(result[i]==null||result[i].id!=ids[i])throw new IllegalStateException("metadata identity mismatch");
             return currentQuery(ticket,signal,queryTicket,query)?result:null;
         } catch(android.os.OperationCanceledException canceled){return null;}
-          catch(RuntimeException failure){if(currentQuery(ticket,signal,queryTicket,query))failIfCurrent(ticket,signal);return null;}
+          catch(MediaScopeChangedException missing){failIfCurrent(ticket,signal,queryTicket,query,State.SCOPE_CHANGED);return null;}
+          catch(SecurityException denied){failIfCurrent(ticket,signal,queryTicket,query,State.ACCESS_DENIED);return null;}
+          catch(RuntimeException failure){failIfCurrent(ticket,signal,queryTicket,query,State.FAILED);return null;}
     }
-    /** Load metadata only for an explicitly selected overview cluster. */
+    /** Load metadata for a selected cluster, tied to the scope and viewport at submission. */
     public boolean metadataForViewport(final long[] ids,final Callback<MediaStoreLookup.Metadata[]> callback){
         if(ids==null||callback==null||ids.length==0||ids.length>10000)throw new IllegalArgumentException();
-        synchronized(this){if(!foreground||state!=State.READY||cache==null||querySignal==null)return false;}
+        final PrimitiveLocationSet data;final CancellationSignal signal,query;final long ticket,queryTicket;
+        synchronized(this){
+            if(!foreground||state!=State.READY||cache==null||querySignal==null)return false;
+            data=cache;signal=current;query=querySignal;ticket=epoch;queryTicket=queryEpoch;
+        }
         try{worker.execute(()->{
             MediaStoreLookup.Metadata[] result=new MediaStoreLookup.Metadata[ids.length];
             for(int from=0;from<ids.length;from+=512){
-                int end=Math.min(ids.length,from+512);MediaStoreLookup.Metadata[] batch=metadataBatchNow(Arrays.copyOfRange(ids,from,end));
+                if(!currentQuery(ticket,signal,queryTicket,query)){callback.complete(null);return;}
+                int end=Math.min(ids.length,from+512);
+                MediaStoreLookup.Metadata[] batch=metadataBatch(Arrays.copyOfRange(ids,from,end),data,signal,query,ticket,queryTicket);
                 if(batch==null){callback.complete(null);return;}System.arraycopy(batch,0,result,from,batch.length);
             }
             callback.complete(result);
@@ -223,11 +236,14 @@ public final class MapDataRepository implements AutoCloseable {
     @Override public void close(){synchronized(this){foreground=false;}cancelAndRelease(State.CLOSED);worker.shutdownNow();}
     private synchronized boolean current(long expected,CancellationSignal signal){return foreground && state!=State.CLOSED && epoch==expected && current==signal && !signal.isCanceled();}
     private void failIfCurrent(long expected,CancellationSignal signal){
+        failIfCurrent(expected,signal,0,null,State.FAILED);
+    }
+    private void failIfCurrent(long expected,CancellationSignal signal,long expectedQuery,CancellationSignal query,State failure){
         CancellationSignal old,oldQuery;PrimitiveLocationSet previous;
         synchronized(this){
-            if(!current(expected,signal))return;
+            if(query==null ? !current(expected,signal) : !currentQuery(expected,signal,expectedQuery,query))return;
             epoch++;queryEpoch++;old=current;oldQuery=querySignal;current=null;querySignal=null;
-            previous=cache;cache=null;scope=null;state=State.FAILED;lastFailure=State.FAILED;worker.getQueue().clear();pendingQuery=null;
+            previous=cache;cache=null;scope=null;state=failure;lastFailure=failure;worker.getQueue().clear();pendingQuery=null;
         }
         if(old!=null)old.cancel();if(oldQuery!=null)oldQuery.cancel();
         if(previous!=null)synchronized(previous){previous.close();}

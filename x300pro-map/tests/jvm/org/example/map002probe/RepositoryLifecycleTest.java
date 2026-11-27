@@ -4,12 +4,23 @@ public final class RepositoryLifecycleTest {
  static void check(boolean b){if(!b)throw new AssertionError();}
  static void waitState(MapDataRepository r,MapDataRepository.State state)throws Exception{long end=System.currentTimeMillis()+4000;while(r.state()!=state&&System.currentTimeMillis()<end)Thread.sleep(5);check(r.state()==state);}
  static final class Backend extends MapDataRepository.SyntheticBackend {
-  volatile long[] ids={1,2}; volatile int reads; volatile boolean denied,hold,wrongMetadata,holdVerification; volatile CountDownLatch verificationEntered=new CountDownLatch(1), verificationRelease=new CountDownLatch(1); final CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);
+  volatile long[] ids={1,2}; volatile int reads; volatile boolean denied,hold,wrongMetadata,holdVerification,missingMetadata,holdMetadata; volatile CountDownLatch verificationEntered=new CountDownLatch(1), verificationRelease=new CountDownLatch(1); final CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);
+  final CountDownLatch metadataEntered=new CountDownLatch(1),metadataRelease=new CountDownLatch(1);
   boolean fixtureEnabled(){return true;} public int batchPauseMillis(){return 0;}
   public long[] visibleIds(int n,CancellationSignal c){if(denied)throw new SecurityException();return ids.clone();}
   public void appendBatch(long[] x,int from,int to,PrimitiveLocationSet out,CancellationSignal c){reads++;entered.countDown();if(hold)try{release.await(4,TimeUnit.SECONDS);}catch(InterruptedException e){throw new RuntimeException(e);}for(int i=from;i<to;i++){c.throwIfCanceled();out.add(x[i],23,113);}}
   public boolean scopeUnchanged(long[] x,CancellationSignal c){if(holdVerification){verificationEntered.countDown();try{verificationRelease.await(4,TimeUnit.SECONDS);}catch(InterruptedException e){throw new RuntimeException(e);}}c.throwIfCanceled();if(denied)throw new SecurityException();return java.util.Arrays.equals(x,ids);}
-  public MediaStoreLookup.Metadata metadata(long id,CancellationSignal c){return new MediaStoreLookup.Metadata(wrongMetadata?id+1:id);} public Bitmap thumbnail(long id,CancellationSignal c){return null;}
+  public MediaStoreLookup.Metadata metadata(long id,CancellationSignal c){
+   if(holdMetadata){
+    metadataEntered.countDown();
+    try{check(metadataRelease.await(4,TimeUnit.SECONDS));}
+    catch(InterruptedException e){Thread.currentThread().interrupt();throw new IllegalStateException(e);}
+    throw new MapDataRepository.MediaScopeChangedException();
+   }
+   if(missingMetadata)throw new MapDataRepository.MediaScopeChangedException();
+   return new MediaStoreLookup.Metadata(wrongMetadata?id+1:id);
+  }
+  public Bitmap thumbnail(long id,CancellationSignal c){return null;}
  }
  public static void main(String[] args)throws Exception {
   Backend backend=new Backend();MapDataRepository r=MapDataRepository.forSyntheticFixture(backend);r.foreground();waitState(r,MapDataRepository.State.READY);check(backend.reads==1);long originalScope=r.scopeToken();check(originalScope>=0);
@@ -37,8 +48,41 @@ public final class RepositoryLifecycleTest {
   Backend deny=new Backend();deny.denied=true;MapDataRepository denied=MapDataRepository.forSyntheticFixture(deny);denied.foreground();waitState(denied,MapDataRepository.State.ACCESS_DENIED);check(deny.reads==0);denied.close();
   Backend race=new Backend();race.hold=true;MapDataRepository changedDuringLoad=MapDataRepository.forSyntheticFixture(race);changedDuringLoad.foreground();check(race.entered.await(4,TimeUnit.SECONDS));race.ids=new long[]{1};race.release.countDown();waitState(changedDuringLoad,MapDataRepository.State.SCOPE_CHANGED);check(changedDuringLoad.validCount()==0);changedDuringLoad.close();
   Backend mismatch=new Backend();mismatch.wrongMetadata=true;MapDataRepository badMetadata=MapDataRepository.forSyntheticFixture(mismatch);badMetadata.foreground();waitState(badMetadata,MapDataRepository.State.READY);CountDownLatch invalidBatch=new CountDownLatch(1);badMetadata.query(22,24,112,114,w->{check(badMetadata.metadataBatchNow(new long[]{1,2})==null);invalidBatch.countDown();});check(invalidBatch.await(4,TimeUnit.SECONDS));check(badMetadata.state()==MapDataRepository.State.FAILED);badMetadata.close();
+  checkSelectionCancellationAndRecovery();
   int[] across=ViewportFilter.queryIndexes(new double[]{0,0,0},new double[]{179.5,-179.5,0},3,-1,1,179,-179,new CancellationSignal());
   check(java.util.Arrays.equals(across,new int[]{0,1}));
   System.out.println("RepositoryLifecycleTest: passed");
+ }
+ private static void checkSelectionCancellationAndRecovery()throws Exception {
+  Backend source=new Backend();
+  try(MapDataRepository repository=MapDataRepository.forSyntheticFixture(source)){
+   repository.foreground();
+   waitState(repository,MapDataRepository.State.READY);
+   long scope=repository.scopeToken();
+   CountDownLatch firstViewport=new CountDownLatch(1);
+   check(repository.query(22,24,112,114,w->firstViewport.countDown()));
+   check(firstViewport.await(4,TimeUnit.SECONDS));
+
+   source.holdMetadata=true;
+   CountDownLatch canceled=new CountDownLatch(1), nextViewport=new CountDownLatch(1);
+   check(repository.metadataForViewport(new long[]{2},items->{check(items==null);canceled.countDown();}));
+   check(source.metadataEntered.await(4,TimeUnit.SECONDS));
+   check(repository.query(21,25,111,115,w->nextViewport.countDown()));
+   source.metadataRelease.countDown();
+   check(canceled.await(4,TimeUnit.SECONDS)&&nextViewport.await(4,TimeUnit.SECONDS));
+   check(repository.scopeToken()==scope);
+
+   source.holdMetadata=false;
+   source.missingMetadata=true;
+   CountDownLatch missing=new CountDownLatch(1);
+   check(repository.metadataForViewport(new long[]{2},items->{check(items==null);missing.countDown();}));
+   check(missing.await(4,TimeUnit.SECONDS));
+   check(repository.state()==MapDataRepository.State.SCOPE_CHANGED&&repository.scopeToken()<0);
+   source.missingMetadata=false;
+   source.ids=new long[]{1};
+   repository.resumeChecked(v->{});
+   waitState(repository,MapDataRepository.State.READY);
+   check(repository.scopeToken()!=scope&&repository.visibleCount()==1);
+  }
  }
 }

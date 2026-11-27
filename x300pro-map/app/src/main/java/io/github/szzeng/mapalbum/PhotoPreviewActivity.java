@@ -43,6 +43,7 @@ public final class PhotoPreviewActivity extends Activity {
     private LinearLayout card, topControls;
     private View topShade, scopeCover;
     private boolean photoShown;
+    private Runnable pendingPreview;
     private TextView number, navNumber, date, path, error, previous, next;
     private SeekBar progress;
 
@@ -89,7 +90,10 @@ public final class PhotoPreviewActivity extends Activity {
         progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             @Override public void onStartTrackingTouch(SeekBar bar){}
             @Override public void onProgressChanged(SeekBar bar,int value,boolean fromUser){if(fromUser)selectIndex(value,false);}
-            @Override public void onStopTrackingTouch(SeekBar bar){}
+            @Override public void onStopTrackingTouch(SeekBar bar){
+                Runnable preview=pendingPreview;
+                if(preview!=null){cancelPreviewLoad();preview.run();}
+            }
         });
         progressArea.addView(progress,new LinearLayout.LayoutParams(-1,dp(24)));
         next=arrow("›","下一张");nav.addView(next,new LinearLayout.LayoutParams(dp(48),dp(48)));previous.setOnClickListener(v->change(-1));next.setOnClickListener(v->change(1));
@@ -112,10 +116,16 @@ public final class PhotoPreviewActivity extends Activity {
     private int systemUiFlags(boolean hidden){int flags=View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;if(!darkMode)flags|=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;if(hidden)flags|=View.SYSTEM_UI_FLAG_FULLSCREEN|View.SYSTEM_UI_FLAG_HIDE_NAVIGATION|View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;return flags;}
     private void updateControls(){int visibility=controlsVisible?View.VISIBLE:View.GONE;topControls.setVisibility(visibility);topShade.setVisibility(visibility);card.setVisibility(visibility);getWindow().getDecorView().setSystemUiVisibility(systemUiFlags(!controlsVisible));updatePhotoBounds();}
     private void change(int offset){selectIndex(index+offset,true);}
-    private void selectIndex(int target,boolean animate){if(target<0||target>=photos.size()||target==index)return;direction=animate?Integer.compare(target,index):0;index=target;showPhoto();}
+    private void selectIndex(int target,boolean animate){
+        if(target<0||target>=photos.size()||target==index)return;
+        direction=animate?Integer.compare(target,index):0;
+        index=target;
+        showPhoto(!animate);
+    }
     private Bundle itemAt(int position){PhotoItem photo=photos.get(position);Bundle item=new Bundle();item.putParcelable("uri",photo.uri);item.putParcelable("document",photo.documentUri);item.putLong("version",photo.mediaVersion);item.putLong("date",photo.dateTaken==null?0:photo.dateTaken);item.putBoolean("fallback",photo.dateFallback);item.putString("path",photo.relativePath);return item;}
-    private void showPhoto(){
+    private void showPhoto(boolean scrubbing){
         photoShown=true;
+        cancelPreviewLoad();
         loader.cancelPending();int ticket=++request;Bundle item=itemAt(index);String position=(index+1)+" / "+photos.size();number.setText(position);navNumber.setText(position);progress.setProgress(index);
         previous.setEnabled(index>0);next.setEnabled(index+1<photos.size());previous.setAlpha(previous.isEnabled()?1f:.35f);next.setAlpha(next.isEnabled()?1f:.35f);
         long time=item.getLong("date",0);date.setText(time<=0?"拍摄时间未知":new SimpleDateFormat("yyyy年M月d日 HH:mm",Locale.CHINA).format(new Date(time))+(item.getBoolean("fallback")?"（系统时间）":""));
@@ -123,6 +133,18 @@ public final class PhotoPreviewActivity extends Activity {
         image.animate().cancel();image.setAlpha(1f);image.setTranslationX(0);image.setImageDrawable(null);image.resetPreview();error.setVisibility(View.GONE);
         Uri uri=item.getParcelable("uri");if(uri==null){error.setText("照片不可用");error.setVisibility(View.VISIBLE);return;}
         int size=Math.min(1440,Math.max(getResources().getDisplayMetrics().widthPixels,getResources().getDisplayMetrics().heightPixels));
+        if(scrubbing){
+            pendingPreview=()->{pendingPreview=null;loadPreview(item,uri,size,ticket);};
+            image.postDelayed(pendingPreview,90);
+        }else loadPreview(item,uri,size,ticket);
+    }
+    private void cancelPreviewLoad(){
+        if(pendingPreview==null)return;
+        image.removeCallbacks(pendingPreview);
+        pendingPreview=null;
+    }
+    private void loadPreview(Bundle item,Uri uri,int size,int ticket){
+        if(!activePreview||ticket!=request||isFinishing())return;
         loader.load(uri,item.getLong("version"),size,b->{if(ticket!=request||isFinishing()||isDestroyed())return;
             if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0&&b!=null)android.util.Log.i("MAP004Preview","media thumbnail="+b.getWidth()+"x"+b.getHeight());
             if(b!=null)displayThumbnail(b,true);Uri document=item.getParcelable("document");
@@ -150,9 +172,9 @@ public final class PhotoPreviewActivity extends Activity {
     private void hideScopeCover(){if(scopeCover!=null){page.removeView(scopeCover);scopeCover=null;}}
     @Override protected void onResume(){
         super.onResume();activePreview=true;if(page==null)return;showScopeCover();
-        MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||image.getDrawable()==null)showPhoto();hideScopeCover();}));
+        MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||image.getDrawable()==null)showPhoto(false);hideScopeCover();}));
     }
-    @Override protected void onPause(){showScopeCover();activePreview=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
+    @Override protected void onPause(){showScopeCover();activePreview=false;request++;cancelPreviewLoad();if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("controlsVisible",controlsVisible);}
-    @Override protected void onDestroy(){request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
+    @Override protected void onDestroy(){request++;cancelPreviewLoad();if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }

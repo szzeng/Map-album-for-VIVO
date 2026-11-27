@@ -64,7 +64,7 @@ public final class MediaStoreLookup {
                 result[at]=new Metadata(id,ContentUris.withAppendedId(collection,id),date,fallback,version,path);
             }
         }
-        for(Metadata item:result)if(item==null)throw new IllegalStateException("media scope changed");
+        for(Metadata item:result)if(item==null)throw new MapDataRepository.MediaScopeChangedException();
         cancel.throwIfCanceled();return result;
     }
     Bitmap thumbnail(long id,CancellationSignal cancel) {
