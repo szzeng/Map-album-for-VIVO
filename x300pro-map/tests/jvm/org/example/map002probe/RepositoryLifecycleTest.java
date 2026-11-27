@@ -30,7 +30,8 @@ public final class RepositoryLifecycleTest {
   r.suspend();backend.holdVerification=true;CountDownLatch stale=new CountDownLatch(1);r.resumeChecked(v->stale.countDown());check(backend.verificationEntered.await(4,TimeUnit.SECONDS));r.suspend();backend.holdVerification=false;CountDownLatch again=new CountDownLatch(1);r.resumeChecked(v->again.countDown());backend.verificationRelease.countDown();check(again.await(4,TimeUnit.SECONDS));check(stale.getCount()==1&&backend.reads==1&&r.scopeToken()==originalScope);
   for(int i=0;i<3;i++){r.suspend();CountDownLatch cycle=new CountDownLatch(1);r.resumeChecked(v->cycle.countDown());check(cycle.await(4,TimeUnit.SECONDS));check(r.scopeToken()==originalScope&&backend.reads==1);}
   r.suspend();backend.ids=new long[]{1};CountDownLatch changed=new CountDownLatch(1);r.resumeChecked(v->changed.countDown());check(changed.await(4,TimeUnit.SECONDS));waitState(r,MapDataRepository.State.READY);check(backend.reads==2&&r.visibleCount()==1&&r.scopeToken()!=originalScope);
-  r.suspend();backend.ids=new long[]{2};CountDownLatch preview=new CountDownLatch(1);final boolean[] accepted={true};r.verifyExistingScope(v->{accepted[0]=v;preview.countDown();});check(preview.await(4,TimeUnit.SECONDS));check(!accepted[0]&&r.state()==MapDataRepository.State.SCOPE_CHANGED);r.close();
+  long changedScope=r.scopeToken();
+  r.suspend();backend.ids=new long[]{2};CountDownLatch preview=new CountDownLatch(1);final boolean[] accepted={true};r.verifyExistingScope(changedScope,v->{accepted[0]=v;preview.countDown();});check(preview.await(4,TimeUnit.SECONDS));check(!accepted[0]&&r.state()==MapDataRepository.State.SCOPE_CHANGED);r.close();
   Backend revoke=new Backend();MapDataRepository revoked=MapDataRepository.forSyntheticFixture(revoke);revoked.foreground();waitState(revoked,MapDataRepository.State.READY);revoked.suspend();revoke.denied=true;CountDownLatch revokedCheck=new CountDownLatch(1);revoked.resumeChecked(v->revokedCheck.countDown());check(revokedCheck.await(4,TimeUnit.SECONDS));waitState(revoked,MapDataRepository.State.ACCESS_DENIED);check(revoked.scopeToken()<0);revoked.close();
   android.content.Context release=new android.content.Context();MapDataRepository blocked=MapDataRepository.forConfirmedExperiment(release,true);blocked.resumeChecked(v->{});check(blocked.state()==MapDataRepository.State.IDENTITY_UNVERIFIED);blocked.close();
   android.content.Context debug=new android.content.Context(){@Override public android.content.pm.ApplicationInfo getApplicationInfo(){android.content.pm.ApplicationInfo info=new android.content.pm.ApplicationInfo();info.flags=android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE;return info;}};
@@ -50,9 +51,57 @@ public final class RepositoryLifecycleTest {
   Backend mismatch=new Backend();mismatch.wrongMetadata=true;MapDataRepository badMetadata=MapDataRepository.forSyntheticFixture(mismatch);badMetadata.foreground();waitState(badMetadata,MapDataRepository.State.READY);CountDownLatch invalidBatch=new CountDownLatch(1);badMetadata.query(22,24,112,114,w->{check(badMetadata.metadataBatchNow(new long[]{1,2})==null);invalidBatch.countDown();});check(invalidBatch.await(4,TimeUnit.SECONDS));check(badMetadata.state()==MapDataRepository.State.FAILED);badMetadata.close();
   checkSelectionCancellationAndRecovery();
   checkTimelineCancellationAndOrdering();
+  checkSinglePreviewScope();
   int[] across=ViewportFilter.queryIndexes(new double[]{0,0,0},new double[]{179.5,-179.5,0},3,-1,1,179,-179,new CancellationSignal());
   check(java.util.Arrays.equals(across,new int[]{0,1}));
   System.out.println("RepositoryLifecycleTest: passed");
+ }
+ private static void checkSinglePreviewScope()throws Exception {
+  java.util.concurrent.atomic.AtomicInteger fullChecks=new java.util.concurrent.atomic.AtomicInteger();
+  java.util.concurrent.atomic.AtomicInteger itemChecks=new java.util.concurrent.atomic.AtomicInteger();
+  Backend source=new Backend(){
+   @Override public boolean scopeUnchanged(long[] ids,CancellationSignal signal){
+    fullChecks.incrementAndGet();
+    return super.scopeUnchanged(ids,signal);
+   }
+   @Override public MediaStoreLookup.Metadata metadata(long id,CancellationSignal signal){
+    itemChecks.incrementAndGet();
+    signal.throwIfCanceled();
+    return java.util.Arrays.binarySearch(ids,id)<0?null:super.metadata(id,signal);
+   }
+  };
+  try(MapDataRepository repository=MapDataRepository.forSyntheticFixture(source)){
+   repository.foreground();
+   waitState(repository,MapDataRepository.State.READY);
+   long scope=repository.scopeToken();
+   int before=fullChecks.get();
+   repository.suspend();
+   source.ids=new long[]{2};
+   CountDownLatch visible=new CountDownLatch(1);
+   repository.verifyPreviewPhoto(scope,2,item->{check(item!=null&&item.id==2);visible.countDown();});
+   check(visible.await(4,TimeUnit.SECONDS));
+   check(itemChecks.get()==1&&fullChecks.get()==before);
+
+   repository.suspend();
+   repository.verifyPreviewPhoto(scope+1,2,item->check(item==null));
+   repository.verifyPreviewPhoto(scope,3,item->check(item==null));
+   check(itemChecks.get()==1&&repository.scopeToken()==-1);
+
+   repository.resumeChecked(v->{});
+   long deadline=System.currentTimeMillis()+4000;
+   while(repository.scopeToken()==scope||repository.scopeToken()<0){
+    check(System.currentTimeMillis()<deadline);
+    Thread.sleep(5);
+   }
+   check(repository.visibleCount()==1&&fullChecks.get()>before);
+   long updatedScope=repository.scopeToken();
+   repository.suspend();
+   source.ids=new long[]{};
+   CountDownLatch missing=new CountDownLatch(1);
+   repository.verifyPreviewPhoto(updatedScope,2,item->{check(item==null);missing.countDown();});
+   check(missing.await(4,TimeUnit.SECONDS));
+   check(repository.state()==MapDataRepository.State.SCOPE_CHANGED&&itemChecks.get()==2);
+  }
  }
  private static void checkTimelineCancellationAndOrdering()throws Exception {
   CountDownLatch timelineEntered=new CountDownLatch(1), observedCancel=new CountDownLatch(1);

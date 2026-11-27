@@ -253,16 +253,48 @@ public final class MapDataRepository implements AutoCloseable {
         }
     }
     /** Preview must not show its snapshot until the exact scope is checked again. */
-    public void verifyExistingScope(final Callback<Boolean> callback) {
+    public void verifyExistingScope(long expectedScope,final Callback<Boolean> callback) {
         final long[] snapshot; final CancellationSignal signal; final long ticket;
         synchronized(this) {
-            if((!deviceEnabled && (synthetic==null || !synthetic.fixtureEnabled()))||state!=State.READY||cache==null||scope==null){callback.complete(false);return;}
+            if(epoch!=expectedScope||(!deviceEnabled && (synthetic==null || !synthetic.fixtureEnabled()))||state!=State.READY||cache==null||scope==null){callback.complete(false);return;}
             foreground=true; snapshot=scope;signal=current;ticket=epoch;state=State.LOADING;
             try {worker.execute(()->{
                 boolean same=false;try{same=backend.scopeUnchanged(snapshot,signal);}catch(RuntimeException ignored){}
                 synchronized(MapDataRepository.this){if(!current(ticket,signal))return;if(same){querySignal=new CancellationSignal();queryEpoch++;state=State.READY;callback.complete(true);return;}
                     cancelAndRelease(State.SCOPE_CHANGED);callback.complete(false);}
             });} catch(RejectedExecutionException e){cancelAndRelease(State.FAILED);callback.complete(false);}
+        }
+    }
+    /** A one-photo preview can validate its one visible MediaStore row after the activity handoff. */
+    public void verifyPreviewPhoto(long expectedScope,long id,Callback<MediaStoreLookup.Metadata> callback){
+        final CancellationSignal signal;
+        synchronized(this){
+            if(epoch!=expectedScope||state!=State.READY||cache==null||scope==null||Arrays.binarySearch(scope,id)<0){
+                callback.complete(null);
+                return;
+            }
+            foreground=true;
+            signal=current;
+            state=State.LOADING;
+            try{
+                worker.execute(()->{
+                    MediaStoreLookup.Metadata visible=null;
+                    try{
+                        signal.throwIfCanceled();
+                        visible=backend.metadata(id,signal);
+                    }catch(RuntimeException unavailable){}
+                    synchronized(MapDataRepository.this){
+                        if(!current(expectedScope,signal))return;
+                        if(visible==null||visible.id!=id){cancelAndRelease(State.SCOPE_CHANGED);callback.complete(null);return;}
+                        // MainActivity rechecks the full scope on return before showing its map.
+                        state=State.READY;
+                        callback.complete(visible);
+                    }
+                });
+            }catch(RejectedExecutionException busy){
+                state=State.READY;
+                callback.complete(null);
+            }
         }
     }
     public void suspend() {

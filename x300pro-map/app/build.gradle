@@ -8,10 +8,18 @@ def signingFile = rootProject.file('keystore.properties')
 if (signingFile.exists()) signingFile.withInputStream { signingProperties.load(it) }
 def arm64DebugOnly = providers.gradleProperty('mapAlbumArm64Only').map { it.toBoolean() }.getOrElse(false)
 def sideBySideDebug = providers.gradleProperty('mapAlbumSideBySideDebug').map { it.toBoolean() }.getOrElse(false)
+def buildDate = java.time.LocalDate.now(java.time.ZoneId.of('Asia/Shanghai')).toString()
 android {
     namespace 'io.github.szzeng.mapalbum'
     compileSdk 34
-    defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 4; versionName '0.3.0' }
+    defaultConfig {
+        applicationId 'io.github.szzeng.mapalbum'
+        minSdk 29
+        targetSdk 34
+        versionCode 4
+        versionName '0.3.0'
+        buildConfigField 'String', 'BUILD_DATE', '"' + buildDate + '"'
+    }
     buildFeatures { buildConfig true }
     signingConfigs {
         personalRelease {

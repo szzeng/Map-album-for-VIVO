@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.Collections;
 import java.util.List;
 
 /** Displays only a stable snapshot of the selected photos and their system thumbnails. */
@@ -32,7 +33,9 @@ public final class PhotoPreviewActivity extends Activity {
     private int BACKGROUND, CARD, CONTROL, PRIMARY, SECONDARY, ACCENT, SHADE;
     private boolean darkMode;
     private List<PhotoItem> photos;
+    private PreviewSessionStore.Session session;
     private int index, request, topInset, bottomInset, direction;
+    private long scopeVerification;
     private boolean activePreview, openingOriginal;
     private ThumbnailLoader loader;
     private ZoomablePreview image;
@@ -59,8 +62,10 @@ public final class PhotoPreviewActivity extends Activity {
         openingOriginal=state!=null&&state.getBoolean("openingOriginal",false);
         darkMode=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
         BACKGROUND=getColor(R.color.preview_background);CARD=getColor(R.color.preview_card);CONTROL=getColor(R.color.preview_control);PRIMARY=getColor(R.color.preview_primary);SECONDARY=getColor(R.color.preview_secondary);ACCENT=getColor(R.color.app_accent);SHADE=getColor(R.color.preview_shade);
-        photos=PreviewSessionStore.get(getIntent().getStringExtra("session"));
-        if(photos==null||photos.isEmpty()){finish();return;}
+        session=PreviewSessionStore.get(getIntent().getStringExtra("session"));
+        if(session==null){finish();return;}
+        photos=session.singleId>=0?Collections.singletonList(new PhotoItem(null,null,0)):session.photos;
+        if(photos.isEmpty()){finish();return;}
         index=Math.max(0,Math.min(photos.size()-1,state==null?getIntent().getIntExtra("index",0):state.getInt("index")));
         loader=new ThumbnailLoader(getContentResolver());
         getWindow().setBackgroundDrawableResource(R.color.preview_background);getWindow().setStatusBarColor(Color.TRANSPARENT);getWindow().setNavigationBarColor(Color.TRANSPARENT);
@@ -272,9 +277,31 @@ public final class PhotoPreviewActivity extends Activity {
         super.onResume();
         if(openingOriginal){openingOriginal=false;finish();return;}
         activePreview=true;if(page==null)return;showScopeCover();
-        MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||displayedIndex!=index)showPhoto(false);hideScopeCover();}));
+        long verification=++scopeVerification;
+        if(!MainActivity.hasPhotoAccess(this)){finishUnavailable();return;}
+        if(session.singleId>=0){
+            MainActivity.verifySinglePreview(session,metadata->runOnUiThread(()->{
+                if(!activePreview||isFinishing()||verification!=scopeVerification)return;
+                if(metadata==null||metadata.uri==null||!MainActivity.hasPhotoAccess(this)){finishUnavailable();return;}
+                PhotoItem previous=photos.get(0);
+                photos=Collections.singletonList(new PhotoItem(metadata.uri,metadata.dateTaken,metadata.mediaVersion));
+                if(displayedIndex!=0||!metadata.uri.equals(previous.uri)||previous.mediaVersion!=metadata.mediaVersion)showPhoto(false);
+                hideScopeCover();
+            }));
+        }else{
+            MainActivity.verifyPreviewScope(session,ok->runOnUiThread(()->{
+                if(!activePreview||isFinishing()||verification!=scopeVerification)return;
+                if(!ok||!MainActivity.hasPhotoAccess(this)){finishUnavailable();return;}
+                if(!photoShown||displayedIndex!=index)showPhoto(false);
+                hideScopeCover();
+            }));
+        }
     }
-    @Override protected void onPause(){activePreview=false;showScopeCover();scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
+    private void finishUnavailable(){
+        Toast.makeText(this,"照片不可访问，请返回地图重新加载",Toast.LENGTH_LONG).show();
+        finish();
+    }
+    @Override protected void onPause(){activePreview=false;scopeVerification++;showScopeCover();scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope(session);super.onPause();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("openingOriginal",openingOriginal);}
     @Override protected void onDestroy(){request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }

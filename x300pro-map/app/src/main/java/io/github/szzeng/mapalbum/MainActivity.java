@@ -12,11 +12,17 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.*;
 import android.widget.*;
 import java.util.*;
 import java.util.concurrent.*;
 import org.example.map002probe.MapDataRepository;
+import org.example.map002probe.MediaStoreLookup;
 import org.example.map002probe.PhotoTimeline;
 import com.baidu.mapapi.CoordType;
 import com.baidu.mapapi.SDKInitializer;
@@ -222,7 +228,7 @@ public class MainActivity extends Activity {
         p.getMenu().add("照片 GPS 情况").setOnMenuItemClickListener(i->{showPhotoLocationSummary();return true;});
         p.getMenu().add("百度地图 AK").setOnMenuItemClickListener(i->{showBaiduAkSettings();return true;});
         p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片和位置仅在设备内存中处理。点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。图库仅限 V2502A / PD2502 当前授权主卷。照片位置已开放全球；跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
-        p.getMenu().add("关于图迹").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setTitle("关于图迹").setMessage("图迹 0.2.0\n个人使用版").setPositiveButton("知道了",null).show();return true;});
+        p.getMenu().add("关于图迹").setOnMenuItemClickListener(i->{showAbout();return true;});
         if(BuildConfig.PERSONAL_DEVICE_RELEASE){
             p.getMenu().add("启用个人图库（仅支持指定设备）").setOnMenuItemClickListener(i->{enableExperiment();return true;});
             p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{openPhotoPermissionSettings();return true;});
@@ -234,6 +240,26 @@ public class MainActivity extends Activity {
             p.getMenu().add("数据诊断").setOnMenuItemClickListener(i->{showDiagnostics();return true;});
         }
         p.show();
+    }
+    private void showAbout(){
+        String heading="图迹 "+BuildConfig.VERSION_NAME+"\n个人使用版\n编译日期 "+BuildConfig.BUILD_DATE+"\n";
+        SpannableString message=new SpannableString(heading+"作者 : sz_zeng(wx)");
+        message.setSpan(new ClickableSpan(){
+            @Override public void updateDrawState(TextPaint paint){
+                super.updateDrawState(paint);
+                paint.setUnderlineText(false);
+            }
+            @Override public void onClick(View widget){
+                try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/szzeng/x300pro-map")));}
+                catch(android.content.ActivityNotFoundException unavailable){
+                    Toast.makeText(MainActivity.this,"找不到可打开 GitHub 的应用",Toast.LENGTH_SHORT).show();
+                }
+            }
+        },heading.length(),message.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("关于图迹").setMessage(message)
+            .setPositiveButton("知道了",null).show();
+        TextView body=dialog.findViewById(android.R.id.message);
+        if(body!=null)body.setMovementMethod(LinkMovementMethod.getInstance());
     }
     private String effectiveBaiduAk(){
         String custom=getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).getString(CUSTOM_BAIDU_AK,null);
@@ -297,20 +323,20 @@ public class MainActivity extends Activity {
                 requestPhotoAccess();
             }).show();
     }
-    private boolean hasPhotoAccess(){
-        if(android.os.Build.VERSION.SDK_INT>=34)return checkSelfPermission("android.permission.READ_MEDIA_IMAGES")==android.content.pm.PackageManager.PERMISSION_GRANTED || checkSelfPermission("android.permission.READ_MEDIA_VISUAL_USER_SELECTED")==android.content.pm.PackageManager.PERMISSION_GRANTED;
-        if(android.os.Build.VERSION.SDK_INT>=33)return checkSelfPermission("android.permission.READ_MEDIA_IMAGES")==android.content.pm.PackageManager.PERMISSION_GRANTED;
-        return checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE")==android.content.pm.PackageManager.PERMISSION_GRANTED;
+    static boolean hasPhotoAccess(Context context){
+        if(android.os.Build.VERSION.SDK_INT>=34)return context.checkSelfPermission("android.permission.READ_MEDIA_IMAGES")==android.content.pm.PackageManager.PERMISSION_GRANTED || context.checkSelfPermission("android.permission.READ_MEDIA_VISUAL_USER_SELECTED")==android.content.pm.PackageManager.PERMISSION_GRANTED;
+        if(android.os.Build.VERSION.SDK_INT>=33)return context.checkSelfPermission("android.permission.READ_MEDIA_IMAGES")==android.content.pm.PackageManager.PERMISSION_GRANTED;
+        return context.checkSelfPermission("android.permission.READ_EXTERNAL_STORAGE")==android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
     private void requestPhotoAccess(){
-        if(hasPhotoAccess()){resumeExperiment();return;}
+        if(hasPhotoAccess(this)){resumeExperiment();return;}
         if(android.os.Build.VERSION.SDK_INT>=34)requestPermissions(new String[]{"android.permission.READ_MEDIA_IMAGES","android.permission.READ_MEDIA_VISUAL_USER_SELECTED"},103);
         else if(android.os.Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{"android.permission.READ_MEDIA_IMAGES"},103);
         else requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"},103);
     }
     private void resumeExperiment(){
         if(!active||map==null||experiment==null)return;
-        if(!hasPhotoAccess()){
+        if(!hasPhotoAccess(this)){
             pendingPhotoReturn=null;
             retainedGallery=null;
             experiment.stopAndClear();
@@ -659,12 +685,16 @@ public class MainActivity extends Activity {
         }
         if(openingCluster)return;
         long[] ids=resource.key.ids;
+        if(ids.length==1){
+            openingCluster=true;
+            pendingPhotoReturn=null;
+            openPreviewSession(new PreviewSessionStore.Session(Collections.emptyList(),repository,displayedScope,ids[0]),0);
+            return;
+        }
         long selection=++photoSelection;
         openingCluster=true;
-        if(ids.length>1){
-            cancelMarkerCovers();group=null;groupMode=true;oldestFirst=false;
-            panel.showLoading(ids.length);updatePanel();
-        }else showGalleryStatus("正在打开照片",null);
+        cancelMarkerCovers();group=null;groupMode=true;oldestFirst=false;
+        panel.showLoading(ids.length);updatePanel();
         photoRequest=repository.loadPhotoTimeline(ids,timeline->
             handler.post(()->finishClusterSelection(selection,repository,timeline)));
         if(photoRequest==null){
@@ -687,7 +717,6 @@ public class MainActivity extends Activity {
         rebuiltAfterMediaChange=false;
         showViewportStatus(false);
         GalleryPhotoList items=new GalleryPhotoList(timeline,false);
-        if(items.size()==1){openPreview(items,0);return;}
         cancelMarkerCovers();
         group=items;
         oldestFirst=false;
@@ -758,18 +787,28 @@ public class MainActivity extends Activity {
         for(MarkerResource resource:markers.values())cancelMarkerCover(resource);
     }
     private Bitmap markerBitmap(Bitmap original,int count){int n=dp(48),border=dp(2);Bitmap out=Bitmap.createBitmap(n,n,Bitmap.Config.ARGB_8888);Canvas c=new Canvas(out);Paint p=new Paint(3);p.setColor(SURFACE);c.drawRoundRect(0,0,n,n,dp(9),dp(9),p);p.setColor(PLACEHOLDER);c.drawRoundRect(border,border,n-border,n-border,dp(7),dp(7),p);if(original!=null){float scale=Math.max((float)(n-2*border)/original.getWidth(),(float)(n-2*border)/original.getHeight());Matrix m=new Matrix();m.setScale(scale,scale);m.postTranslate((n-original.getWidth()*scale)/2,(n-original.getHeight()*scale)/2);BitmapShader shader=new BitmapShader(original,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);shader.setLocalMatrix(m);p.setShader(shader);c.drawRoundRect(border,border,n-border,n-border,dp(7),dp(7),p);p.setShader(null);}if(count>1){String text=MarkerCount.format(count);p.setTextSize(dp(10));p.setTypeface(Typeface.DEFAULT_BOLD);float w=Math.max(dp(19),p.measureText(text)+dp(8));p.setColor(0xe6263a49);c.drawRoundRect(n-w-dp(1),n-dp(17),n-dp(1),n-dp(1),dp(8),dp(8),p);p.setColor(-1);p.setTextAlign(Paint.Align.CENTER);c.drawText(text,n-w/2-dp(1),n-dp(5),p);}return out;}
-    static void verifyPreviewScope(MapDataRepository.Callback<Boolean> callback){
-        if(experiment==null){callback.complete(false);return;}
-        experiment.verifyExistingScope(callback);
+    static void verifyPreviewScope(PreviewSessionStore.Session session,MapDataRepository.Callback<Boolean> callback){
+        if(experiment==null||session.repository!=experiment){callback.complete(false);return;}
+        experiment.verifyExistingScope(session.scopeToken,callback);
     }
-    static void suspendPreviewScope(){if(experiment!=null)experiment.suspend();}
+    static void verifySinglePreview(PreviewSessionStore.Session session,
+                                    MapDataRepository.Callback<MediaStoreLookup.Metadata> callback){
+        if(experiment==null||session.repository!=experiment){callback.complete(null);return;}
+        experiment.verifyPreviewPhoto(session.scopeToken,session.singleId,callback);
+    }
+    static void suspendPreviewScope(PreviewSessionStore.Session session){
+        if(experiment!=null&&session!=null&&session.repository==experiment)experiment.suspend();
+    }
     private void openPhoto(int position){
         if(canLoadGalleryImages()&&group!=null)openPreview(group,position);
     }
     private void openPreview(List<PhotoItem> source,int index){
         if(experiment==null||index<0||index>=source.size())return;
         pendingPhotoReturn=source.size()>1?snapshotGallery():null;
-        startActivity(new Intent(this,PhotoPreviewActivity.class).putExtra("session",PreviewSessionStore.put(source)).putExtra("index",index));
+        openPreviewSession(new PreviewSessionStore.Session(source,experiment,displayedScope,-1),index);
+    }
+    private void openPreviewSession(PreviewSessionStore.Session session,int index){
+        startActivity(new Intent(this,PhotoPreviewActivity.class).putExtra("session",PreviewSessionStore.put(session)).putExtra("index",index));
     }
     private PendingPhotoReturn snapshotGallery(){
         if(!groupMode||group==null||displayedScope<0||experiment==null||panel==null)return null;
