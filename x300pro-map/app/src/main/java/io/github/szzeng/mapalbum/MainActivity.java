@@ -30,7 +30,7 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 
 public class MainActivity extends Activity {
-    private static final String MAP_SETTINGS="map_settings", CUSTOM_BAIDU_AK="baidu_ak";
+    private static final String MAP_SETTINGS="map_settings", CUSTOM_BAIDU_AK="baidu_ak", MAP_TYPE="map_type";
     private static final int MAX_COVER_ATTEMPTS=3;
     private static final long PROJECTION_BUDGET_NANOS=4_000_000;
     private int TEXT, SECONDARY, ACCENT, PLACEHOLDER, SURFACE, FLOATING, MAP_BACKGROUND, MENU_ICON;
@@ -38,7 +38,8 @@ public class MainActivity extends Activity {
     private MapView view; private BaiduMap map; private FrameLayout root;
     private PhotoGalleryView panel;
     private PlaceSearch placeSearch; private Marker searchMarker; private BitmapDescriptor searchDescriptor; private Bitmap searchBitmap;
-    private TextView count,networkStatus; private ImageView fit;
+    private TextView count,networkStatus,mapTypeLabel; private LinearLayout mapTypeButton; private ImageView fit;
+    private int mapType=BaiduMap.MAP_TYPE_NORMAL;
     private ThumbnailLoader thumbnails;
     private final ThreadPoolExecutor clusterWorker=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<>(1),new ThreadPoolExecutor.DiscardOldestPolicy());
@@ -175,6 +176,15 @@ public class MainActivity extends Activity {
     }
     private int dp(float n){return Math.round(n*getResources().getDisplayMetrics().density);}
     private GradientDrawable shape(int color,float radius){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(radius));return d;}
+    private android.graphics.drawable.Drawable floatingBackground(float radius){return new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(getColor(R.color.gallery_ripple)),shape(FLOATING,radius),shape(Color.WHITE,radius));}
+    private void addMapButtonFeedback(View button){
+        button.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf((ACCENT&0x00ffffff)|0x55000000),shape(FLOATING,24),shape(Color.WHITE,24)));
+        button.setOnTouchListener((v,event)->{
+            if(event.getActionMasked()==android.view.MotionEvent.ACTION_DOWN)v.animate().scaleX(.92f).scaleY(.92f).setDuration(90).start();
+            else if(event.getActionMasked()==android.view.MotionEvent.ACTION_UP||event.getActionMasked()==android.view.MotionEvent.ACTION_CANCEL)v.animate().scaleX(1f).scaleY(1f).setDuration(120).start();
+            return false;
+        });
+    }
     private TextView label(String text,int size,int color){TextView t=new TextView(this);t.setText(text);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER_VERTICAL);return t;}
     @Override protected void attachBaseContext(Context base){super.attachBaseContext(base);Appearance.applyOverride(this,base);}
     @Override public void onCreate(Bundle state){super.onCreate(state);saved=state;darkMode=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
@@ -197,7 +207,7 @@ public class MainActivity extends Activity {
         SDKInitializer.setAgreePrivacy(getApplicationContext(),true);SDKInitializer.initialize(getApplicationContext());SDKInitializer.setCoordType(CoordType.BD09LL);
         BaiduMapOptions options=new BaiduMapOptions();
         if(saved!=null&&transientMapStatus!=null)options.mapStatus(transientMapStatus);
-        root=new FrameLayout(this);root.setBackgroundColor(MAP_BACKGROUND);view=new MapView(this,options);view.showZoomControls(false);root.addView(view);setContentView(root);resumeMapView();map=view.getMap();map.setMapType(BaiduMap.MAP_TYPE_NORMAL);map.setMapThemeMode(darkMode?BMThemeMode.MapThemeModeDark:BMThemeMode.MapThemeModeDefault);view.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(r-l!=or-ol||b-t!=ob-ot)schedule();});
+        root=new FrameLayout(this);root.setBackgroundColor(MAP_BACKGROUND);view=new MapView(this,options);view.showZoomControls(false);root.addView(view);setContentView(root);resumeMapView();map=view.getMap();mapType=readMapType();applyMapType();view.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(r-l!=or-ol||b-t!=ob-ot)schedule();});
         map.setOnMarkerClickListener(m->{
             Bundle info=m.getExtraInfo();
             MarkerResource resource=info==null?null:markerClicks.get(info.getLong("markerId"));
@@ -217,7 +227,7 @@ public class MainActivity extends Activity {
             public LatLng center(){return map.getMapStatus().target;}
             public void select(LatLng point,float zoom){showSearchMarker(point);map.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(point,zoom));}
         },TEXT,SECONDARY,SURFACE,ACCENT);
-        TextView search=label("⌕  搜索地点，如：杭州西湖",15,SECONDARY);search.setPadding(dp(16),0,dp(12),0);search.setBackground(shape(FLOATING,16));search.setElevation(dp(3));search.setContentDescription("搜索地点");search.setOnClickListener(v->placeSearch.open());
+        TextView search=label("⌕  搜索地点，如：杭州西湖",15,SECONDARY);search.setPadding(dp(16),0,dp(12),0);search.setBackground(floatingBackground(16));search.setElevation(dp(3));search.setContentDescription("搜索地点");search.setOnClickListener(v->placeSearch.open());
         FrameLayout.LayoutParams searchParams=new FrameLayout.LayoutParams(-1,dp(48),Gravity.TOP|Gravity.START);searchParams.setMargins(dp(16),dp(12),dp(76),0);root.addView(search,searchParams);
         count=label("",13,ACCENT);
         count.setMinHeight(dp(48));
@@ -228,11 +238,16 @@ public class MainActivity extends Activity {
         statusParams.setMarginStart(dp(16));statusParams.setMarginEnd(dp(76));statusParams.topMargin=dp(72);
         root.addView(count,statusParams);
         showInitialGalleryStatus();
-        TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");menu.setBackground(shape(FLOATING,24));menu.setElevation(dp(3));menu.setOnClickListener(v->showMenu(menu));
+        TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");menu.setBackground(floatingBackground(24));menu.setElevation(dp(3));menu.setOnClickListener(v->showMenu(menu));
         FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.RIGHT);bp.setMargins(0,dp(12),dp(16),0);root.addView(menu,bp);
         networkStatus=label("网络不可用，地图可能无法加载",12,SECONDARY);networkStatus.setPadding(dp(12),0,dp(12),0);networkStatus.setBackground(shape(FLOATING,12));
         FrameLayout.LayoutParams np=new FrameLayout.LayoutParams(-2,dp(36),Gravity.TOP|Gravity.LEFT);np.setMargins(dp(16),dp(130),0,0);root.addView(networkStatus,np);updateNetworkStatus();
-        fit=new ImageView(this);fit.setImageDrawable(new FitIcon());fit.setPadding(dp(12),dp(12),dp(12),dp(12));fit.setBackground(shape(SURFACE,24));fit.setElevation(dp(3));fit.setContentDescription("定位当前位置");fit.setOnClickListener(v->requestCurrentLocation());root.addView(fit,new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.RIGHT|Gravity.BOTTOM));
+        fit=new ImageView(this);fit.setImageDrawable(new FitIcon());fit.setPadding(dp(12),dp(12),dp(12),dp(12));addMapButtonFeedback(fit);fit.setElevation(dp(3));fit.setContentDescription("定位当前位置");fit.setOnClickListener(v->requestCurrentLocation());root.addView(fit,new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.RIGHT|Gravity.BOTTOM));
+        mapTypeButton=new LinearLayout(this);mapTypeButton.setOrientation(LinearLayout.VERTICAL);mapTypeButton.setGravity(Gravity.CENTER);
+        ImageView layerIcon=new ImageView(this);layerIcon.setImageDrawable(new LayerIcon());mapTypeButton.addView(layerIcon,new LinearLayout.LayoutParams(dp(18),dp(18)));
+        mapTypeLabel=label("",11,MENU_ICON);mapTypeLabel.setGravity(Gravity.CENTER);mapTypeLabel.setIncludeFontPadding(false);mapTypeButton.addView(mapTypeLabel,new LinearLayout.LayoutParams(-2,-2));
+        addMapButtonFeedback(mapTypeButton);mapTypeButton.setElevation(dp(3));mapTypeButton.setOnClickListener(v->toggleMapType());
+        root.addView(mapTypeButton,new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.RIGHT|Gravity.BOTTOM));updateMapTypeButton();
         panel=new PhotoGalleryView(this,thumbnails,this::canLoadGalleryImages,
             this::closePhotoPanel,this::setPhotoOrder,this::openPhoto);
         root.addView(panel,new FrameLayout.LayoutParams(-1,-1));
@@ -246,6 +261,23 @@ public class MainActivity extends Activity {
             return insets;
         });
         renderList();
+    }
+    private int readMapType(){
+        try{int value=getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).getInt(MAP_TYPE,BaiduMap.MAP_TYPE_NORMAL);return value==BaiduMap.MAP_TYPE_SATELLITE?value:BaiduMap.MAP_TYPE_NORMAL;}
+        catch(ClassCastException invalid){return BaiduMap.MAP_TYPE_NORMAL;}
+    }
+    private void applyMapType(){
+        map.setMapType(mapType);
+        map.setMapThemeMode(mapType==BaiduMap.MAP_TYPE_NORMAL&&darkMode?BMThemeMode.MapThemeModeDark:BMThemeMode.MapThemeModeDefault);
+    }
+    private void toggleMapType(){
+        mapType=mapType==BaiduMap.MAP_TYPE_NORMAL?BaiduMap.MAP_TYPE_SATELLITE:BaiduMap.MAP_TYPE_NORMAL;
+        applyMapType();updateMapTypeButton();getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).edit().putInt(MAP_TYPE,mapType).apply();
+    }
+    private void updateMapTypeButton(){
+        if(mapTypeButton==null)return;
+        String target=mapType==BaiduMap.MAP_TYPE_NORMAL?"卫星":"标准";
+        mapTypeLabel.setText(target);mapTypeButton.setContentDescription("切换到"+target+"地图");
     }
     private void setPhotoOrder(boolean oldest){
         if(oldestFirst==oldest||group==null)return;
@@ -461,13 +493,18 @@ public class MainActivity extends Activity {
         if(panel==null)return;
         panel.setVisibility(groupMode?View.VISIBLE:View.GONE);
         FrameLayout.LayoutParams position=(FrameLayout.LayoutParams)fit.getLayoutParams();
-        int margin=bottomInset+dp(16);
+        int margin=bottomInset+dp(32);
         if(position.rightMargin!=dp(16)||position.bottomMargin!=margin){
             position.rightMargin=dp(16);
             position.bottomMargin=margin;
             fit.setLayoutParams(position);
         }
         fit.setVisibility(groupMode?View.GONE:View.VISIBLE);
+        FrameLayout.LayoutParams typePosition=(FrameLayout.LayoutParams)mapTypeButton.getLayoutParams();
+        if(typePosition.rightMargin!=dp(16)||typePosition.bottomMargin!=margin+dp(58)){
+            typePosition.rightMargin=dp(16);typePosition.bottomMargin=margin+dp(58);mapTypeButton.setLayoutParams(typePosition);
+        }
+        mapTypeButton.setVisibility(groupMode?View.GONE:View.VISIBLE);
         updateGalleryBars();
     }
     private void updateGalleryBars(){
@@ -998,5 +1035,16 @@ public class MainActivity extends Activity {
         super.onPause();
     }
     @Override protected void onDestroy(){if(placeSearch!=null)placeSearch.close();clearSearchMarker();clearData();thumbnails.close();clusterWorker.shutdownNow();if(view!=null)view.onDestroy();if(!isChangingConfigurations()&&isFinishing()&&experiment!=null){experiment.close();experiment=null;pendingPhotoReturn=null;}super.onDestroy();if(exitRequested)android.os.Process.killProcess(android.os.Process.myPid());}
+    private final class LayerIcon extends android.graphics.drawable.Drawable{
+        private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
+        public void draw(Canvas c){
+            Rect b=getBounds();float x=b.exactCenterX(),y=b.exactCenterY(),w=b.width()*.38f,h=b.height()*.21f;
+            p.setColor(ACCENT);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(1.7f));p.setStrokeJoin(Paint.Join.ROUND);p.setStrokeCap(Paint.Cap.ROUND);
+            Path top=new Path();top.moveTo(x,y-h*1.5f);top.lineTo(x+w,y-h*.5f);top.lineTo(x,y+h*.5f);top.lineTo(x-w,y-h*.5f);top.close();c.drawPath(top,p);
+            Path lower=new Path();lower.moveTo(x-w,y+h*.1f);lower.lineTo(x,y+h*1.1f);lower.lineTo(x+w,y+h*.1f);c.drawPath(lower,p);
+            Path bottom=new Path();bottom.moveTo(x-w,y+h*.7f);bottom.lineTo(x,y+h*1.7f);bottom.lineTo(x+w,y+h*.7f);c.drawPath(bottom,p);
+        }
+        public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
+    }
     private final class FitIcon extends android.graphics.drawable.Drawable{private final Paint p=new Paint(3);public void draw(Canvas c){android.graphics.Rect b=getBounds();float x=b.exactCenterX(),y=b.exactCenterY(),r=Math.min(b.width(),b.height())*.32f;p.setColor(ACCENT);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));p.setStrokeCap(Paint.Cap.ROUND);c.drawCircle(x,y,r,p);c.drawLine(x,b.top,x,y-r,p);c.drawLine(x,y+r,x,b.bottom,p);c.drawLine(b.left,y,x-r,y,p);c.drawLine(x+r,y,b.right,y,p);p.setStyle(Paint.Style.FILL);c.drawCircle(x,y,dp(2),p);}public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}}
 }
