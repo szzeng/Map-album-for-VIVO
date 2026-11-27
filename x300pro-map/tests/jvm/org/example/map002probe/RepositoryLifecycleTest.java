@@ -3,7 +3,7 @@ import android.os.CancellationSignal; import android.graphics.Bitmap; import jav
 public final class RepositoryLifecycleTest {
  static void check(boolean b){if(!b)throw new AssertionError();}
  static void waitState(MapDataRepository r,MapDataRepository.State state)throws Exception{long end=System.currentTimeMillis()+4000;while(r.state()!=state&&System.currentTimeMillis()<end)Thread.sleep(5);check(r.state()==state);}
- static final class Backend extends MapDataRepository.SyntheticBackend {
+ static class Backend extends MapDataRepository.SyntheticBackend {
   volatile long[] ids={1,2}; volatile int reads; volatile boolean denied,hold,wrongMetadata,holdVerification,missingMetadata,holdMetadata; volatile CountDownLatch verificationEntered=new CountDownLatch(1), verificationRelease=new CountDownLatch(1); final CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);
   final CountDownLatch metadataEntered=new CountDownLatch(1),metadataRelease=new CountDownLatch(1);
   boolean fixtureEnabled(){return true;} public int batchPauseMillis(){return 0;}
@@ -49,9 +49,66 @@ public final class RepositoryLifecycleTest {
   Backend race=new Backend();race.hold=true;MapDataRepository changedDuringLoad=MapDataRepository.forSyntheticFixture(race);changedDuringLoad.foreground();check(race.entered.await(4,TimeUnit.SECONDS));race.ids=new long[]{1};race.release.countDown();waitState(changedDuringLoad,MapDataRepository.State.SCOPE_CHANGED);check(changedDuringLoad.validCount()==0);changedDuringLoad.close();
   Backend mismatch=new Backend();mismatch.wrongMetadata=true;MapDataRepository badMetadata=MapDataRepository.forSyntheticFixture(mismatch);badMetadata.foreground();waitState(badMetadata,MapDataRepository.State.READY);CountDownLatch invalidBatch=new CountDownLatch(1);badMetadata.query(22,24,112,114,w->{check(badMetadata.metadataBatchNow(new long[]{1,2})==null);invalidBatch.countDown();});check(invalidBatch.await(4,TimeUnit.SECONDS));check(badMetadata.state()==MapDataRepository.State.FAILED);badMetadata.close();
   checkSelectionCancellationAndRecovery();
+  checkTimelineCancellationAndOrdering();
   int[] across=ViewportFilter.queryIndexes(new double[]{0,0,0},new double[]{179.5,-179.5,0},3,-1,1,179,-179,new CancellationSignal());
   check(java.util.Arrays.equals(across,new int[]{0,1}));
   System.out.println("RepositoryLifecycleTest: passed");
+ }
+ private static void checkTimelineCancellationAndOrdering()throws Exception {
+  CountDownLatch timelineEntered=new CountDownLatch(1), observedCancel=new CountDownLatch(1);
+  java.util.concurrent.atomic.AtomicBoolean block=new java.util.concurrent.atomic.AtomicBoolean(true);
+  Backend source=new Backend(){
+   @Override public void timelineBatch(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal signal){
+    if(block.getAndSet(false)){
+     timelineEntered.countDown();
+     long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(4);
+     while(!signal.isCanceled()&&System.nanoTime()<end)java.util.concurrent.locks.LockSupport.parkNanos(100_000);
+     check(signal.isCanceled());
+     observedCancel.countDown();
+     signal.throwIfCanceled();
+    }
+    for(int i=from;i<to;i++){
+     dates[i]=i%5==0?0:1_700_000_000_000L+(i%3)*86_400_000L;
+     versions[i]=i+7;
+    }
+   }
+  };
+  source.ids=new long[10017];
+  for(int i=0;i<source.ids.length;i++)source.ids[i]=i+1;
+  try(MapDataRepository repository=MapDataRepository.forSyntheticFixture(source)){
+   repository.foreground();
+   waitState(repository,MapDataRepository.State.READY);
+   long scope=repository.scopeToken();
+   CountDownLatch staleResult=new CountDownLatch(1);
+   MapDataRepository.PhotoRequest stale=repository.loadPhotoTimeline(source.ids,ignored->staleResult.countDown());
+   check(stale!=null&&timelineEntered.await(4,TimeUnit.SECONDS));
+   stale.cancel();
+   check(observedCancel.await(4,TimeUnit.SECONDS));
+
+   CountDownLatch finished=new CountDownLatch(1);
+   PhotoTimeline[] result=new PhotoTimeline[1];
+   check(repository.loadPhotoTimeline(source.ids,timeline->{result[0]=timeline;finished.countDown();})!=null);
+   check(finished.await(4,TimeUnit.SECONDS)&&result[0]!=null);
+   check(staleResult.getCount()==1&&repository.scopeToken()==scope);
+   for(boolean oldest:new boolean[]{false,true}){
+    PhotoTimeline.Order order=result[0].order(oldest);
+    boolean[] seen=new boolean[source.ids.length];
+    check(order.size()==seen.length);
+    long precedingDate=0,precedingId=0;
+    for(int i=0;i<order.size();i++){
+     long id=order.idAt(i),date=order.dateAt(i);
+     check(!seen[(int)id-1]&&order.versionAt(i)==id+6);
+     seen[(int)id-1]=true;
+     if(i>0){
+      if(date==precedingDate)check(id>precedingId);
+      else check(precedingDate!=0&&(date==0||(oldest?date>precedingDate:date<precedingDate)));
+     }
+     precedingDate=date;
+     precedingId=id;
+    }
+    check(order.days().size()==4&&order.days().get(3).date==null);
+   }
+  }
  }
  private static void checkSelectionCancellationAndRecovery()throws Exception {
   Backend source=new Backend();

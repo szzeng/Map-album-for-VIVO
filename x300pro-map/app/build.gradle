@@ -7,6 +7,7 @@ def signingProperties = new Properties()
 def signingFile = rootProject.file('keystore.properties')
 if (signingFile.exists()) signingFile.withInputStream { signingProperties.load(it) }
 def arm64DebugOnly = providers.gradleProperty('mapAlbumArm64Only').map { it.toBoolean() }.getOrElse(false)
+def sideBySideDebug = providers.gradleProperty('mapAlbumSideBySideDebug').map { it.toBoolean() }.getOrElse(false)
 android {
     namespace 'io.github.szzeng.mapalbum'
     compileSdk 34
@@ -26,6 +27,10 @@ android {
         debug {
             buildConfigField 'boolean', 'PERSONAL_DEVICE_RELEASE', 'false'
             if (arm64DebugOnly) ndk.abiFilters 'arm64-v8a'
+            if (sideBySideDebug) {
+                applicationIdSuffix '.debug'
+                manifestPlaceholders.mapAlbumLabel = '图迹 Debug'
+            }
         }
         release {
             debuggable false
@@ -36,6 +41,7 @@ android {
         }
     }
     defaultConfig.manifestPlaceholders.baiduMapAk = baiduAk
+    defaultConfig.manifestPlaceholders.mapAlbumLabel = '图迹'
     sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/map002')
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     packagingOptions { jniLibs { keepDebugSymbols += '**/liblocSDK8b.so' } }
@@ -47,7 +53,7 @@ dependencies {
 }
 tasks.register('reuseMap002Sources', Sync) {
     from('../../map002-provider-probe/src')
-    include 'org/example/map002probe/PrimaryPhotoSource.java', 'org/example/map002probe/PrimitiveLocationSet.java', 'org/example/map002probe/ViewportFilter.java', 'org/example/map002probe/MapDataRepository.java', 'org/example/map002probe/MediaStoreLookup.java'
+    include 'org/example/map002probe/PrimaryPhotoSource.java', 'org/example/map002probe/PrimitiveLocationSet.java', 'org/example/map002probe/ViewportFilter.java', 'org/example/map002probe/MapDataRepository.java', 'org/example/map002probe/MediaStoreLookup.java', 'org/example/map002probe/PhotoTimeline.java'
     into layout.buildDirectory.dir('generated/map002')
 }
 tasks.withType(JavaCompile).configureEach { dependsOn tasks.named('reuseMap002Sources') }

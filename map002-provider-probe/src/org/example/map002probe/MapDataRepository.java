@@ -22,6 +22,15 @@ public final class MapDataRepository implements AutoCloseable {
         boolean scopeUnchanged(long[] ids,CancellationSignal signal);
         MediaStoreLookup.Metadata metadata(long id,CancellationSignal signal);
         Bitmap thumbnail(long id,CancellationSignal signal);
+        default void timelineBatch(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal signal){
+            for(int i=from;i<to;i++){
+                signal.throwIfCanceled();
+                MediaStoreLookup.Metadata item=metadata(ids[i],signal);
+                if(item==null||item.id!=ids[i])throw new MediaScopeChangedException();
+                dates[i]=item.dateTaken==null?0:item.dateTaken;
+                versions[i]=item.mediaVersion;
+            }
+        }
     }
     /** Test seam for synthetic data only; not a device identity authority. */
     abstract static class SyntheticBackend implements Backend { abstract boolean fixtureEnabled(); }
@@ -48,6 +57,18 @@ public final class MapDataRepository implements AutoCloseable {
     private final Backend backend;
     private final SyntheticBackend synthetic;
     private final ThreadPoolExecutor worker=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<Runnable>(1));
+    private PhotoRequest activePhotoRequest;
+    public final class PhotoRequest {
+        private final CancellationSignal signal=new CancellationSignal();
+        private Runnable task;
+        public void cancel(){
+            signal.cancel();
+            worker.remove(task);
+            synchronized(MapDataRepository.this){
+                if(activePhotoRequest==this)activePhotoRequest=null;
+            }
+        }
+    }
     private State state=State.INACTIVE;
     private State lastFailure;
     private long epoch;
@@ -152,6 +173,56 @@ public final class MapDataRepository implements AutoCloseable {
             callback.complete(result);
         });return true;}catch(RejectedExecutionException ignored){return false;}
     }
+    /** Reads only the date/version index; the UI constructs photo items by page after validation. */
+    public PhotoRequest loadPhotoTimeline(long[] memberIds,Callback<PhotoTimeline> callback){
+        if(memberIds==null||memberIds.length==0||memberIds.length>CAPACITY||callback==null)throw new IllegalArgumentException();
+        final PrimitiveLocationSet data;
+        final long ticket;
+        final CancellationSignal scopeSignal;
+        synchronized(this){
+            if(!foreground||state!=State.READY||cache==null)return null;
+            data=cache;ticket=epoch;scopeSignal=current;
+        }
+        long[] ids=memberIds.clone();
+        PhotoRequest request=new PhotoRequest();
+        request.task=()->{
+            PhotoTimeline result=null;
+            try{
+                long[] dates=new long[ids.length],versions=new long[ids.length];
+                for(int from=0;from<ids.length;from+=512){
+                    request.signal.throwIfCanceled();
+                    if(!current(ticket,scopeSignal))return;
+                    int to=Math.min(from+512,ids.length);
+                    synchronized(data){
+                        for(int i=from;i<to;i++){
+                            if((i>0&&ids[i-1]>=ids[i])||!data.contains(ids[i]))throw new IllegalArgumentException("invalid cluster membership");
+                        }
+                    }
+                    backend.timelineBatch(ids,from,to,dates,versions,request.signal);
+                }
+                if(current(ticket,scopeSignal)&&!request.signal.isCanceled())result=new PhotoTimeline(ids,dates,versions,request.signal);
+            }catch(android.os.OperationCanceledException canceled){
+                return;
+            }catch(MediaScopeChangedException missing){
+                if(!request.signal.isCanceled())failIfCurrent(ticket,scopeSignal,0,null,State.SCOPE_CHANGED);
+            }catch(SecurityException denied){
+                if(!request.signal.isCanceled())failIfCurrent(ticket,scopeSignal,0,null,State.ACCESS_DENIED);
+            }catch(RuntimeException failed){
+                // A failed list read can be retried without discarding a still-valid map.
+            }finally{
+                synchronized(this){
+                    if(activePhotoRequest==request)activePhotoRequest=null;
+                }
+            }
+            if(!request.signal.isCanceled())callback.complete(result!=null&&current(ticket,scopeSignal)?result:null);
+        };
+        synchronized(this){
+            if(!current(ticket,scopeSignal)||activePhotoRequest!=null)return null;
+            activePhotoRequest=request;
+            try{worker.execute(request.task);return request;}
+            catch(RejectedExecutionException busy){activePhotoRequest=null;return null;}
+        }
+    }
     /** Suspend display until current visible IDs have been checked. GPS is reused if unchanged. */
     public void resumeChecked(final Callback<State> callback) {
         final long[] previousScope; final CancellationSignal signal; final long ticket;
@@ -196,8 +267,10 @@ public final class MapDataRepository implements AutoCloseable {
     }
     public void suspend() {
         CancellationSignal old=null;
+        PhotoRequest photo;
         synchronized(this){
             if(state==State.CLOSED)return;
+            photo=activePhotoRequest;activePhotoRequest=null;
             foreground=false;
             if(querySignal!=null)querySignal.cancel();querySignal=null;queryEpoch++;
             worker.getQueue().clear();pendingQuery=null;
@@ -206,6 +279,7 @@ public final class MapDataRepository implements AutoCloseable {
                 old=current;current=new CancellationSignal();state=State.READY;
             }else{cancelAndRelease(State.INACTIVE);}
         }
+        if(photo!=null)photo.cancel();
         if(old!=null)old.cancel();
     }
     public void stopAndClear(){background();}
@@ -221,11 +295,14 @@ public final class MapDataRepository implements AutoCloseable {
     }
     private void cancelAndRelease(State next) {
         CancellationSignal previous,previousQuery;PrimitiveLocationSet old;
+        PhotoRequest photo;
         synchronized(this){
             if(state==State.CLOSED)return;
+            photo=activePhotoRequest;activePhotoRequest=null;
             epoch++;queryEpoch++;previous=current;current=null;previousQuery=querySignal;querySignal=null;old=cache;cache=null;scope=null;
             state=(next==State.IDLE&&!foreground)?State.INACTIVE:next;worker.getQueue().clear();pendingQuery=null;
         }
+        if(photo!=null)photo.cancel();
         if(previous!=null)previous.cancel();
         if(previousQuery!=null)previousQuery.cancel();
         if(old!=null)synchronized(old){old.close();}
@@ -378,5 +455,8 @@ public final class MapDataRepository implements AutoCloseable {
         public boolean scopeUnchanged(long[] ids,CancellationSignal signal){return source.primaryOnly() && Arrays.equals(ids,source.visibleIds(CAPACITY,signal));}
         public MediaStoreLookup.Metadata metadata(long id,CancellationSignal signal){return media.lookup(id,signal);}
         public Bitmap thumbnail(long id,CancellationSignal signal){return media.thumbnail(id,signal);}
+        @Override public void timelineBatch(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal signal){
+            media.lookupTimelineBatch(ids,from,to,dates,versions,signal);
+        }
     }
 }

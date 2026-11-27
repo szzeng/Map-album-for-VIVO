@@ -67,6 +67,38 @@ public final class MediaStoreLookup {
         for(Metadata item:result)if(item==null)throw new MapDataRepository.MediaScopeChangedException();
         cancel.throwIfCanceled();return result;
     }
+    void lookupTimelineBatch(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal cancel){
+        if(to-from>512||from<0||to>ids.length||from>=to)throw new IllegalArgumentException();
+        cancel.throwIfCanceled();
+        if(!primaryOnly())throw new PrimaryPhotoSource.UnsupportedVolumeException();
+        StringBuilder where=new StringBuilder("_id IN (");
+        String[] args=new String[to-from];
+        for(int i=from;i<to;i++){
+            if(i>from)where.append(',');
+            where.append('?');
+            args[i-from]=Long.toString(ids[i]);
+        }
+        where.append(')');
+        Arrays.fill(dates,from,to,-1);
+        Uri collection=MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+        try(Cursor cursor=resolver.query(collection,new String[]{"_id","datetaken","date_modified","date_added"},
+            where.toString(),args,null,cancel)){
+            if(cursor==null)throw new IllegalStateException("null media cursor");
+            while(cursor.moveToNext()){
+                cancel.throwIfCanceled();
+                if(cursor.isNull(0))throw new IllegalStateException("missing identity");
+                int index=Arrays.binarySearch(ids,from,to,cursor.getLong(0));
+                if(index<0||dates[index]!=-1)throw new IllegalStateException("unexpected media identity");
+                long date=cursor.isNull(1)?0:cursor.getLong(1);
+                long modified=cursor.isNull(2)?0:cursor.getLong(2);
+                long seconds=modified>0?modified:cursor.isNull(3)?0:cursor.getLong(3);
+                dates[index]=date>0?date:seconds>0&&seconds<=Long.MAX_VALUE/1000?seconds*1000:0;
+                versions[index]=modified;
+            }
+        }
+        for(int i=from;i<to;i++)if(dates[i]<0)throw new MapDataRepository.MediaScopeChangedException();
+        cancel.throwIfCanceled();
+    }
     Bitmap thumbnail(long id,CancellationSignal cancel) {
         if(cancel==null)throw new IllegalArgumentException();
         cancel.throwIfCanceled();

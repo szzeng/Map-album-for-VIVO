@@ -24,13 +24,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import org.example.map002probe.PhotoTimeline;
 
 final class PhotoGalleryView extends LinearLayout {
     private static final int COLUMNS=4, TILE_GAP_DP=5, SIDE_PADDING_DP=14, GRID_PADDING_DP=5;
@@ -40,7 +40,7 @@ final class PhotoGalleryView extends LinearLayout {
     private final NumberFormat number=NumberFormat.getIntegerInstance(Locale.CHINA);
     private final ThumbnailLoader thumbnails;
     private final BooleanSupplier canLoad;
-    private final Consumer<PhotoItem> openPhoto;
+    private final IntConsumer openPhoto;
     private final TextView total, sort;
     private final FrameLayout sortTarget;
     private final TextView scrollMonth, loading;
@@ -49,7 +49,7 @@ final class PhotoGalleryView extends LinearLayout {
     private boolean oldestFirst;
 
     PhotoGalleryView(Context context,ThumbnailLoader thumbnails,BooleanSupplier canLoad,
-                     Runnable close,Consumer<Boolean> changeSort,Consumer<PhotoItem> openPhoto){
+                     Runnable close,Consumer<Boolean> changeSort,IntConsumer openPhoto){
         super(context);
         this.thumbnails=thumbnails;
         this.canLoad=canLoad;
@@ -153,20 +153,20 @@ final class PhotoGalleryView extends LinearLayout {
         addView(listArea,new LayoutParams(-1,0,1));
     }
 
-    void setPhotos(List<PhotoItem> photos,boolean oldest){
+    void setPhotos(GalleryPhotoList photos,boolean oldest){
         loading.setVisibility(View.GONE);
         sortTarget.setVisibility(View.VISIBLE);
         oldestFirst=oldest;
-        total.setText(number.format(photos.size())+" 张照片");
+        total.setText(number.format(photos==null?0:photos.size())+" 张照片");
         String order=oldest?"最早优先":"最新优先";
         sort.setText(order+"  ⇅");
         sortTarget.setContentDescription("照片排序，当前"+order+"，点击切换");
         adapter.setPhotos(photos);
     }
 
-    void showLoading(){
-        adapter.setPhotos(Collections.emptyList());
-        total.setText("正在读取照片…");
+    void showLoading(int totalPhotos){
+        adapter.setPhotos(null);
+        total.setText(number.format(totalPhotos)+" 张照片");
         sortTarget.setVisibility(View.INVISIBLE);
         loading.setVisibility(View.VISIBLE);
     }
@@ -227,66 +227,67 @@ final class PhotoGalleryView extends LinearLayout {
     }
 
     private static final class PhotoRow {
-        final int first,count,section;
+        final int first,count;
         final DayHeader heading;
-        PhotoRow(int first,int count,int section,DayHeader heading){
-            this.first=first;this.count=count;this.section=section;this.heading=heading;
+        PhotoRow(int first,int count,DayHeader heading){
+            this.first=first;this.count=count;this.heading=heading;
         }
     }
 
     private final class PhotoRows extends BaseAdapter {
-        private List<PhotoItem> photos=Collections.emptyList();
-        private final List<PhotoRow> rows=new ArrayList<>();
-        private String[] sectionLabels={};
-        private final Calendar calendar=Calendar.getInstance();
+        private GalleryPhotoList photos;
+        private List<PhotoTimeline.Day> days=Collections.emptyList();
+        private int[] firstRows={};
+        private int rowCount;
 
-        void setPhotos(List<PhotoItem> items){
+        void setPhotos(GalleryPhotoList items){
             photos=items;
-            rows.clear();
-            List<String> months=new ArrayList<>();
-            int previousMonth=-1;
-            for(int first=0;first<items.size();){
-                int day=dayKey(items.get(first).dateTaken);
-                String dayLabel=day==0?"日期未知":(calendar.get(Calendar.MONTH)+1)+"月"+calendar.get(Calendar.DAY_OF_MONTH)+"日";
-                String year=day==0?"":calendar.get(Calendar.YEAR)+"年";
-                int month=day==0?0:calendar.get(Calendar.YEAR)*12+calendar.get(Calendar.MONTH);
-                if(month!=previousMonth){
-                    months.add(day==0?dayLabel:year+(calendar.get(Calendar.MONTH)+1)+"月");
-                    previousMonth=month;
-                }
-                int limit=first+1;
-                while(limit<items.size()&&dayKey(items.get(limit).dateTaken)==day)limit++;
-                int section=months.size()-1;
-                DayHeader heading=new DayHeader(dayLabel,year,limit-first);
-                for(int next=first;next<limit;next+=COLUMNS){
-                    rows.add(new PhotoRow(next,Math.min(COLUMNS,limit-next),section,next==first?heading:null));
-                }
-                first=limit;
+            days=items==null?Collections.emptyList():items.days();
+            firstRows=new int[days.size()];
+            rowCount=0;
+            for(int i=0;i<days.size();i++){
+                firstRows[i]=rowCount;
+                rowCount+=(days.get(i).count+COLUMNS-1)/COLUMNS;
             }
-            sectionLabels=months.toArray(new String[0]);
             notifyDataSetChanged();
         }
 
-        private int dayKey(Long date){
-            if(date==null)return 0;
-            calendar.setTimeInMillis(date);
-            return calendar.get(Calendar.YEAR)*366+calendar.get(Calendar.DAY_OF_YEAR);
-        }
-
         int rowForPhoto(int index){
-            int low=0,high=rows.size()-1;
+            int low=0,high=days.size()-1;
             while(low<high){
                 int middle=(low+high+1)>>>1;
-                if(rows.get(middle).first<=index)low=middle;else high=middle-1;
+                if(days.get(middle).first<=index)low=middle;else high=middle-1;
+            }
+            return firstRows[low]+(index-days.get(low).first)/COLUMNS;
+        }
+
+        private int dayForRow(int row){
+            int low=0,high=firstRows.length-1;
+            while(low<high){
+                int middle=(low+high+1)>>>1;
+                if(firstRows[middle]<=row)low=middle;else high=middle-1;
             }
             return low;
         }
 
-        @Override public int getCount(){return rows.size();}
-        @Override public PhotoRow getItem(int position){return rows.get(position);}
-        @Override public long getItemId(int position){return getItem(position).first;}
+        @Override public int getCount(){return rowCount;}
+        @Override public PhotoRow getItem(int position){
+            int section=dayForRow(position);
+            PhotoTimeline.Day day=days.get(section);
+            int offset=(position-firstRows[section])*COLUMNS;
+            DayHeader heading=null;
+            if(offset==0){
+                String label=day.date==null?"日期未知":day.date.getMonthValue()+"月"+day.date.getDayOfMonth()+"日";
+                String year=day.date==null?"":day.date.getYear()+"年";
+                heading=new DayHeader(label,year,day.count);
+            }
+            return new PhotoRow(day.first+offset,Math.min(COLUMNS,day.count-offset),heading);
+        }
+        @Override public long getItemId(int position){return position;}
         String monthAt(int position){
-            return rows.isEmpty()?"":sectionLabels[getItem(Math.min(position,rows.size()-1)).section];
+            if(days.isEmpty())return "";
+            PhotoTimeline.Day day=days.get(dayForRow(Math.min(position,rowCount-1)));
+            return day.date==null?"日期未知":day.date.getYear()+"年"+day.date.getMonthValue()+"月";
         }
         @Override public View getView(int position,View recycled,ViewGroup parent){
             PhotoGridRow row=recycled instanceof PhotoGridRow?(PhotoGridRow)recycled:new PhotoGridRow();
@@ -352,6 +353,7 @@ final class PhotoGalleryView extends LinearLayout {
 
     private final class PhotoCell extends ImageView {
         private PhotoItem photo;
+        private int photoIndex;
         private int tileSize;
         private ThumbnailLoader.Request request;
         private boolean retryPending;
@@ -363,9 +365,10 @@ final class PhotoGalleryView extends LinearLayout {
             setBackground(rounded(placeholder,7));
             setForeground(new RippleDrawable(ColorStateList.valueOf(ripple),null,rounded(0xffffffff,7)));
             setClipToOutline(true);
-            setOnClickListener(v->{if(photo!=null&&canLoad.getAsBoolean())openPhoto.accept(photo);});
+            setOnClickListener(v->{if(photo!=null&&canLoad.getAsBoolean())openPhoto.accept(photoIndex);});
         }
         void bind(PhotoItem next,int size,int index){
+            photoIndex=index;
             if(photo!=next||tileSize!=size){
                 cancel();
                 setImageDrawable(null);

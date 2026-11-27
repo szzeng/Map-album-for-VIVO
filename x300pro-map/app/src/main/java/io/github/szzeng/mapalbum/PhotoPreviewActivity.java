@@ -25,13 +25,13 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.util.ArrayList;
+import java.util.List;
 
 /** Displays only a stable snapshot of the selected photos and their system thumbnails. */
 public final class PhotoPreviewActivity extends Activity {
     private int BACKGROUND, CARD, CONTROL, PRIMARY, SECONDARY, ACCENT, SHADE;
     private boolean darkMode;
-    private ArrayList<PhotoItem> photos;
+    private List<PhotoItem> photos;
     private int index, request, topInset, bottomInset, direction;
     private boolean activePreview, openingOriginal;
     private ThumbnailLoader loader;
@@ -39,8 +39,12 @@ public final class PhotoPreviewActivity extends Activity {
     private FrameLayout page, photoArea;
     private LinearLayout card, topControls;
     private View topShade, scopeCover;
+    private final Runnable showScopeMessage=()->{
+        if(activePreview&&scopeCover instanceof TextView)((TextView)scopeCover).setText("正在检查照片授权");
+    };
     private boolean photoShown, scrubbing, scrubLoading;
     private int scrubDisplayedIndex=-1;
+    private int displayedIndex=-1;
     private TextView number,error;
     private ImageView previous,next;
     private SeekBar progress;
@@ -68,6 +72,7 @@ public final class PhotoPreviewActivity extends Activity {
         photoArea=new FrameLayout(this);photoArea.setBackgroundColor(BACKGROUND);page.addView(photoArea,new FrameLayout.LayoutParams(-1,-1));
         image=new ZoomablePreview(this);photoArea.addView(image,new FrameLayout.LayoutParams(-1,-1));
         error=text("",14,SECONDARY);error.setGravity(Gravity.CENTER);error.setPadding(dp(24),0,dp(24),0);error.setVisibility(View.GONE);photoArea.addView(error,new FrameLayout.LayoutParams(-1,-1));
+        error.setOnClickListener(v->openOriginal());
         image.setSwipeListener(forward->change(forward?1:-1));
         image.setOpenOriginalListener(this::openOriginal);
 
@@ -97,9 +102,12 @@ public final class PhotoPreviewActivity extends Activity {
         progress.setProgressTintList(ColorStateList.valueOf(ACCENT));progress.setProgressBackgroundTintList(ColorStateList.valueOf(CONTROL));progress.setThumbTintList(ColorStateList.valueOf(ACCENT));
         progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             @Override public void onStartTrackingTouch(SeekBar bar){
-                scrubbing=true;scrubLoading=false;scrubDisplayedIndex=index;request++;loader.cancelPending();
+                scrubbing=true;scrubLoading=false;scrubDisplayedIndex=displayedIndex;request++;loader.cancelPending();
             }
-            @Override public void onProgressChanged(SeekBar bar,int value,boolean fromUser){if(fromUser)selectScrubIndex(value);}
+            @Override public void onProgressChanged(SeekBar bar,int value,boolean fromUser){
+                if(!fromUser)return;
+                if(scrubbing)selectScrubIndex(value);else selectIndex(value,false);
+            }
             @Override public void onStopTrackingTouch(SeekBar bar){
                 scrubbing=false;request++;loader.cancelPending();scrubLoading=false;
                 showPhoto(scrubDisplayedIndex==index);
@@ -155,7 +163,7 @@ public final class PhotoPreviewActivity extends Activity {
     }
     private void updateInsets(){FrameLayout.LayoutParams t=(FrameLayout.LayoutParams)topControls.getLayoutParams();t.topMargin=topInset+dp(4);topControls.setLayoutParams(t);FrameLayout.LayoutParams s=(FrameLayout.LayoutParams)topShade.getLayoutParams();s.height=topInset+dp(96);topShade.setLayoutParams(s);FrameLayout.LayoutParams c=(FrameLayout.LayoutParams)card.getLayoutParams();c.bottomMargin=bottomInset+dp(32);card.setLayoutParams(c);updatePhotoBounds();}
     private void updatePhotoBounds(){if(photoArea==null||card==null)return;FrameLayout.LayoutParams p=(FrameLayout.LayoutParams)photoArea.getLayoutParams();int bottom=card.getHeight()+bottomInset+dp(32);if(p.bottomMargin!=bottom){p.bottomMargin=bottom;photoArea.setLayoutParams(p);}}
-    private void change(int offset){selectIndex(index+offset,true);}
+    private void change(int offset){if(!scrubbing)selectIndex(index+offset,true);}
     private void selectIndex(int target,boolean animate){
         if(target<0||target>=photos.size()||target==index)return;
         direction=animate?Integer.compare(target,index):0;
@@ -165,7 +173,6 @@ public final class PhotoPreviewActivity extends Activity {
     private void selectScrubIndex(int target){
         if(target<0||target>=photos.size()||target==index)return;
         index=target;direction=0;
-        updateNavigation();
         if(!scrubLoading)loadScrubPreview();
     }
     private void loadScrubPreview(){
@@ -177,21 +184,27 @@ public final class PhotoPreviewActivity extends Activity {
         loader.load(item.uri,item.mediaVersion,480,bitmap->{
             if(ticket!=request||!scrubbing||!activePreview||isFinishing())return;
             scrubLoading=false;
-            if(bitmap!=null){
+            if(bitmap!=null&&selected==index){
                 image.setImageBitmap(bitmap);image.resetPreview();error.setVisibility(View.GONE);
                 scrubDisplayedIndex=selected;
+                displayedIndex=selected;
+                updateNavigation();
             }
             if(selected!=index)loadScrubPreview();
         });
     }
     private void updateNavigation(){
-        number.setText((index+1)+" / "+photos.size());progress.setProgress(index);
+        int shown=scrubbing&&displayedIndex>=0?displayedIndex:index;
+        number.setText((shown+1)+" / "+photos.size());
+        if(!scrubbing)progress.setProgress(index);
         previous.setEnabled(index>0);next.setEnabled(index+1<photos.size());previous.setImageAlpha(previous.isEnabled()?255:90);next.setImageAlpha(next.isEnabled()?255:90);
     }
     private void showPhoto(boolean keepPreview){
         photoShown=true;
         loader.cancelPending();int ticket=++request;PhotoItem item=photos.get(index);updateNavigation();
-        image.animate().cancel();image.setAlpha(1f);image.setTranslationX(0);if(!keepPreview)image.setImageDrawable(null);image.resetPreview();error.setVisibility(View.GONE);
+        image.animate().cancel();image.setAlpha(1f);image.setTranslationX(0);
+        if(!keepPreview){image.setImageDrawable(null);displayedIndex=-1;}
+        image.resetPreview();error.setVisibility(View.GONE);
         if(item.uri==null){error.setText("照片不可用");error.setVisibility(View.VISIBLE);return;}
         int size=Math.min(1440,Math.max(getResources().getDisplayMetrics().widthPixels,getResources().getDisplayMetrics().heightPixels));
         loadPreview(item,size,ticket);
@@ -211,9 +224,13 @@ public final class PhotoPreviewActivity extends Activity {
             if(b!=null&&(long)b.getWidth()*b.getHeight()>pixels)displayThumbnail(b,current==null);else if(current==null){error.setText("预览加载失败，点击查看原图");error.setVisibility(View.VISIBLE);}
         });
     }
-    private void displayThumbnail(Bitmap bitmap,boolean animate){error.setVisibility(View.GONE);if(image.getDrawable()!=null)image.replacePreview(bitmap);else{image.setImageBitmap(bitmap);image.resetPreview();}if(animate&&direction!=0){image.setAlpha(0f);image.setTranslationX(dp(20)*direction);image.animate().alpha(1f).translationX(0).setDuration(180).start();}}
+    private void displayThumbnail(Bitmap bitmap,boolean animate){displayedIndex=index;error.setVisibility(View.GONE);if(image.getDrawable()!=null)image.replacePreview(bitmap);else{image.setImageBitmap(bitmap);image.resetPreview();}if(animate&&direction!=0){image.setAlpha(0f);image.setTranslationX(dp(20)*direction);image.animate().alpha(1f).translationX(0).setDuration(180).start();}}
     private void openOriginal(){
-        if(!activePreview||scopeCover!=null||openingOriginal)return;
+        if(!activePreview||scopeCover!=null||openingOriginal||scrubbing)return;
+        if(displayedIndex!=index&&error.getVisibility()!=View.VISIBLE){
+            Toast.makeText(this,"正在加载所选照片",Toast.LENGTH_SHORT).show();
+            return;
+        }
         Uri uri=photos.get(index).uri;
         if(uri==null){Toast.makeText(this,"照片不可用",Toast.LENGTH_SHORT).show();return;}
         openingOriginal=true;
@@ -228,15 +245,36 @@ public final class PhotoPreviewActivity extends Activity {
             Toast.makeText(this,"无法打开原生相册",Toast.LENGTH_SHORT).show();
         }
     }
-    private void showScopeCover(){if(page==null||scopeCover!=null)return;TextView cover=text("正在检查照片授权",14,SECONDARY);cover.setGravity(Gravity.CENTER);cover.setBackgroundColor(BACKGROUND);cover.setClickable(true);scopeCover=cover;page.addView(cover,new FrameLayout.LayoutParams(-1,-1));}
-    private void hideScopeCover(){if(scopeCover!=null){page.removeView(scopeCover);scopeCover=null;}}
+    private void showScopeCover(){
+        if(page==null)return;
+        TextView cover=(TextView)scopeCover;
+        if(cover==null){
+            cover=text("",14,SECONDARY);
+            cover.setGravity(Gravity.CENTER);
+            cover.setBackgroundColor(BACKGROUND);
+            cover.setClickable(true);
+            cover.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+            scopeCover=cover;
+            page.addView(cover,new FrameLayout.LayoutParams(-1,-1));
+        }
+        cover.removeCallbacks(showScopeMessage);
+        cover.setText("");
+        if(activePreview)cover.postDelayed(showScopeMessage,200);
+    }
+    private void hideScopeCover(){
+        if(scopeCover!=null){
+            scopeCover.removeCallbacks(showScopeMessage);
+            page.removeView(scopeCover);
+            scopeCover=null;
+        }
+    }
     @Override protected void onResume(){
         super.onResume();
         if(openingOriginal){openingOriginal=false;finish();return;}
         activePreview=true;if(page==null)return;showScopeCover();
-        MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||image.getDrawable()==null)showPhoto(false);hideScopeCover();}));
+        MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||displayedIndex!=index)showPhoto(false);hideScopeCover();}));
     }
-    @Override protected void onPause(){showScopeCover();activePreview=false;scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
+    @Override protected void onPause(){activePreview=false;showScopeCover();scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("openingOriginal",openingOriginal);}
     @Override protected void onDestroy(){request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }

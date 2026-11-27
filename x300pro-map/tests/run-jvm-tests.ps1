@@ -5,7 +5,7 @@ $out = Join-Path $env:TEMP 'x300-map-jvm-tests'
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 $stubs = Get-ChildItem (Join-Path $PSScriptRoot 'jvm') -Recurse -Filter '*.java' | ForEach-Object FullName
 $source = Join-Path $repo 'map002-provider-probe/src/org/example/map002probe'
-& javac -encoding UTF-8 -d $out $stubs (Join-Path $source 'MapDataRepository.java') (Join-Path $source 'PrimitiveLocationSet.java') (Join-Path $source 'ViewportFilter.java') (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/CoordinateAdapter.java')
+& javac -encoding UTF-8 -d $out $stubs (Join-Path $source 'MapDataRepository.java') (Join-Path $source 'PrimitiveLocationSet.java') (Join-Path $source 'ViewportFilter.java') (Join-Path $source 'PhotoTimeline.java') (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/CoordinateAdapter.java')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & java -cp $out org.example.map002probe.RepositoryLifecycleTest
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

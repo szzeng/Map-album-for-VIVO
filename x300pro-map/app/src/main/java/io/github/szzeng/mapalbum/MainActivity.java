@@ -17,7 +17,7 @@ import android.widget.*;
 import java.util.*;
 import java.util.concurrent.*;
 import org.example.map002probe.MapDataRepository;
-import org.example.map002probe.MediaStoreLookup;
+import org.example.map002probe.PhotoTimeline;
 import com.baidu.mapapi.CoordType;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.*;
@@ -30,7 +30,7 @@ import com.baidu.location.LocationClientOption;
 
 public class MainActivity extends Activity {
     private static final String MAP_SETTINGS="map_settings", CUSTOM_BAIDU_AK="baidu_ak";
-    private static final int MAX_CLUSTER_PHOTOS=10000, MAX_COVER_ATTEMPTS=3;
+    private static final int MAX_COVER_ATTEMPTS=3;
     private static final long PROJECTION_BUDGET_NANOS=4_000_000;
     private int TEXT, SECONDARY, ACCENT, PLACEHOLDER, SURFACE, FLOATING, MAP_BACKGROUND, MENU_ICON;
     private boolean darkMode;
@@ -42,7 +42,8 @@ public class MainActivity extends Activity {
         new ArrayBlockingQueue<>(1),new ThreadPoolExecutor.DiscardOldestPolicy());
     private final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable viewportRefresh=this::queryViewport;
-    private final ArrayList<PhotoItem> group=new ArrayList<>();
+    private GalleryPhotoList group;
+    private MapDataRepository.PhotoRequest photoRequest;
     private final Map<ClusterKey,MarkerResource> markers=new HashMap<>();
     private final Map<Long,MarkerResource> markerClicks=new HashMap<>();
     private long nextMarkerId, photoSelection;
@@ -58,15 +59,18 @@ public class MainActivity extends Activity {
     private static PendingPhotoReturn pendingPhotoReturn;
     private PendingPhotoReturn retainedGallery;
     private static final class PendingPhotoReturn {
-        final MapDataRepository repository;final long scopeToken;final ArrayList<PhotoItem> photos;
+        final MapDataRepository repository;final long scopeToken;final GalleryPhotoList photos;
         final boolean oldestFirst;final int scroll,offset;
-        PendingPhotoReturn(MapDataRepository repository,long scopeToken,List<PhotoItem> photos,boolean oldestFirst,int scroll,int offset){
-            this.repository=repository;this.scopeToken=scopeToken;this.photos=new ArrayList<>(photos);this.oldestFirst=oldestFirst;this.scroll=scroll;this.offset=offset;
+        PendingPhotoReturn(MapDataRepository repository,long scopeToken,GalleryPhotoList photos,boolean oldestFirst,int scroll,int offset){
+            this.repository=repository;this.scopeToken=scopeToken;this.photos=photos;this.oldestFirst=oldestFirst;this.scroll=scroll;this.offset=offset;
         }
     }
     private boolean active, mapResumed, viewportDirty=true;
     private long displayedScope=-1;
     private TextView scopeCover;
+    private final Runnable showScopeMessage=()->{
+        if(active&&scopeCover!=null)scopeCover.setText("正在检查照片授权");
+    };
     private volatile long viewportGeneration;
     private int projectionRetries;
     private Runnable projectionTask;
@@ -196,8 +200,14 @@ public class MainActivity extends Activity {
         });
         renderList();
     }
-    private void setPhotoOrder(boolean oldest){if(oldestFirst==oldest)return;oldestFirst=oldest;sortGroup();restorePosition=-1;renderList();panel.scrollToPhoto(0,0);}
-    private void sortGroup(){Collections.sort(group,(a,b)->{if(a.dateTaken==null)return b.dateTaken==null?0:1;if(b.dateTaken==null)return -1;return oldestFirst?Long.compare(a.dateTaken,b.dateTaken):Long.compare(b.dateTaken,a.dateTaken);});}
+    private void setPhotoOrder(boolean oldest){
+        if(oldestFirst==oldest||group==null)return;
+        oldestFirst=oldest;
+        group=group.ordered(oldest);
+        restorePosition=-1;
+        renderList();
+        panel.scrollToPhoto(0,0);
+    }
     private void showMenu(View anchor){
         PopupMenu p=new PopupMenu(this,anchor);
         android.view.MenuItem night=p.getMenu().add("暗夜模式");night.setCheckable(true);night.setChecked(darkMode);night.setOnMenuItemClickListener(i->{Appearance.setManual(this,!darkMode);recreate();return true;});
@@ -372,7 +382,7 @@ public class MainActivity extends Activity {
             Toast.makeText(this,"照片授权范围已变化，请重新选择照片",Toast.LENGTH_LONG).show();return;
         }
         if(groupMode)return;
-        group.clear();group.addAll(pending.photos);oldestFirst=pending.oldestFirst;groupMode=true;
+        group=pending.photos;oldestFirst=pending.oldestFirst;groupMode=true;
         restorePosition=pending.scroll;restoreOffset=pending.offset;renderList();
     }
     private void showDiagnostics(){
@@ -411,13 +421,13 @@ public class MainActivity extends Activity {
         }
         galleryBars=groupMode;
     }
-    private void closePhotoPanel(){if(openingCluster){photoSelection++;openingCluster=false;}clearVisibleImages();groupMode=false;group.clear();renderList();loadMarkerCovers();}
+    private void closePhotoPanel(){cancelPhotoLoad();clearVisibleImages();groupMode=false;group=null;renderList();loadMarkerCovers();}
     @Override public void onBackPressed(){if(groupMode){closePhotoPanel();return;}super.onBackPressed();}
     private void renderList(){
         if(panel==null)return;
         panel.setPhotos(group,oldestFirst);
         updatePanel();
-        if(restorePosition>=0&&groupMode&&!group.isEmpty()){
+        if(restorePosition>=0&&groupMode&&group!=null&&!group.isEmpty()){
             panel.scrollToPhoto(restorePosition,restoreOffset);
             restorePosition=-1;
             restoreOffset=0;
@@ -637,53 +647,37 @@ public class MainActivity extends Activity {
         }
         if(openingCluster)return;
         long[] ids=resource.key.ids;
-        if(ids.length>MAX_CLUSTER_PHOTOS){
-            float zoom=map.getMapStatus().zoom;
-            if(zoom>=20.5f)Toast.makeText(this,"此处照片超过一万张，请移动地图缩小范围",Toast.LENGTH_LONG).show();
-            else map.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(resource.marker.getPosition(),Math.min(21f,zoom+2)));
-            return;
-        }
         long selection=++photoSelection;
         openingCluster=true;
         if(ids.length>1){
-            cancelMarkerCovers();group.clear();groupMode=true;oldestFirst=false;
-            panel.showLoading();updatePanel();
+            cancelMarkerCovers();group=null;groupMode=true;oldestFirst=false;
+            panel.showLoading(ids.length);updatePanel();
         }else showGalleryStatus("正在打开照片",null);
-        boolean accepted=repository.metadataForViewport(ids,metadata->{
-            List<PhotoItem> items=null;
-            if(metadata!=null){
-                items=new ArrayList<>(metadata.length);
-                for(MediaStoreLookup.Metadata item:metadata){
-                    items.add(new PhotoItem(item.uri,item.dateTaken,item.mediaVersion));
-                }
-                Comparator<Long> newest=Comparator.nullsLast(Comparator.reverseOrder());
-                items.sort((a,b)->newest.compare(a.dateTaken,b.dateTaken));
-            }
-            List<PhotoItem> photos=items;
-            handler.post(()->finishClusterSelection(selection,repository,photos));
-        });
-        if(!accepted){
+        photoRequest=repository.loadPhotoTimeline(ids,timeline->
+            handler.post(()->finishClusterSelection(selection,repository,timeline)));
+        if(photoRequest==null){
             openingCluster=false;
             if(groupMode){groupMode=false;renderList();}
             showGalleryStatus("照片暂时无法打开 · 重试",()->openCluster(resource));
         }
     }
 
-    private void finishClusterSelection(long selection,MapDataRepository repository,List<PhotoItem> items){
+    private void finishClusterSelection(long selection,MapDataRepository repository,PhotoTimeline timeline){
         if(!active||selection!=photoSelection||experiment!=repository)return;
         openingCluster=false;
-        if(items==null||repository.scopeToken()!=displayedScope){
+        photoRequest=null;
+        if(timeline==null||repository.scopeToken()!=displayedScope){
             if(groupMode){groupMode=false;renderList();}
             checkRepository();
-            Toast.makeText(this,"照片已变化，请重新选择",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"照片暂时无法打开，请重新选择",Toast.LENGTH_SHORT).show();
             return;
         }
         rebuiltAfterMediaChange=false;
         showViewportStatus(false);
-        if(items.size()==1){openPreview(items,items.get(0));return;}
+        GalleryPhotoList items=new GalleryPhotoList(timeline,false);
+        if(items.size()==1){openPreview(items,0);return;}
         cancelMarkerCovers();
-        group.clear();
-        group.addAll(items);
+        group=items;
         oldestFirst=false;
         groupMode=true;
         restorePosition=-1;
@@ -692,14 +686,22 @@ public class MainActivity extends Activity {
     }
 
     private void cancelRequests(){
-        if(openingCluster&&groupMode){groupMode=false;group.clear();renderList();}
+        if(openingCluster&&groupMode){groupMode=false;group=null;renderList();}
+        cancelPhotoLoad();
         viewportDirty=true;
         viewportGeneration++;
-        photoSelection++;
-        openingCluster=false;
         handler.removeCallbacks(viewportRefresh);
         if(projectionTask!=null){view.removeCallbacks(projectionTask);projectionTask=null;}
         clusterWorker.getQueue().clear();
+    }
+
+    private void cancelPhotoLoad(){
+        photoSelection++;
+        openingCluster=false;
+        if(photoRequest!=null){
+            photoRequest.cancel();
+            photoRequest=null;
+        }
     }
 
     private void loadMarkerCovers(){
@@ -749,16 +751,16 @@ public class MainActivity extends Activity {
         experiment.verifyExistingScope(callback);
     }
     static void suspendPreviewScope(){if(experiment!=null)experiment.suspend();}
-    private void openPhoto(PhotoItem photo){
-        if(canLoadGalleryImages())openPreview(group,photo);
+    private void openPhoto(int position){
+        if(canLoadGalleryImages()&&group!=null)openPreview(group,position);
     }
-    private void openPreview(List<PhotoItem> source,PhotoItem selected){
-        if(source.isEmpty()||experiment==null)return;int index=source.indexOf(selected);if(index<0)return;
+    private void openPreview(List<PhotoItem> source,int index){
+        if(experiment==null||index<0||index>=source.size())return;
         pendingPhotoReturn=source.size()>1?snapshotGallery():null;
         startActivity(new Intent(this,PhotoPreviewActivity.class).putExtra("session",PreviewSessionStore.put(source)).putExtra("index",index));
     }
     private PendingPhotoReturn snapshotGallery(){
-        if(!groupMode||displayedScope<0||experiment==null||panel==null)return null;
+        if(!groupMode||group==null||displayedScope<0||experiment==null||panel==null)return null;
         return new PendingPhotoReturn(experiment,displayedScope,group,oldestFirst,panel.firstVisiblePhoto(),panel.scrollOffset());
     }
     @Override public Object onRetainNonConfigurationInstance(){return snapshotGallery();}
@@ -780,7 +782,7 @@ public class MainActivity extends Activity {
         markerClicks.clear();
         clearVisibleImages();
         thumbnails.clear();
-        group.clear();
+        group=null;
         groupMode=false;
         restorePosition=-1;
         restoreOffset=0;
@@ -798,21 +800,29 @@ public class MainActivity extends Activity {
     @Override protected void onStart(){super.onStart();ConnectivityManager manager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);if(manager!=null){manager.registerDefaultNetworkCallback(networkCallback);networkCallbackRegistered=true;}updateNetworkStatus();}
     @Override protected void onStop(){stopLocation();if(networkCallbackRegistered){ConnectivityManager manager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);if(manager!=null)manager.unregisterNetworkCallback(networkCallback);networkCallbackRegistered=false;}super.onStop();}
     private void showScopeCover(){
-        if(root==null||scopeCover!=null)return;
-        scopeCover=label("正在检查照片授权",14,SECONDARY);
-        scopeCover.setGravity(Gravity.CENTER);
-        scopeCover.setBackgroundColor(MAP_BACKGROUND);
-        scopeCover.setElevation(dp(12));
-        scopeCover.setClickable(true);
-        scopeCover.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        root.addView(scopeCover,new FrameLayout.LayoutParams(-1,-1));
+        if(root==null)return;
+        if(scopeCover==null){
+            scopeCover=label("",14,SECONDARY);
+            scopeCover.setGravity(Gravity.CENTER);
+            scopeCover.setBackgroundColor(MAP_BACKGROUND);
+            scopeCover.setElevation(dp(12));
+            scopeCover.setClickable(true);
+            scopeCover.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+            root.addView(scopeCover,new FrameLayout.LayoutParams(-1,-1));
+        }
+        handler.removeCallbacks(showScopeMessage);
+        scopeCover.setText("");
+        if(active)handler.postDelayed(showScopeMessage,200);
     }
-    private void hideScopeCover(){if(scopeCover!=null){root.removeView(scopeCover);scopeCover=null;}}
+    private void hideScopeCover(){
+        handler.removeCallbacks(showScopeMessage);
+        if(scopeCover!=null){root.removeView(scopeCover);scopeCover=null;}
+    }
     private void resumeMapView(){if(active&&view!=null&&!mapResumed){view.onResume();mapResumed=true;}}
     @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();}}
     @Override protected void onPause(){
-        if(displayedScope>=0)showScopeCover();
         active=false;
+        if(displayedScope>=0)showScopeCover();
         boolean needsRedraw=viewportDirty;
         cancelRequests();
         viewportDirty=needsRedraw;
