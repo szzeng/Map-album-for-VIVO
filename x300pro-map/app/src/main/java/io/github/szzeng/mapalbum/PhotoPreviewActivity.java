@@ -230,7 +230,7 @@ public final class PhotoPreviewActivity extends Activity {
         metadataWorker.getQueue().clear();
         PhotoItem item=photos.get(shown);
         String time=item.dateTaken==null||item.dateTaken<=0?"拍摄时间未知":new SimpleDateFormat("yyyy年M月d日 HH:mm",Locale.getDefault()).format(new Date(item.dateTaken));
-        photoDate.setText(time);photoSize.setText("文件大小 · 获取中…");
+        photoDate.setText(time);
         if(item.uri==null){photoSize.setText("文件大小未知");return;}
         metadataWorker.execute(()->{
             long bytes=-1;
