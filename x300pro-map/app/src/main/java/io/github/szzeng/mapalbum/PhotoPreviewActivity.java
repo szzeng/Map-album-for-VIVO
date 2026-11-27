@@ -44,7 +44,7 @@ public final class PhotoPreviewActivity extends Activity {
     private PreviewSessionStore.Session session;
     private int index, request, topInset, bottomInset, direction;
     private long scopeVerification;
-    private boolean activePreview, openingOriginal;
+    private boolean activePreview, openingOriginal, returningFromVideo;
     private ThumbnailLoader loader;
     private ZoomablePreview image;
     private FrameLayout page, photoArea;
@@ -57,6 +57,7 @@ public final class PhotoPreviewActivity extends Activity {
     private int scrubDisplayedIndex=-1;
     private int displayedIndex=-1;
     private TextView number,error,photoDate,photoSize;
+    private TextView playVideo;
     private final ThreadPoolExecutor metadataWorker=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<>(1),new ThreadPoolExecutor.DiscardOldestPolicy());
     private int metadataIndex=-1,metadataGeneration;
@@ -71,6 +72,7 @@ public final class PhotoPreviewActivity extends Activity {
     @Override public void onCreate(Bundle state){
         super.onCreate(state);
         openingOriginal=state!=null&&state.getBoolean("openingOriginal",false);
+        returningFromVideo=state!=null&&state.getBoolean("returningFromVideo",false);
         darkMode=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
         BACKGROUND=getColor(R.color.preview_background);CARD=getColor(R.color.preview_card);CONTROL=getColor(R.color.preview_control);PRIMARY=getColor(R.color.preview_primary);SECONDARY=getColor(R.color.preview_secondary);ACCENT=getColor(R.color.app_accent);SHADE=getColor(R.color.preview_shade);
         session=PreviewSessionStore.get(getIntent().getStringExtra("session"));
@@ -91,6 +93,8 @@ public final class PhotoPreviewActivity extends Activity {
         error.setOnClickListener(v->openOriginal());
         image.setSwipeListener(forward->change(forward?1:-1));
         image.setOpenOriginalListener(this::openOriginal);
+        playVideo=text("▶",28,Color.WHITE);playVideo.setGravity(Gravity.CENTER);playVideo.setBackground(shape(0xaa000000,36));playVideo.setContentDescription("播放视频");playVideo.setVisibility(View.GONE);playVideo.setOnClickListener(v->openOriginal());
+        photoArea.addView(playVideo,new FrameLayout.LayoutParams(dp(64),dp(64),Gravity.CENTER));
 
         topShade=new View(this);topShade.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,new int[]{SHADE,0x00000000}));page.addView(topShade,new FrameLayout.LayoutParams(-1,dp(110),Gravity.TOP));
         topControls=new LinearLayout(this);topControls.setGravity(Gravity.CENTER_VERTICAL);topControls.setPadding(dp(12),0,dp(12),0);
@@ -120,7 +124,7 @@ public final class PhotoPreviewActivity extends Activity {
         card.addView(navigation,new LinearLayout.LayoutParams(-1,-2));
         previous=arrow(false,"上一张");
         navigation.addView(previous,new LinearLayout.LayoutParams(dp(48),dp(48)));
-        progress=new SeekBar(this);progress.setMax(photos.size()-1);progress.setEnabled(multiple);progress.setContentDescription("拖动选择照片");
+        progress=new SeekBar(this);progress.setMax(photos.size()-1);progress.setEnabled(multiple);progress.setContentDescription("拖动选择照片或视频");
         progress.setProgressTintList(ColorStateList.valueOf(ACCENT));progress.setProgressBackgroundTintList(ColorStateList.valueOf(CONTROL));progress.setThumbTintList(ColorStateList.valueOf(ACCENT));
         progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
             @Override public void onStartTrackingTouch(SeekBar bar){
@@ -210,6 +214,7 @@ public final class PhotoPreviewActivity extends Activity {
                 image.setImageBitmap(bitmap);image.resetPreview();error.setVisibility(View.GONE);
                 scrubDisplayedIndex=selected;
                 displayedIndex=selected;
+                updateVideoControl(selected);
                 updateNavigation();
             }
             if(selected!=index)loadScrubPreview();
@@ -248,10 +253,11 @@ public final class PhotoPreviewActivity extends Activity {
     private void showPhoto(boolean keepPreview){
         photoShown=true;
         loader.cancelPending();int ticket=++request;PhotoItem item=photos.get(index);updateNavigation();
+        updateVideoControl(index);
         image.animate().cancel();image.setAlpha(1f);image.setTranslationX(0);
         if(!keepPreview){image.setImageDrawable(null);displayedIndex=-1;}
         image.resetPreview();error.setVisibility(View.GONE);
-        if(item.uri==null){error.setText("照片不可用");error.setVisibility(View.VISIBLE);return;}
+        if(item.uri==null){error.setText("媒体不可用");error.setVisibility(View.VISIBLE);return;}
         int size=Math.min(1440,Math.max(getResources().getDisplayMetrics().widthPixels,getResources().getDisplayMetrics().heightPixels));
         loadPreview(item,size,ticket);
     }
@@ -260,6 +266,7 @@ public final class PhotoPreviewActivity extends Activity {
         loader.load(item.uri,item.mediaVersion,size,b->{if(ticket!=request||isFinishing()||isDestroyed())return;
             if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0&&b!=null)android.util.Log.i("MAP004Preview","media thumbnail="+b.getWidth()+"x"+b.getHeight());
             if(b!=null)displayThumbnail(b,true);
+            if(item.video){if(b==null){error.setText("缩略图不可用，点击播放视频");error.setVisibility(View.VISIBLE);}return;}
             if(b==null||Math.max(b.getWidth(),b.getHeight())<size*.75f)loadBetterPreview(item,ticket,size,b);
         });
     }
@@ -271,14 +278,21 @@ public final class PhotoPreviewActivity extends Activity {
         });
     }
     private void displayThumbnail(Bitmap bitmap,boolean animate){displayedIndex=index;error.setVisibility(View.GONE);if(image.getDrawable()!=null)image.replacePreview(bitmap);else{image.setImageBitmap(bitmap);image.resetPreview();}if(animate&&direction!=0){image.setAlpha(0f);image.setTranslationX(dp(20)*direction);image.animate().alpha(1f).translationX(0).setDuration(180).start();}}
+    private void updateVideoControl(int shown){if(playVideo!=null)playVideo.setVisibility(shown>=0&&shown<photos.size()&&photos.get(shown).video?View.VISIBLE:View.GONE);}
     private void openOriginal(){
-        if(!activePreview||scopeCover!=null||openingOriginal||scrubbing)return;
+        if(!activePreview||scopeCover!=null||openingOriginal||returningFromVideo||scrubbing)return;
         if(displayedIndex!=index&&error.getVisibility()!=View.VISIBLE){
             Toast.makeText(this,"正在加载所选照片",Toast.LENGTH_SHORT).show();
             return;
         }
-        Uri uri=photos.get(index).uri;
+        PhotoItem item=photos.get(index);Uri uri=item.uri;
         if(uri==null){Toast.makeText(this,"照片不可用",Toast.LENGTH_SHORT).show();return;}
+        if(item.video){
+            returningFromVideo=true;
+            try{startActivity(new Intent(Intent.ACTION_VIEW).setDataAndType(uri,"video/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));}
+            catch(android.content.ActivityNotFoundException|SecurityException unavailable){returningFromVideo=false;Toast.makeText(this,"无法打开视频播放器",Toast.LENGTH_SHORT).show();}
+            return;
+        }
         openingOriginal=true;
         Intent original=new Intent(Intent.ACTION_VIEW).setDataAndType(uri,"image/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         for(String packageName:new String[]{"com.vivo.gallery","com.android.gallery3d"}){
@@ -317,6 +331,7 @@ public final class PhotoPreviewActivity extends Activity {
     @Override protected void onResume(){
         super.onResume();
         if(openingOriginal){openingOriginal=false;finish();return;}
+        returningFromVideo=false;
         activePreview=true;if(page==null)return;showScopeCover();
         long verification=++scopeVerification;
         if(!MainActivity.hasPhotoAccess(this)){finishUnavailable();return;}
@@ -343,6 +358,6 @@ public final class PhotoPreviewActivity extends Activity {
         finish();
     }
     @Override protected void onPause(){activePreview=false;metadataGeneration++;metadataIndex=-1;metadataWorker.getQueue().clear();scopeVerification++;showScopeCover();scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope(session);super.onPause();}
-    @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("openingOriginal",openingOriginal);}
+    @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("openingOriginal",openingOriginal);out.putBoolean("returningFromVideo",returningFromVideo);}
     @Override protected void onDestroy(){metadataGeneration++;metadataWorker.shutdownNow();request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }

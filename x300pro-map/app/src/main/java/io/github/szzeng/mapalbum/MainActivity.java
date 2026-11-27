@@ -992,15 +992,7 @@ public class MainActivity extends Activity {
     }
     private void openPhoto(int position){
         if(!canLoadGalleryImages()||group==null)return;
-        PhotoItem item=group.get(position);if(item.video){openVideoUri(item.uri);return;}
-        if(group.videoCount()==0){openPreview(group,position);return;}
-        GalleryPhotoList source=group;int[] indexes=new int[source.size()-source.videoCount()];int count=0,selected=0;
-        for(int i=0;i<source.size();i++){if(!source.isVideo(i)){if(i==position)selected=count;indexes[count++]=i;}}
-        List<PhotoItem> photos=new java.util.AbstractList<PhotoItem>(){
-            @Override public int size(){return indexes.length;}
-            @Override public PhotoItem get(int index){return source.get(indexes[index]);}
-        };
-        openPreview(photos,selected);
+        openPreview(group,position);
     }
     private void openVideo(long key){Uri uri=android.content.ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY),MediaIdentity.id(key));openVideoUri(uri);}
     private void openVideoUri(Uri uri){
