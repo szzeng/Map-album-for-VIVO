@@ -13,6 +13,7 @@ import java.util.Set;
 /** Read-only primary-volume adapter. It does not establish vivo/MediaStore identity. */
 final class PrimaryPhotoSource {
     static final class UnsupportedVolumeException extends IllegalStateException { }
+    static final class ProviderException extends IllegalStateException { ProviderException(Throwable cause){super(cause);} }
     static final class CapacityException extends IllegalStateException { }
     private static final Uri VIVO=Uri.parse("content://com.android.gallery3d.dataprovider/mediaextra");
     int missingCount, noGpsCount, invalidCount;
@@ -63,6 +64,8 @@ final class PrimaryPhotoSource {
                 valid[i]=true;lat[i]=x;lon[i]=y;
             }
         }
+        catch(android.os.OperationCanceledException canceled){throw canceled;}
+        catch(RuntimeException incompatible){throw new ProviderException(incompatible);}
         signal.throwIfCanceled();
         for(boolean present:seen)if(!present)missingCount++;
         for(int i=0;i<n;i++)if(valid[i]){signal.throwIfCanceled();output.add(visible[from+i],lat[i],lon[i]);}

@@ -10,9 +10,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import io.github.szzeng.mapalbum.BuildConfig;
 
-/** Read-only, process-local index. Device access requires the explicit, debug-only experiment gate. */
+/** Read-only, process-local index. Device access requires an explicit build and manufacturer gate. */
 public final class MapDataRepository implements AutoCloseable {
-    public enum State { INACTIVE, IDLE, LOADING, READY, IDENTITY_UNVERIFIED, VOLUME_UNSUPPORTED, CAPACITY_EXCEEDED, ACCESS_DENIED, SCOPE_CHANGED, FAILED, CLOSED }
+    public enum State { INACTIVE, IDLE, LOADING, READY, IDENTITY_UNVERIFIED, VOLUME_UNSUPPORTED, CAPACITY_EXCEEDED, ACCESS_DENIED, PROVIDER_INCOMPATIBLE, SCOPE_CHANGED, FAILED, CLOSED }
     static final class MediaScopeChangedException extends IllegalStateException { }
     public interface Callback<T> { void complete(T value); }
     interface Backend {
@@ -86,30 +86,22 @@ public final class MapDataRepository implements AutoCloseable {
     private MapDataRepository(Backend backend,SyntheticBackend synthetic,boolean enabled){if(backend==null)throw new IllegalArgumentException();this.backend=backend;this.synthetic=synthetic;this.deviceEnabled=enabled;}
     static MapDataRepository forDevice(Context context){return new MapDataRepository(new DeviceBackend(context),null,false);}
     public static MapDataRepository forConfirmedExperiment(Context context, boolean confirmed) {
-        boolean debug=(context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0;
-        boolean device="vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER)
-            && "V2502A".equalsIgnoreCase(android.os.Build.MODEL)
-            && "PD2502".equalsIgnoreCase(android.os.Build.DEVICE);
-        return new MapDataRepository(new DeviceBackend(context),null,debug && device && confirmed);
+        return new MapDataRepository(new DeviceBackend(context),null,confirmed && isSupportedDevice(context));
     }
     public static boolean isSupportedDevice(Context context) {
         return (context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0
-            && "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER)
-            && "V2502A".equalsIgnoreCase(android.os.Build.MODEL)
-            && "PD2502".equalsIgnoreCase(android.os.Build.DEVICE);
+            && "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER);
     }
     public static boolean isSupportedPersonalRelease(Context context) {
         return BuildConfig.PERSONAL_DEVICE_RELEASE
             && (context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0
-            && "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER)
-            && "V2502A".equalsIgnoreCase(android.os.Build.MODEL)
-            && "PD2502".equalsIgnoreCase(android.os.Build.DEVICE);
+            && "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER);
     }
     public static MapDataRepository forConfirmedPersonalRelease(Context context, boolean confirmed) {
         return new MapDataRepository(new DeviceBackend(context),null,confirmed && isSupportedPersonalRelease(context));
     }
     public synchronized String diagnostics() {
-        return "身份："+(deviceEnabled?"V2502A / PD2502 实验配置":"未验证")+" · 状态："+state
+        return "身份："+(deviceEnabled?"vivo 已确认":"未验证")+" · 状态："+state
             +"\n可见照片 "+visibleCount+" · 有效 GPS "+validCount
             +(backend instanceof DeviceBackend?((DeviceBackend)backend).diagnostics():"")+"\n加载耗时 "+loadMillis+" ms · 区域筛选 "+filterMillis+" ms";
     }
@@ -420,6 +412,7 @@ public final class MapDataRepository implements AutoCloseable {
         } catch(android.os.OperationCanceledException ignored) {
         } catch(PrimaryPhotoSource.UnsupportedVolumeException failure){synchronized(this){if(current(ticket,signal)){state=State.VOLUME_UNSUPPORTED;lastFailure=State.VOLUME_UNSUPPORTED;}}}
           catch(PrimaryPhotoSource.CapacityException failure){synchronized(this){if(current(ticket,signal)){state=State.CAPACITY_EXCEEDED;lastFailure=State.CAPACITY_EXCEEDED;}}}
+          catch(PrimaryPhotoSource.ProviderException failure){synchronized(this){if(current(ticket,signal)){state=State.PROVIDER_INCOMPATIBLE;lastFailure=State.PROVIDER_INCOMPATIBLE;}}}
           catch(SecurityException failure){synchronized(this){if(current(ticket,signal)){state=State.ACCESS_DENIED;lastFailure=State.ACCESS_DENIED;}}}
           catch(Exception failure){synchronized(this){if(current(ticket,signal)){state=State.FAILED;lastFailure=State.FAILED;}}}
         finally {if(candidate!=null)candidate.close();}

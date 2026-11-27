@@ -60,6 +60,7 @@ public class MainActivity extends Activity {
     private int restorePosition=-1, restoreOffset, bottomInset;
     private boolean networkCallbackRegistered;
     private Bundle saved;
+    private static boolean coldStartLocationAttempted;
     private LocationClient locationClient; private BDAbstractLocationListener locationListener;
     private static MapStatus transientMapStatus;
     private static MapDataRepository experiment;
@@ -187,7 +188,7 @@ public class MainActivity extends Activity {
         thumbnails=new ThumbnailLoader(getContentResolver());
         TextView waiting=label("等待隐私选择",14,TEXT);setContentView(waiting);
         if(PrivacyConsent.isCurrent(getPreferences(MODE_PRIVATE).getInt(PrivacyConsent.KEY,0))){initializeMap();return;}
-        AlertDialog privacy=new AlertDialog.Builder(this).setTitle("百度地图与定位隐私说明").setMessage("图迹使用百度地图 SDK。点击当前位置后，图迹会请求前台位置权限，并使用百度定位 SDK 获取当前位置，SDK 可能读取 Wi-Fi 状态辅助定位；百度按其隐私政策处理定位请求。图迹不进行后台持续定位、不建立位置历史、不上传位置到图迹自有服务。拒绝定位权限不影响地图和照片浏览。请先阅读百度隐私政策；不同意时不初始化 SDK。")
+        AlertDialog privacy=new AlertDialog.Builder(this).setTitle("百度地图与定位隐私说明").setMessage("图迹使用百度地图 SDK。每次冷启动时及点击当前位置后，图迹会请求前台位置权限，并使用百度定位 SDK 获取当前位置，SDK 可能读取 Wi-Fi 状态辅助定位；百度按其隐私政策处理定位请求。图迹不进行后台持续定位、不建立位置历史、不上传位置到图迹自有服务。拒绝定位权限不影响地图和照片浏览。请先阅读百度隐私政策；不同意时不初始化 SDK。")
             .setNeutralButton("查看隐私政策",null)
             .setNegativeButton("不同意",(d,w)->finish()).setPositiveButton("同意并打开",(d,w)->{if(!getPreferences(MODE_PRIVATE).edit().putInt(PrivacyConsent.KEY,PrivacyConsent.VERSION).commit()){Toast.makeText(this,"无法保存隐私选择，请重试",Toast.LENGTH_LONG).show();finish();return;}initializeMap();}).setOnCancelListener(d->finish()).create();
         privacy.setOnShowListener(d->privacy.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v->{
@@ -214,6 +215,7 @@ public class MainActivity extends Activity {
         if(saved!=null)oldestFirst=saved.getBoolean("oldestFirst");
         if(active)resumeExperiment();
         schedule();
+        locateOnColdStart();
     }catch(RuntimeException e){LinearLayout failure=new LinearLayout(this);failure.setOrientation(LinearLayout.VERTICAL);failure.setGravity(Gravity.CENTER);TextView message=label("地图加载失败，请检查百度地图 AK",14,SECONDARY);message.setGravity(Gravity.CENTER);failure.addView(message);Button settings=new Button(this);settings.setText("设置百度地图 AK");settings.setOnClickListener(v->showBaiduAkSettings());failure.addView(settings);setContentView(failure);}}
     private void buildUi(){
         placeSearch=new PlaceSearch(this,root,new PlaceSearch.Host(){
@@ -264,14 +266,14 @@ public class MainActivity extends Activity {
         p.getMenu().add("刷新照片数据").setOnMenuItemClickListener(i->{if(experiment==null)enableExperiment();else reloadGallery();return true;});
         p.getMenu().add("照片 GPS 情况").setOnMenuItemClickListener(i->{showPhotoLocationSummary();return true;});
         p.getMenu().add("百度地图 AK").setOnMenuItemClickListener(i->{showBaiduAkSettings();return true;});
-        p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片和位置仅在设备内存中处理。点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。图库仅限 V2502A / PD2502 当前授权主卷。照片位置已开放全球；跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
-        p.getMenu().add("关于图迹").setOnMenuItemClickListener(i->{showAbout();return true;});
+        p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片和位置仅在设备内存中处理。冷启动时及点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。图库仅访问当前授权的主卷照片。照片位置已开放全球；跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
+        p.getMenu().add("关于图迹 for VIVO").setOnMenuItemClickListener(i->{showAbout();return true;});
         if(BuildConfig.PERSONAL_DEVICE_RELEASE){
-            p.getMenu().add("启用个人图库（仅支持指定设备）").setOnMenuItemClickListener(i->{enableExperiment();return true;});
+            p.getMenu().add("启用图库地图").setOnMenuItemClickListener(i->{enableExperiment();return true;});
             p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{openPhotoPermissionSettings();return true;});
         }
         if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0){
-            p.getMenu().add("主卷全图库实验模式").setOnMenuItemClickListener(i->{enableExperiment();return true;});
+            p.getMenu().add("启用图库地图").setOnMenuItemClickListener(i->{enableExperiment();return true;});
             p.getMenu().add("关闭全图库实验模式").setOnMenuItemClickListener(i->{getPreferences(MODE_PRIVATE).edit().remove("experiment_confirmed").apply();if(experiment!=null){experiment.close();experiment=null;}pendingPhotoReturn=null;clearData();return true;});
             p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{openPhotoPermissionSettings();return true;});
             p.getMenu().add("数据诊断").setOnMenuItemClickListener(i->{showDiagnostics();return true;});
@@ -279,7 +281,7 @@ public class MainActivity extends Activity {
         p.show();
     }
     private void showAbout(){
-        String heading="图迹 "+BuildConfig.VERSION_NAME+"\n个人使用版\n编译日期 "+BuildConfig.BUILD_DATE+"\n";
+        String heading="图迹 for VIVO "+BuildConfig.VERSION_NAME+"\n个人使用版\n编译日期 "+BuildConfig.BUILD_DATE+"\n";
         SpannableString message=new SpannableString(heading+"作者 : sz_zeng(wx)");
         message.setSpan(new ClickableSpan(){
             @Override public void updateDrawState(TextPaint paint){
@@ -293,7 +295,7 @@ public class MainActivity extends Activity {
                 }
             }
         },heading.length(),message.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("关于图迹").setMessage(message)
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("关于图迹 for VIVO").setMessage(message)
             .setPositiveButton("知道了",null).show();
         TextView body=dialog.findViewById(android.R.id.message);
         if(body!=null)body.setMovementMethod(LinkMovementMethod.getInstance());
@@ -328,7 +330,7 @@ public class MainActivity extends Activity {
     }
     private void showPhotoLocationSummary(){
         String summary=experiment==null?null:experiment.photoLocationSummary();
-        if(summary==null)summary=count==null?"请先启用个人图库并授权照片访问。":count.getText().toString()+"\n请在照片数据读取完成后查看。";
+        if(summary==null)summary=count==null?"请先启用图库地图并授权照片访问。":count.getText().toString()+"\n请在照片数据读取完成后查看。";
         new AlertDialog.Builder(this).setTitle("照片 GPS 情况").setMessage(summary).setPositiveButton("知道了",null).show();
     }
     private void openPhotoPermissionSettings(){
@@ -347,13 +349,13 @@ public class MainActivity extends Activity {
         count.setFocusable(action!=null);
     }
     private void showInitialGalleryStatus(){
-        if(supportedGallery())showGalleryStatus("启用照片地图",this::enableExperiment);
+        if(supportedGallery())showGalleryStatus("启用图库地图",this::enableExperiment);
         else showGalleryStatus(null,null);
     }
     private void enableExperiment(){
-        if(!supportedGallery()){new AlertDialog.Builder(this).setMessage("此功能仅支持指定的 vivo V2502A / PD2502 设备，当前设备或构建不符合限制。").setPositiveButton("知道了",null).show();return;}
-        new AlertDialog.Builder(this).setTitle(BuildConfig.PERSONAL_DEVICE_RELEASE?"启用个人图库":"启用主卷全图库实验模式")
-            .setMessage("当前设备：V2502A / PD2502。仅访问当前授权的主卷照片及其图库位置，读取结果保存在内存中。此功能仍是个人设备实验版本，身份和坐标并非对所有照片或其他设备得到保证。授权范围变化时会重新检查。")
+        if(!supportedGallery()){new AlertDialog.Builder(this).setMessage("图库地图目前仅向 vivo 手机开放，且需要符合当前构建的安全限制。").setPositiveButton("知道了",null).show();return;}
+        new AlertDialog.Builder(this).setTitle("启用图库地图")
+            .setMessage("图迹 for VIVO 专为 vivo 手机设计。\n\n读取手机已授权的照片及其已有位置信息，在地图上展示。仅访问主卷，读取结果保存在内存中；授权范围变化时会重新检查。\n\n已在 vivo X300 Pro 上完成实机验证，其他 vivo 机型可以尝试使用，实际兼容性取决于手机系统及图库接口。")
             .setNegativeButton("取消",null).setPositiveButton("确认启用",(d,w)->{
                 getPreferences(MODE_PRIVATE).edit().putBoolean(confirmationKey(),true).apply();
                 if(experiment==null)experiment=createGallery();
@@ -431,6 +433,7 @@ public class MainActivity extends Activity {
         }
         switch(state){
             case CAPACITY_EXCEEDED: showGalleryStatus("照片超过 10 万张 · 调整授权",this::openPhotoPermissionSettings);break;
+            case PROVIDER_INCOMPATIBLE: showGalleryStatus("图库接口不可用或不兼容 · 查看详情",()->new AlertDialog.Builder(this).setTitle("图库接口不兼容").setMessage("无法读取 vivo 图库的位置接口，可能是接口不存在、访问被拒绝、字段或照片关联不兼容。请检查系统和图库权限后重试；当前设备可能暂不支持图库地图。") .setNegativeButton("关闭",null).setPositiveButton("重试",(d,w)->reloadGallery()).show());break;
             case ACCESS_DENIED: showGalleryStatus("照片访问被拒绝 · 调整权限",this::openPhotoPermissionSettings);break;
             case VOLUME_UNSUPPORTED: showGalleryStatus("当前存储卷不符合主卷限制",null);break;
             case IDENTITY_UNVERIFIED: showGalleryStatus("设备未通过照片地图校验",null);break;
@@ -493,11 +496,12 @@ public class MainActivity extends Activity {
     }
     private void closePhotoPanel(){cancelPhotoLoad();clearVisibleImages();groupMode=false;group=null;renderList();loadMarkerCovers();}
     private long lastExitBack=-1;
+    private boolean exitRequested;
     @Override public void onBackPressed(){
         if(placeSearch!=null&&placeSearch.isOpen()){placeSearch.close();return;}
         if(groupMode){closePhotoPanel();return;}
         long now=SystemClock.elapsedRealtime();
-        if(lastExitBack>=0&&now-lastExitBack<=2000){lastExitBack=-1;super.onBackPressed();return;}
+        if(lastExitBack>=0&&now-lastExitBack<=2000){lastExitBack=-1;exitRequested=true;finishAndRemoveTask();return;}
         lastExitBack=now;
         Toast.makeText(this,"再按一次退出应用",Toast.LENGTH_SHORT).show();
     }
@@ -514,6 +518,11 @@ public class MainActivity extends Activity {
     private void clearSearchMarker(){if(searchMarker!=null){searchMarker.remove();searchMarker=null;}if(searchDescriptor!=null){searchDescriptor.recycle();searchDescriptor=null;}if(searchBitmap!=null){searchBitmap.recycle();searchBitmap=null;}}
     private void showSearchMarker(LatLng point){
         clearSearchMarker();int size=dp(40);searchBitmap=Bitmap.createBitmap(size,size,Bitmap.Config.ARGB_8888);Canvas canvas=new Canvas(searchBitmap);Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setColor(ACCENT);Path pin=new Path();pin.moveTo(size*.5f,size*.95f);pin.cubicTo(size*.38f,size*.75f,size*.12f,size*.55f,size*.12f,size*.38f);pin.cubicTo(size*.12f,-size*.08f,size*.88f,-size*.08f,size*.88f,size*.38f);pin.cubicTo(size*.88f,size*.55f,size*.62f,size*.75f,size*.5f,size*.95f);canvas.drawPath(pin,paint);paint.setColor(Color.WHITE);canvas.drawCircle(size*.5f,size*.37f,size*.13f,paint);searchDescriptor=BitmapDescriptorFactory.fromBitmap(searchBitmap);searchMarker=(Marker)map.addOverlay(new MarkerOptions().position(point).icon(searchDescriptor).anchor(.5f,.95f).zIndex(10000));
+    }
+    private void locateOnColdStart(){
+        if(!active||map==null||coldStartLocationAttempted)return;
+        coldStartLocationAttempted=true;
+        requestCurrentLocation();
     }
     private void requestCurrentLocation(){
         clearSearchMarker();
@@ -976,7 +985,7 @@ public class MainActivity extends Activity {
         if(scopeCover!=null){root.removeView(scopeCover);scopeCover=null;}
     }
     private void resumeMapView(){if(active&&view!=null&&!mapResumed){view.onResume();mapResumed=true;}}
-    @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();}}
+    @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();locateOnColdStart();}}
     @Override protected void onPause(){
         lastExitBack=-1;
         active=false;
@@ -993,6 +1002,6 @@ public class MainActivity extends Activity {
         if(view!=null&&mapResumed){view.onPause();mapResumed=false;}
         super.onPause();
     }
-    @Override protected void onDestroy(){if(placeSearch!=null)placeSearch.close();clearSearchMarker();clearData();thumbnails.close();clusterWorker.shutdownNow();if(view!=null)view.onDestroy();if(!isChangingConfigurations()&&isFinishing()&&experiment!=null){experiment.close();experiment=null;pendingPhotoReturn=null;}super.onDestroy();}
+    @Override protected void onDestroy(){if(placeSearch!=null)placeSearch.close();clearSearchMarker();clearData();thumbnails.close();clusterWorker.shutdownNow();if(view!=null)view.onDestroy();if(!isChangingConfigurations()&&isFinishing()&&experiment!=null){experiment.close();experiment=null;pendingPhotoReturn=null;}super.onDestroy();if(exitRequested)android.os.Process.killProcess(android.os.Process.myPid());}
     private final class FitIcon extends android.graphics.drawable.Drawable{private final Paint p=new Paint(3);public void draw(Canvas c){android.graphics.Rect b=getBounds();float x=b.exactCenterX(),y=b.exactCenterY(),r=Math.min(b.width(),b.height())*.32f;p.setColor(ACCENT);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));p.setStrokeCap(Paint.Cap.ROUND);c.drawCircle(x,y,r,p);c.drawLine(x,b.top,x,y-r,p);c.drawLine(x,y+r,x,b.bottom,p);c.drawLine(b.left,y,x-r,y,p);c.drawLine(x+r,y,b.right,y,p);p.setStyle(Paint.Style.FILL);c.drawCircle(x,y,dp(2),p);}public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}}
 }

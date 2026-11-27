@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.database.Cursor;
+import android.provider.MediaStore;
 import android.graphics.Color;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -27,6 +29,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.util.Collections;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /** Displays only a stable snapshot of the selected photos and their system thumbnails. */
 public final class PhotoPreviewActivity extends Activity {
@@ -48,7 +56,10 @@ public final class PhotoPreviewActivity extends Activity {
     private boolean photoShown, scrubbing, scrubLoading;
     private int scrubDisplayedIndex=-1;
     private int displayedIndex=-1;
-    private TextView number,error;
+    private TextView number,error,photoDate,photoSize;
+    private final ThreadPoolExecutor metadataWorker=new ThreadPoolExecutor(1,1,0,TimeUnit.MILLISECONDS,
+        new ArrayBlockingQueue<>(1),new ThreadPoolExecutor.DiscardOldestPolicy());
+    private int metadataIndex=-1,metadataGeneration;
     private ImageView previous,next;
     private SeekBar progress;
 
@@ -85,7 +96,13 @@ public final class PhotoPreviewActivity extends Activity {
         topControls=new LinearLayout(this);topControls.setGravity(Gravity.CENTER_VERTICAL);topControls.setPadding(dp(12),0,dp(12),0);
         ImageView close=new ImageView(this);close.setImageDrawable(new BackIcon());close.setPadding(dp(10),dp(10),dp(10),dp(10));close.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);close.setBackground(shape(CARD,24));
         FrameLayout closeTarget=new FrameLayout(this);closeTarget.addView(close,new FrameLayout.LayoutParams(dp(40),dp(40),Gravity.CENTER));closeTarget.setOnClickListener(v->finish());closeTarget.setContentDescription("返回");topControls.addView(closeTarget,new LinearLayout.LayoutParams(dp(48),dp(48)));
-        page.addView(topControls,new FrameLayout.LayoutParams(-1,dp(48),Gravity.TOP));
+        LinearLayout details=new LinearLayout(this);details.setOrientation(LinearLayout.VERTICAL);details.setGravity(Gravity.CENTER_VERTICAL);details.setPadding(dp(14),dp(4),dp(14),dp(4));details.setBackground(shape(CARD,16));details.setLayerType(View.LAYER_TYPE_SOFTWARE,null);
+        photoDate=text("",14,PRIMARY);photoDate.setTypeface(android.graphics.Typeface.create("sans-serif-medium",android.graphics.Typeface.NORMAL),android.graphics.Typeface.NORMAL);photoDate.setSingleLine(true);photoDate.setEllipsize(android.text.TextUtils.TruncateAt.END);photoDate.setIncludeFontPadding(true);
+        photoSize=text("",12,SECONDARY);photoSize.setSingleLine(true);photoSize.setEllipsize(android.text.TextUtils.TruncateAt.END);photoSize.setIncludeFontPadding(true);
+        details.addView(photoDate,new LinearLayout.LayoutParams(-1,-2));LinearLayout.LayoutParams sizeParams=new LinearLayout.LayoutParams(-1,-2);sizeParams.topMargin=dp(3);details.addView(photoSize,sizeParams);
+        details.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        LinearLayout.LayoutParams detailsParams=new LinearLayout.LayoutParams(0,-2,1);detailsParams.leftMargin=dp(8);topControls.addView(details,detailsParams);
+        topControls.setMinimumHeight(dp(48));page.addView(topControls,new FrameLayout.LayoutParams(-1,-2,Gravity.TOP));
 
         boolean multiple=photos.size()>1;
         card=new LinearLayout(this);
@@ -201,8 +218,32 @@ public final class PhotoPreviewActivity extends Activity {
     private void updateNavigation(){
         int shown=scrubbing&&displayedIndex>=0?displayedIndex:index;
         number.setText((shown+1)+" / "+photos.size());
+        updatePhotoDetails(shown);
         if(!scrubbing)progress.setProgress(index);
         previous.setEnabled(index>0);next.setEnabled(index+1<photos.size());previous.setImageAlpha(previous.isEnabled()?255:90);next.setImageAlpha(next.isEnabled()?255:90);
+    }
+    private void updatePhotoDetails(int shown){
+        if(shown<0||shown>=photos.size()||photoDate==null)return;
+        if(metadataIndex==shown)return;
+        metadataIndex=shown;
+        int ticket=++metadataGeneration;
+        metadataWorker.getQueue().clear();
+        PhotoItem item=photos.get(shown);
+        String time=item.dateTaken==null||item.dateTaken<=0?"拍摄时间未知":new SimpleDateFormat("yyyy年M月d日 HH:mm",Locale.getDefault()).format(new Date(item.dateTaken));
+        photoDate.setText(time);photoSize.setText("文件大小 · 获取中…");
+        if(item.uri==null){photoSize.setText("文件大小未知");return;}
+        metadataWorker.execute(()->{
+            long bytes=-1;
+            try(Cursor cursor=getContentResolver().query(item.uri,new String[]{MediaStore.MediaColumns.SIZE},null,null,null)){
+                if(cursor!=null&&cursor.moveToFirst()&&!cursor.isNull(0))bytes=cursor.getLong(0);
+            }catch(RuntimeException ignored){}
+            final long result=bytes;
+            runOnUiThread(()->{
+                if(!activePreview||isFinishing()||isDestroyed()||ticket!=metadataGeneration||metadataIndex!=shown)return;
+                String size=result>=0?"文件大小 · "+android.text.format.Formatter.formatShortFileSize(this,result):"文件大小未知";
+                photoSize.setText(size);
+            });
+        });
     }
     private void showPhoto(boolean keepPreview){
         photoShown=true;
@@ -285,14 +326,14 @@ public final class PhotoPreviewActivity extends Activity {
                 if(metadata==null||metadata.uri==null||!MainActivity.hasPhotoAccess(this)){finishUnavailable();return;}
                 PhotoItem previous=photos.get(0);
                 photos=Collections.singletonList(new PhotoItem(metadata.uri,metadata.dateTaken,metadata.mediaVersion));
-                if(displayedIndex!=0||!metadata.uri.equals(previous.uri)||previous.mediaVersion!=metadata.mediaVersion)showPhoto(false);
+                if(displayedIndex!=0||!metadata.uri.equals(previous.uri)||previous.mediaVersion!=metadata.mediaVersion)showPhoto(false);else updateNavigation();
                 hideScopeCover();
             }));
         }else{
             MainActivity.verifyPreviewScope(session,ok->runOnUiThread(()->{
                 if(!activePreview||isFinishing()||verification!=scopeVerification)return;
                 if(!ok||!MainActivity.hasPhotoAccess(this)){finishUnavailable();return;}
-                if(!photoShown||displayedIndex!=index)showPhoto(false);
+                if(!photoShown||displayedIndex!=index)showPhoto(false);else updateNavigation();
                 hideScopeCover();
             }));
         }
@@ -301,7 +342,7 @@ public final class PhotoPreviewActivity extends Activity {
         Toast.makeText(this,"照片不可访问，请返回地图重新加载",Toast.LENGTH_LONG).show();
         finish();
     }
-    @Override protected void onPause(){activePreview=false;scopeVerification++;showScopeCover();scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope(session);super.onPause();}
+    @Override protected void onPause(){activePreview=false;metadataGeneration++;metadataIndex=-1;metadataWorker.getQueue().clear();scopeVerification++;showScopeCover();scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope(session);super.onPause();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("openingOriginal",openingOriginal);}
-    @Override protected void onDestroy(){request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
+    @Override protected void onDestroy(){metadataGeneration++;metadataWorker.shutdownNow();request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }
