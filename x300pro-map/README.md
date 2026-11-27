@@ -1,27 +1,77 @@
-# 图迹 for VIVO
+# Android 工程说明
 
-正式 Android 应用身份：`io.github.szzeng.mapalbum`（applicationId 和 namespace）；工程目录为 `x300pro-map/`，GitHub 仓库为 `szzeng/x300pro-map`。
+本目录是「图迹 for VIVO」Android 应用工程。面向 vivo 手机，复用 vivo 图库 Provider 与 Android MediaStore 的已有照片索引，在百度地图上展示照片位置。
 
-图迹 for VIVO 面向 vivo 手机，用户确认并授予照片权限后可尝试使用图库地图。vivo X300 Pro 已完成实机体验验证，其他 vivo 机型的兼容性取决于系统和图库接口；非 vivo 手机不开放。Debug 和 Release 保留各自的构建检查。图库接口不可用或不兼容时会停止读取并提示。应用使用百度地图 SDK；历史实机记录见 [MAP-004.1 实现记录](../docs/research/MAP-004.1-implementation.md)。
+项目总览、功能介绍、设备支持、隐私边界和已知限制请先阅读仓库根目录的 [中文 README](../README.md)。
 
-位置索引仅在内存中保存，读取受当前可见主卷照片 ID 限制；超过 100,000 张会明确停止。前台恢复时核对可见 ID，范围不变则复用索引，变化则清除并重建。照片元数据和缩略图按视野和用户操作读取，不扫描全图库 EXIF，不建立独立的照片、GPS 或磁盘缩略图库。
+## 工程信息
 
-已移除广州附近的照片显示范围限制，全球照片可进入地图实验视野。此前少量广州样本的用户对照中，WGS84 转 BD09LL 最吻合；Provider 的普遍坐标基准和其他地区尚未验证。实现暂用粗略经纬度矩形判断国内外：部分中国边境外地区可能被误判为国内，极南区域也可能误判，故坐标位置须人工核验，不能视为 MAP-004.3 已完成。当前视野内的照片使用屏幕聚合，拖动时尽量复用标记；超出已读取范围、缩放或可见照片集合变化时仍可能更新聚合。视野超过一万点时以基本类型数组构建概览，仅按所选聚合读取照片元数据；单个聚合超过一万张时需要放大，极端的同位置密集聚合可能无法继续展开。全屏照片预览支持在当前集合内滑动切换及拖动进度条选图，轻点照片可进入原生相册；多张照片预览返回时在授权范围复核一致后恢复“此处照片”列表；只有一张时直接返回地图。聚合数字显示至 9999，更大数字显示 9999+。界面及百度地图底图默认跟随系统的浅色或深色模式，也可在右上角菜单手动切换暗夜模式或恢复跟随系统。
+- applicationId / namespace：`io.github.szzeng.mapalbum`
+- 当前版本：`0.3.0`（versionCode `4`）
+- minSdk：29（Android 10）
+- compileSdk：34
+- JDK：17
+- Gradle：8.6
+- Android Gradle Plugin：8.4.2
+- 地图 SDK：百度地图 Android SDK 9.0.0
+- 地点搜索：百度地图 Search SDK 9.0.0
+- 定位 SDK：百度定位 SDK 9.7.0
 
-用户在 X300 Pro 的一次完整照片授权测试中反馈地图已显示、加载速度可接受，随后确认地图拖动的体验可以。用户随后确认部分授权及拒绝、恢复权限，原生相册返回与重新打开应用，以及当前位置授权和定位结果均无问题。该确认不等于逐张照片身份、精确定位或海外坐标已验证。此前至少 30 张照片的人工核对结果及其证据限制见 [MAP-004 测试记录](../docs/research/MAP-004-device-test.md)。
+## 主要实现
 
-地图顶部支持境内地点搜索：以地图中心逆地理编码得到的城市为搜索上下文，输入联想或提交 POI 搜索后可定位；选点后复用地图视口刷新照片。搜索标记是临时覆盖物，不保存为照片。搜索功能已编译并通过结果分流 JVM 检查；真实百度检索、跨城市召回及地图照片联动尚未记录真机验收。
+- `MainActivity`：地图主界面、地图类型切换、定位、照片聚合和菜单。
+- `PlaceSearch`：地点联想、POI 搜索、搜索历史和地图定位。
+- `PhotoGalleryView`：地图照片列表与交互。
+- `PhotoPreviewActivity`：全屏照片预览、切换和进度条选图。
+- `ThumbnailLoader`：系统缩略图按需加载，32 MiB 有界内存 LRU 缓存，两个后台线程和有界任务队列。
+- `ScreenClusters`：基于屏幕距离的照片标记聚合。
+- `Appearance`：系统深浅色跟随和手动暗夜模式。
+- `../map002-provider-probe/src`：复用的只读图库数据读取、位置索引和视野筛选实现。
 
-应用冷启动时自动尝试一次前台定位，右下角按钮可手动触发单次前台定位，使用百度基础定位 SDK 9.7.0；应用不后台持续定位或保存位置历史。首次打开地图须阅读并同意地图及定位隐私说明。定位需要前台位置权限和可用的百度 AK；实机精度和海外结果仍需验收。
+地图支持标准地图与卫星地图一键切换，并将选择保存在应用设置中；冷启动时恢复上次选择。定位按钮位于地图右下方，执行定位前会将地图方向归正。
 
-## 本地构建
+## 数据与安全边界
 
-使用 Gradle 8.6、Android Gradle Plugin 8.4.2、compileSdk 34。地图、搜索、坐标工具及基础定位使用百度 Maven 依赖 `BaiduMapSDK_Map:9.0.0`、`BaiduMapSDK_Search:9.0.0`、`BaiduMapSDK_Util:9.0.0` 和 `BaiduMapSDK_Location:9.7.0`；复用 `../map002-provider-probe/src` 中原有数据读取和筛选源文件。
+- 仅在用户确认并授予权限后启用图库地图。
+- 当前只支持 Android MediaStore 主卷；位置索引仅保存在进程内存中。
+- 当前可见照片 ID 上限为 100,000；超限、权限异常、卷不受支持或 vivo Provider 不兼容时停止读取并报告状态。
+- 通过 MediaStore 当前可见照片 ID 与 vivo Provider 记录关联已有 GPS；不重新扫描 EXIF、不写入 Provider、不建立持久化照片或 GPS 数据库。
+- 照片元数据与系统缩略图按视野和用户操作读取；缩略图缓存仅在内存中，受 32 MiB 上限约束。
+- 不后台持续定位，不保存位置历史。
+- 地图位置支持全球视野，但当前境内外坐标转换使用近似区域判断，不能视为已完成全球坐标验证。边境附近和海外照片需结合实际地点核对。
+- 百度地图、POI 搜索和定位服务需要网络与有效 AK。境外底图可能按请求网格计费，详见 [百度境外地图服务说明](https://lbsyun.baidu.com/docs/android?title=androidsdk/guide/create-map/showmap/abroad)。
 
-在 Git 忽略的 `local.properties` 中设置 Android SDK 路径及 `baidu.map.ak`，缺少 AK 时构建会明确报错。AK 会被打入 APK，APK 不是保密存储；请配置百度控制台的包名和签名限制，不要将本地配置或签名密钥提交 Git。首次打开地图须阅读并同意百度隐私说明；SDK 初始化发生在同意后。
+## 设备适配
 
-国内地图非商业服务及境外底图计费边界、实机结果和未验证项见 `../docs/research/MAP-003B-baidu-progress.md`。旧 MapLibre / 天地图实现可从 Git 历史基线 `754bb2f` 找回。
+图库地图功能面向 vivo 手机。X300 Pro（V2502A / PD2502，Android 17）是当前主要实机验证设备；其他 vivo 机型可尝试，但未逐一验证，兼容性取决于系统与图库 Provider 实现。非 vivo 设备不开放图库地图。
 
-无需手机的本地检查可运行 `powershell -File tests/run-jvm-tests.ps1`；搜索结果分流检查可运行 `powershell -File tests/run-search-tests.ps1`；Gradle 的 `testDebugUnitTest` 当前为 NO-SOURCE。
+## 本地配置
 
-百度官方说明境外底图为付费服务，按请求的地图网格计费；请以 [百度境外地图服务说明](https://lbsyun.baidu.com/docs/android?title=androidsdk/guide/create-map/showmap/abroad) 及实际账号配置为准。
+在本目录的 `local.properties` 中设置：
+
+```properties
+sdk.dir=/path/to/Android/Sdk
+baidu.map.ak=YOUR_BAIDU_AK
+```
+
+`local.properties` 和 Release 签名配置 `keystore.properties` 均应保留在本地，不要提交 AK、签名密钥或密码。AK 会被打包进 APK，不是秘密存储；请在百度控制台限制包名和签名 SHA-1。
+
+## 本地检查
+
+在本目录运行：
+
+```powershell
+powershell -File tests/run-jvm-tests.ps1
+powershell -File tests/run-search-tests.ps1
+```
+
+这些脚本运行无需手机的 JVM 数据层、聚合和搜索规则检查。它们不能替代真实 Android 权限、vivo Provider、百度地图 SDK、定位精度或照片位置准确性的实机验证。Gradle 的 `testDebugUnitTest` 当前为 `NO-SOURCE`，不应将其视为测试通过。
+
+## 相关文档
+
+- [MAP-002：图库 GPS 复用验证](../docs/research/MAP-002-final-report.md)
+- [MAP-003B：百度地图接入记录](../docs/research/MAP-003B-baidu-progress.md)
+- [MAP-004.1：数据层实现与限制](../docs/research/MAP-004.1-implementation.md)
+- [MAP-004：实机测试记录](../docs/research/MAP-004-device-test.md)
+- [MAP-007：品牌与机型开放策略](../docs/tasks/MAP-007.md)
+- [MAP-004：UI 规范](../docs/design/MAP-004-UI-SPEC.md)
