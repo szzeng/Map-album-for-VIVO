@@ -84,8 +84,20 @@ public class MainActivity extends Activity {
     private final Runnable checkLoad=this::checkRepository;
     private String scopeLabel="未授权";
     private String viewportPhase="尚未筛选";
+    private String viewportTimings="尚无刷新耗时";
     private int viewportMatches, viewportLoaded, viewportCacheHits;
     private ViewportData viewport;
+    private volatile ClusterProjection clusterProjection;
+    private PanState panState;
+    private boolean allowPanReuse;
+    private static final class PanState {
+        final ViewportData data; final LatLng anchor; final int width,height,marginX,marginY,clearance;
+        final float zoom,rotate,tilt;
+        PanState(ViewportData data,LatLng anchor,int width,int height,int marginX,int marginY,int clearance,MapStatus status){
+            this.data=data;this.anchor=anchor;this.width=width;this.height=height;this.marginX=marginX;this.marginY=marginY;this.clearance=clearance;
+            zoom=status.zoom;rotate=status.rotate;tilt=status.overlook;
+        }
+    }
     private static final class ViewportData {
         final ViewportBounds bounds;
         final long[] ids;
@@ -111,6 +123,13 @@ public class MainActivity extends Activity {
             return other instanceof ClusterKey && Arrays.equals(ids,((ClusterKey)other).ids);
         }
     }
+    /** Identical coordinates have the same screen projection within one map frame. */
+    private static final class ProjectionKey {
+        final long latitude,longitude;
+        ProjectionKey(LatLng point){latitude=Double.doubleToLongBits(point.latitude);longitude=Double.doubleToLongBits(point.longitude);}
+        @Override public int hashCode(){return 31*Long.hashCode(latitude)+Long.hashCode(longitude);}
+        @Override public boolean equals(Object other){return other instanceof ProjectionKey&&latitude==((ProjectionKey)other).latitude&&longitude==((ProjectionKey)other).longitude;}
+    }
     private static final class RenderCluster {
         final ClusterKey key;
         final Point center;
@@ -119,6 +138,24 @@ public class MainActivity extends Activity {
             this.key=key;
             this.center=center;
             this.singleton=singleton;
+        }
+    }
+    /** Last published projection; reuse only for an exact, uniform screen translation. */
+    private static final class ClusterProjection {
+        final ViewportData data; final int markerPixels,marginX,marginY; final int[] gaps,xs,ys,sources;
+        final List<RenderCluster> clusters;
+        ClusterProjection(ViewportData data,int markerPixels,int marginX,int marginY,int[] gaps,int[] xs,int[] ys,int[] sources,List<RenderCluster> clusters){
+            this.data=data;this.markerPixels=markerPixels;this.marginX=marginX;this.marginY=marginY;this.gaps=gaps.clone();this.xs=xs;this.ys=ys;this.sources=sources;this.clusters=clusters;
+        }
+        List<RenderCluster> translated(ViewportData current,int marker,int mx,int my,int[] currentGaps,int[] x,int[] y,int[] source,int size){
+            if(data!=current||markerPixels!=marker||marginX!=mx||marginY!=my||!Arrays.equals(gaps,currentGaps))return null;
+            long[] offset=ScreenClusters.translation(xs,ys,sources,x,y,source,size);if(offset==null)return null;
+            long dx=offset[0],dy=offset[1];
+            List<RenderCluster> result=new ArrayList<>(clusters.size());
+            for(RenderCluster cluster:clusters){long cx=cluster.center.x+dx,cy=cluster.center.y+dy;
+                if(cx<Integer.MIN_VALUE||cx>Integer.MAX_VALUE||cy<Integer.MIN_VALUE||cy>Integer.MAX_VALUE)return null;
+                result.add(new RenderCluster(cluster.key,new Point((int)cx,(int)cy),cluster.singleton));}
+            return result;
         }
     }
     private static final class MarkerResource {
@@ -171,7 +208,7 @@ public class MainActivity extends Activity {
             if(resource!=null)openCluster(resource);
             return true;
         });
-        map.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener(){public void onMapStatusChangeStart(MapStatus s){cancelRequests();}public void onMapStatusChangeStart(MapStatus s,int reason){cancelRequests();}public void onMapStatusChange(MapStatus s){}public void onMapStatusChangeFinish(MapStatus s){schedule();}});
+        map.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener(){public void onMapStatusChangeStart(MapStatus s){cancelRequests();}public void onMapStatusChangeStart(MapStatus s,int reason){cancelRequests();}public void onMapStatusChange(MapStatus s){}public void onMapStatusChangeFinish(MapStatus s){schedule(true);}});
         buildUi();
         if(experiment==null && getPreferences(MODE_PRIVATE).getBoolean(confirmationKey(),false) && supportedGallery())experiment=createGallery();
         if(saved!=null)oldestFirst=saved.getBoolean("oldestFirst");
@@ -419,7 +456,7 @@ public class MainActivity extends Activity {
         restorePosition=pending.scroll;restoreOffset=pending.offset;renderList();
     }
     private void showDiagnostics(){
-        String message="数据模式："+(experiment==null?"未启用":"主卷实验")+"\n授权范围："+scopeLabel+"\n"+(experiment==null?"身份：未验证":experiment.diagnostics())+"\n视野状态："+viewportPhase+" · 匹配 "+viewportMatches+" · 已读取 "+viewportLoaded+" · 地图标记 "+markers.size()+" · 视野复用 "+viewportCacheHits+"\n"+thumbnails.diagnosticCounts();
+        String message="数据模式："+(experiment==null?"未启用":"主卷实验")+"\n授权范围："+scopeLabel+"\n"+(experiment==null?"身份：未验证":experiment.diagnostics())+"\n视野状态："+viewportPhase+" · 匹配 "+viewportMatches+" · 已读取 "+viewportLoaded+" · 地图标记 "+markers.size()+" · 视野复用 "+viewportCacheHits+"\n"+viewportTimings+"\n"+thumbnails.diagnosticCounts();
         new AlertDialog.Builder(this).setTitle("数据诊断").setMessage(message).setNegativeButton("关闭",null).setPositiveButton("复制",(d,w)->{android.content.ClipboardManager clip=(android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE);if(clip!=null)clip.setPrimaryClip(android.content.ClipData.newPlainText("图迹诊断",message));}).show();
     }
     private void updatePanel(){
@@ -498,9 +535,11 @@ public class MainActivity extends Activity {
     }
     private void stopLocation(){handler.removeCallbacks(locationTimeout);LocationClient client=locationClient;locationClient=null;if(client!=null){if(locationListener!=null)client.unRegisterLocationListener(locationListener);client.stop();}locationListener=null;}
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==103){resumeExperiment();return;}if(request==102){if(checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED||checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED)requestCurrentLocation();else Toast.makeText(this,"未授予位置权限，仍可浏览照片地图",Toast.LENGTH_LONG).show();}}
-    private void schedule(){
+    private void schedule(){schedule(false);}
+    private void schedule(boolean panReuse){
         if(!active)return;
         cancelRequests();
+        allowPanReuse=panReuse;
         projectionRetries=0;
         if(experiment!=null && experiment.state()==MapDataRepository.State.READY){
             handler.postDelayed(viewportRefresh,40);
@@ -520,14 +559,37 @@ public class MainActivity extends Activity {
         int width=view.getWidth(),height=view.getHeight();
         Projection projection=map.getProjection();
         if(projection==null){retryProjection();return;}
-        Point[] corners={new Point(0,0),new Point(width,0),new Point(0,height),new Point(width,height)};
+        boolean tryPan=allowPanReuse;allowPanReuse=false;
+        PanState priorPan=panState;MapStatus status=map.getMapStatus();
+        if(tryPan&&priorPan!=null&&priorPan.data==viewport&&status!=null&&experiment.scopeToken()==displayedScope){
+            Point anchor=projection.toScreenLocation(priorPan.anchor);
+            if(anchor!=null&&ScreenClusters.canReusePan(width,height,priorPan.width,priorPan.height,status.zoom,priorPan.zoom,
+                    status.rotate,priorPan.rotate,status.overlook,priorPan.tilt,anchor.x,anchor.y,width/2,height/2,
+                    priorPan.marginX,priorPan.marginY,priorPan.clearance)){
+                viewportDirty=false;viewportPhase="视野已复用";viewportTimings="平移复用已有标记";showViewportStatus(markers.isEmpty());return;
+            }
+        }
+        int padX=width/4,padY=height/4;
+        Point[] corners={new Point(-padX,-padY),new Point(width+padX,-padY),new Point(-padX,height+padY),new Point(width+padX,height+padY)};
         double[] latitudes=new double[corners.length],longitudes=new double[corners.length];
+        boolean expanded=true;
         for(int i=0;i<corners.length;i++){
             LatLng point=projection.fromScreenLocation(corners[i]);
-            if(point==null){retryProjection();return;}
+            if(point==null){expanded=false;break;}
+            Point roundTrip=projection.toScreenLocation(point);
+            if(roundTrip==null||Math.abs((long)roundTrip.x-corners[i].x)>4||Math.abs((long)roundTrip.y-corners[i].y)>4){expanded=false;break;}
             latitudes[i]=point.latitude;
             longitudes[i]=point.longitude;
         }
+        if(!expanded){
+            padX=0;padY=0;
+            corners=new Point[]{new Point(0,0),new Point(width,0),new Point(0,height),new Point(width,height)};
+            for(int i=0;i<corners.length;i++){
+                LatLng point=projection.fromScreenLocation(corners[i]);if(point==null){retryProjection();return;}
+                latitudes[i]=point.latitude;longitudes[i]=point.longitude;
+            }
+        }
+        final int marginX=padX,marginY=padY;
         LatLng center=projection.fromScreenLocation(new Point(width/2,height/2));
         if(center==null){retryProjection();return;}
         projectionRetries=0;
@@ -542,7 +604,7 @@ public class MainActivity extends Activity {
         ViewportData previous=viewport;
         if(previous!=null&&previous.bounds.covers(visibleBounds.south,visibleBounds.north,visibleBounds.west,visibleBounds.east)){
             viewportCacheHits++;
-            projectViewport(ticket,previous,visibleBounds,started);
+            projectViewport(ticket,previous,visibleBounds,started,marginX,marginY);
             return;
         }
         viewportPhase="正在筛选";
@@ -578,7 +640,7 @@ public class MainActivity extends Activity {
             handler.post(()->{
                 if(!active||ticket!=viewportGeneration||experiment!=repository||repository.scopeToken()!=displayedScope)return;
                 viewport=data;
-                projectViewport(ticket,data,visibleBounds,started);
+                projectViewport(ticket,data,visibleBounds,started,marginX,marginY);
             });
         });
         if(!accepted)showViewportFailure(ticket);
@@ -590,40 +652,62 @@ public class MainActivity extends Activity {
         showGalleryStatus("此范围读取失败 · 重试",this::schedule);
     }
 
-    private void projectViewport(long ticket,ViewportData data,ViewportBounds visibleBounds,long started){
+    private void projectViewport(long ticket,ViewportData data,ViewportBounds visibleBounds,long started,int marginX,int marginY){
         viewportPhase="正在生成地图标记";
+        long projectionStarted=SystemClock.elapsedRealtime();
         int width=view.getWidth(),height=view.getHeight();
         Projection projection=map.getProjection();
         if(projection==null){retryProjection();return;}
         int markerPixels=Math.max(1,dp(48));
         int[] gaps={dp(8),dp(12),dp(16),dp(24)};
+        MapStatus status=map.getMapStatus();LatLng anchor=projection.fromScreenLocation(new Point(width/2,height/2));
+        PanState candidate=status==null||anchor==null?null:new PanState(data,anchor,width,height,marginX,marginY,markerPixels+gaps[0],status);
         projectionTask=new Runnable(){
             final int[] xs=new int[data.ids.length],ys=new int[data.ids.length],sources=new int[data.ids.length];
-            int cursor,size;
+            final Map<ProjectionKey,Point> projected=new HashMap<>();
+            int cursor,size,slices,projectionCalls,projectionHits;
+            long activeNanos;
             @Override public void run(){
                 if(!active||ticket!=viewportGeneration)return;
-                long deadline=System.nanoTime()+PROJECTION_BUDGET_NANOS;
+                long sliceStart=System.nanoTime(),deadline=sliceStart+PROJECTION_BUDGET_NANOS;
                 while(cursor<data.ids.length){
                     int end=Math.min(cursor+64,data.ids.length);
                     for(;cursor<end;cursor++){
                         LatLng position=data.positions[cursor];
                         if(position==null||!visibleBounds.contains(position.latitude,position.longitude))continue;
-                        Point pixel=projection.toScreenLocation(position);
-                        if(pixel!=null&&pixel.x>=0&&pixel.y>=0&&pixel.x<width&&pixel.y<height){
-                            xs[size]=pixel.x;
-                            ys[size]=pixel.y;
+                        ProjectionKey key=new ProjectionKey(position);
+                        Point pixel=projected.get(key);
+                        if(pixel==null){projectionCalls++;pixel=projection.toScreenLocation(position);if(pixel!=null){pixel=new Point(pixel.x,pixel.y);projected.put(key,pixel);}}
+                        else projectionHits++;
+                        if(pixel!=null&&pixel.x>=-marginX&&pixel.y>=-marginY&&pixel.x<width+marginX&&pixel.y<height+marginY){
+                            xs[size]=pixel.x+marginX;
+                            ys[size]=pixel.y+marginY;
                             sources[size++]=cursor;
                         }
                     }
                     if(cursor<data.ids.length&&System.nanoTime()>=deadline){
-                        view.postOnAnimation(this);
+                        activeNanos+=System.nanoTime()-sliceStart;
+                        // Give the event queue opportunities to process input between
+                        // short slices, but do not wait a full frame after every slice.
+                        if(++slices%3==0)view.postOnAnimation(this);else handler.post(this);
                         return;
                     }
                 }
+                activeNanos+=System.nanoTime()-sliceStart;
                 projectionTask=null;
                 int visible=size;
+                long projectionMillis=SystemClock.elapsedRealtime()-projectionStarted;
+                String projectionDetails="（执行 "+(activeNanos/1_000_000)+" ms · SDK "+projectionCalls+" 次 · 坐标复用 "+projectionHits+" 次）";
                 clusterWorker.execute(()->{
                     if(ticket!=viewportGeneration)return;
+                    long clusteringStarted=SystemClock.elapsedRealtime();
+                    ClusterProjection previous=clusterProjection;
+                    List<RenderCluster> reused=previous==null?null:previous.translated(data,markerPixels,marginX,marginY,gaps,xs,ys,sources,visible);
+                    if(reused!=null){
+                        long clusteringMillis=SystemClock.elapsedRealtime()-clusteringStarted;
+                        handler.post(()->{publishClusters(ticket,reused,data.ids.length,visible,started,projectionMillis,clusteringMillis,projectionDetails);if(ticket==viewportGeneration&&!viewportDirty)panState=candidate;});
+                        return;
+                    }
                     List<ScreenClusters.Cluster> cells;
                     try {
                         cells=ScreenClusters.group(Arrays.copyOf(xs,visible),Arrays.copyOf(ys,visible),
@@ -634,17 +718,25 @@ public class MainActivity extends Activity {
                         long[] ids=new long[item.members.length];
                         for(int i=0;i<ids.length;i++)ids[i]=data.ids[sources[item.members[i]]];
                         LatLng singleton=ids.length==1?data.positions[sources[item.members[0]]]:null;
-                        result.add(new RenderCluster(new ClusterKey(ids),new Point(item.x,item.y),singleton));
+                        result.add(new RenderCluster(new ClusterKey(ids),new Point(item.x-marginX,item.y-marginY),singleton));
                     }
-                    handler.post(()->publishClusters(ticket,result,data.ids.length,visible,started));
+                    ClusterProjection next=new ClusterProjection(data,markerPixels,marginX,marginY,gaps,Arrays.copyOf(xs,visible),Arrays.copyOf(ys,visible),Arrays.copyOf(sources,visible),result);
+                    long clusteringMillis=SystemClock.elapsedRealtime()-clusteringStarted;
+                    handler.post(()->{
+                        if(!active||ticket!=viewportGeneration||experiment==null||experiment.scopeToken()!=displayedScope)return;
+                        clusterProjection=next;
+                        publishClusters(ticket,result,data.ids.length,visible,started,projectionMillis,clusteringMillis,projectionDetails);
+                        if(ticket==viewportGeneration&&!viewportDirty)panState=candidate;
+                    });
                 });
             }
         };
         view.postOnAnimation(projectionTask);
     }
 
-    private void publishClusters(long ticket,List<RenderCluster> clusters,int matches,int visible,long started){
+    private void publishClusters(long ticket,List<RenderCluster> clusters,int matches,int visible,long started,long projectionMillis,long clusteringMillis,String projectionDetails){
         if(!active||ticket!=viewportGeneration||experiment==null||experiment.scopeToken()!=displayedScope)return;
+        long publishStarted=SystemClock.elapsedRealtime();
         Set<ClusterKey> retained=new HashSet<>();
         Projection projection=map.getProjection();
         if(projection==null){retryProjection();return;}
@@ -682,6 +774,7 @@ public class MainActivity extends Activity {
         viewportMatches=matches;
         viewportLoaded=visible;
         viewportPhase="标记已更新 · "+(SystemClock.elapsedRealtime()-started)+" ms";
+        viewportTimings="刷新耗时：投影 "+projectionMillis+" ms "+projectionDetails+" · 聚合 "+clusteringMillis+" ms · 更新标记 "+(SystemClock.elapsedRealtime()-publishStarted)+" ms（不含封面加载）";
         showViewportStatus(markers.isEmpty());
         if(groupMode)restartVisibleImages();else loadMarkerCovers();
     }
@@ -742,7 +835,7 @@ public class MainActivity extends Activity {
         viewportDirty=true;
         viewportGeneration++;
         handler.removeCallbacks(viewportRefresh);
-        if(projectionTask!=null){view.removeCallbacks(projectionTask);projectionTask=null;}
+        if(projectionTask!=null){view.removeCallbacks(projectionTask);handler.removeCallbacks(projectionTask);projectionTask=null;}
         clusterWorker.getQueue().clear();
     }
 
@@ -835,7 +928,10 @@ public class MainActivity extends Activity {
         displayedScope=-1;
         cancelRequests();
         viewport=null;
+        clusterProjection=null;
+        panState=null;
         viewportPhase="尚未筛选";
+        viewportTimings="尚无刷新耗时";
         viewportMatches=viewportLoaded=0;
         cancelMarkerCovers();
         for(MarkerResource resource:markers.values())resource.release();

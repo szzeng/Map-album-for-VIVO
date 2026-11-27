@@ -19,6 +19,11 @@ public final class ScreenClustersPerformanceTest {
     public static void main(String[] args){
         int n=69637;int[] x=new int[n],y=new int[n];Random random=new Random(6006);
         for(int i=0;i<n;i++){x[i]=random.nextInt(1260);y[i]=random.nextInt(2800);}run("viewport",x,y,1);
+        int[] translatedX=new int[n],translatedY=new int[n],sources=new int[n];
+        for(int i=0;i<n;i++){translatedX[i]=x[i]+10;translatedY[i]=y[i]+20;sources[i]=i;}
+        long panStart=System.nanoTime();long[] offset=ScreenClusters.translation(x,y,sources,translatedX,translatedY,sources,n);
+        if(offset==null||offset[0]!=10||offset[1]!=20)throw new AssertionError("pan translation");
+        System.out.println("pan_reuse_check photos="+n+" ms="+(System.nanoTime()-panStart)/1000000);
         Arrays.fill(x,400);Arrays.fill(y,400);run("same_position",x,y,1);
         for(int i=0;i<n;i++){x[i]=400+random.nextInt(300);y[i]=400+random.nextInt(300);}run("local_dense",x,y,1);
         for(int i=0;i<n;i++){x[i]=100+(i%30)*2;y[i]=100+(i%20)*2;}run("repeated_pixels",x,y,1);

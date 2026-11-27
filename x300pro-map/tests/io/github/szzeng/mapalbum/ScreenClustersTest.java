@@ -5,6 +5,10 @@ import java.util.*;
 public final class ScreenClustersTest {
     private static void require(boolean b){if(!b)throw new AssertionError();}
     private static List<ScreenClusters.Cluster> group(int[] x,int[] y){return ScreenClusters.group(x,y,48,new int[]{8},100,()->false);}
+    private static void sameClusters(List<ScreenClusters.Cluster> a,List<ScreenClusters.Cluster> b){
+        require(a.size()==b.size());
+        for(int i=0;i<a.size();i++)require(a.get(i).x==b.get(i).x&&a.get(i).y==b.get(i).y&&Arrays.equals(a.get(i).members,b.get(i).members));
+    }
     private static final class Ref {
         long x,y;int n;List<Integer> members=new ArrayList<>();
         Ref(int x,int y,int i){this.x=x;this.y=y;n=1;members.add(i);}
@@ -51,15 +55,29 @@ public final class ScreenClustersTest {
         List<ScreenClusters.Cluster> weighted=group(new int[]{10,10,10,60},new int[]{10,10,10,10});
         require(weighted.size()==1&&weighted.get(0).x==23&&weighted.get(0).members.length==4);
         require(ScreenClusters.group(new int[]{0,1000},new int[]{0,1000},48,new int[]{8,12,16,24},1,()->false).size()==2);
+        int[] denseX=new int[10001],denseY=new int[10001];denseX[10000]=56;
+        List<ScreenClusters.Cluster> denseBoundary=group(denseX,denseY);
+        require(denseBoundary.size()==1&&denseBoundary.get(0).members.length==10001);
+        denseX[10000]=57;denseBoundary=group(denseX,denseY);
+        require(denseBoundary.size()==2);complete(denseBoundary,denseX.length,8);
         require(group(new int[]{10,110,220},new int[]{10,110,220}).size()==3);
         require(group(new int[0],new int[0]).isEmpty());
         require(group(new int[]{0,Integer.MAX_VALUE},new int[]{0,Integer.MAX_VALUE}).size()==2);
         try{group(new int[]{-1},new int[]{0});throw new AssertionError();}catch(IllegalArgumentException expected){}
         int[] x={110,120,210},y={210,220,220};List<ScreenClusters.Cluster> a=group(x,y),b=group(new int[]{147,157,247},new int[]{183,193,193});
         require(a.size()==b.size());for(int i=0;i<a.size();i++){require(Arrays.equals(a.get(i).members,b.get(i).members));require(b.get(i).x==a.get(i).x+37&&b.get(i).y==a.get(i).y-27);}
+        int[] sources={2,4,9};
+        require(Arrays.equals(ScreenClusters.translation(x,y,sources,new int[]{147,157,247},new int[]{183,193,193},sources,3),new long[]{37,-27}));
+        require(ScreenClusters.translation(x,y,sources,new int[]{147,158,247},new int[]{183,193,193},sources,3)==null);
+        require(ScreenClusters.translation(x,y,sources,new int[]{147,157,247},new int[]{183,193,193},new int[]{2,5,9},3)==null);
+        require(ScreenClusters.translation(x,y,sources,new int[]{147,157},new int[]{183,193},sources,2)==null);
+        require(ScreenClusters.canReusePan(1000,2000,1000,2000,12,12,0,0,0,0,550,1050,500,1000,250,500,56));
+        require(!ScreenClusters.canReusePan(1000,2000,1000,2000,13,12,0,0,0,0,550,1050,500,1000,250,500,56));
+        require(!ScreenClusters.canReusePan(1000,2000,1000,2000,12,12,0,0,0,0,695,1000,500,1000,250,500,56));
+        require(!ScreenClusters.canReusePan(1000,2000,1000,2000,12,12,0,0,-10,-10,500,1000,500,1000,250,500,56));
         require(group(new int[]{10,40},new int[]{10,10}).size()==1);
         require(group(new int[]{10,70},new int[]{10,10}).size()==2);
-        int[] xx=new int[1000],yy=new int[1000];for(int i=0;i<xx.length;i++){xx[i]=i%40*20;yy[i]=i/40*20;}
+        int[] xx=new int[1200],yy=new int[1200];for(int i=0;i<xx.length;i++){xx[i]=i%40*20;yy[i]=i/40*20;}
         complete(group(xx,yy),xx.length,8);
         Random random=new Random(6006);
         for(int trial=0;trial<200;trial++){
@@ -74,6 +92,16 @@ public final class ScreenClustersTest {
             List<ScreenClusters.Cluster> actual=group(rx,ry);List<Ref> expected=reference(rx,ry);require(actual.size()==expected.size());
             for(int i=0;i<actual.size();i++){Ref e=expected.get(i);ScreenClusters.Cluster a1=actual.get(i);require(a1.x==e.cx()&&a1.y==e.cy()&&a1.members.length==e.members.size());
                 for(int j=0;j<a1.members.length;j++)require(a1.members[j]==e.members.get(j));}
+        }
+        // Each expanded-gap stage must match the original full restart at that gap.
+        int[] gaps={8,12,16,24};
+        for(int trial=0;trial<120;trial++){
+            int[] rx=new int[90],ry=new int[90];for(int i=0;i<rx.length;i++){rx[i]=random.nextInt(800);ry[i]=random.nextInt(800);}
+            for(int limit:new int[]{1,15,50,100}){
+                List<ScreenClusters.Cluster> expected=null;
+                for(int gap:gaps){expected=ScreenClusters.group(rx,ry,48,new int[]{gap},limit,()->false);if(expected.size()<=limit)break;}
+                sameClusters(expected,ScreenClusters.group(rx,ry,48,gaps,limit,()->false));
+            }
         }
         try{ScreenClusters.group(xx,yy,48,new int[]{8},100,()->true);throw new AssertionError();}catch(java.util.concurrent.CancellationException expected){}
         System.out.println("ScreenClusters: passed");

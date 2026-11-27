@@ -17,13 +17,19 @@ final class ScreenClusters {
         public boolean equals(Object o){return o instanceof Cell && x==((Cell)o).x && y==((Cell)o).y;}
     }
     private static final class Node {
-        long sumX,sumY; int count, first, version;
-        Node left,right,best; boolean alive=true;
+        long sumX,sumY; int count, first, version; final int centerX,centerY;
+        Node left,right,best; Pair bestPair; final int[] initialMembers; boolean alive=true;
         Set<Node> followers=new HashSet<>();
-        Node(int x,int y,int i){sumX=x;sumY=y;count=1;first=i;}
-        Node(Node a,Node b){sumX=a.sumX+b.sumX;sumY=a.sumY+b.sumY;count=a.count+b.count;first=Math.min(a.first,b.first);left=a;right=b;}
-        int x(){return (int)Math.round((double)sumX/count);}
-        int y(){return (int)Math.round((double)sumY/count);}
+        Node(Seed s){sumX=s.sumX;sumY=s.sumY;count=s.size;first=s.members[0];initialMembers=Arrays.copyOf(s.members,s.size);
+            centerX=(int)Math.round((double)sumX/count);centerY=(int)Math.round((double)sumY/count);}
+        Node(Node a,Node b){sumX=a.sumX+b.sumX;sumY=a.sumY+b.sumY;count=a.count+b.count;first=Math.min(a.first,b.first);left=a;right=b;
+            initialMembers=null;centerX=(int)Math.round((double)sumX/count);centerY=(int)Math.round((double)sumY/count);}
+        int x(){return centerX;}
+        int y(){return centerY;}
+    }
+    private static final class Seed {
+        long sumX,sumY; int size; int[] members=new int[4];
+        void add(int x,int y,int index){sumX+=x;sumY+=y;if(size==members.length)members=Arrays.copyOf(members,size*2);members[size++]=index;}
     }
     private static final class Pair implements Comparable<Pair> {
         final Node a,b; final int version; final double gap,center;
@@ -38,12 +44,12 @@ final class ScreenClusters {
             return c!=0?c:Integer.compare(Math.max(a.first,b.first),Math.max(p.a.first,p.b.first));}
     }
     private static final class Engine {
-        final int width, gap, cell, fineCell; final BooleanSupplier cancelled;
+        final int width, cell, fineCell; int gap; final BooleanSupplier cancelled;
         final Map<Cell,Set<Node>> grid=new HashMap<>();
         final Map<Cell,Set<Node>> fineGrid=new HashMap<>();
         final PriorityQueue<Pair> queue=new PriorityQueue<>();
         int steps, live;
-        Engine(int width,int gap,BooleanSupplier cancelled){this.width=width;this.gap=gap;this.cell=width+gap;this.fineCell=Math.max(1,width/4);this.cancelled=cancelled;}
+        Engine(int width,int initialGap,BooleanSupplier cancelled){this.width=width;this.cell=width+initialGap;this.fineCell=Math.max(1,width/4);this.cancelled=cancelled;}
         void check(){if((++steps&1023)==0 && cancelled.getAsBoolean())throw new java.util.concurrent.CancellationException();}
         Cell key(Node n){return new Cell(Math.floorDiv((long)n.x(),cell),Math.floorDiv((long)n.y(),cell));}
         Cell fineKey(Node n){return new Cell(Math.floorDiv((long)n.x(),fineCell),Math.floorDiv((long)n.y(),fineCell));}
@@ -52,25 +58,47 @@ final class ScreenClusters {
         void remove(Node n){removeFrom(grid,key(n),n);removeFrom(fineGrid,fineKey(n),n);live--;}
         List<Node> neighbours(Node n){
             List<Node> result=new ArrayList<>(); Cell k=key(n);
-            for(int dx=-1;dx<=1;dx++)for(int dy=-1;dy<=1;dy++){
+            if(live>1000){
+                long reach=(long)width+gap;
+                long minX=Math.floorDiv((long)n.x()-reach,fineCell),maxX=Math.floorDiv((long)n.x()+reach,fineCell);
+                long minY=Math.floorDiv((long)n.y()-reach,fineCell),maxY=Math.floorDiv((long)n.y()+reach,fineCell);
+                for(long cx=minX;cx<=maxX;cx++)for(long cy=minY;cy<=maxY;cy++){
+                    Set<Node> bucket=fineGrid.get(new Cell(cx,cy));
+                    if(bucket!=null)for(Node other:bucket){check();if(other!=n&&other.alive&&Math.abs((long)n.x()-other.x())<=reach&&Math.abs((long)n.y()-other.y())<=reach)result.add(other);}
+                }
+                return result;
+            }
+            int radius=(int)(((long)width+gap+cell-1)/cell);
+            for(int dx=-radius;dx<=radius;dx++)for(int dy=-radius;dy<=radius;dy++){
                 Set<Node> bucket=grid.get(new Cell(k.x+dx,k.y+dy));
                 if(bucket!=null)for(Node other:bucket){check();if(other!=n && other.alive)result.add(other);}
             } return result;
         }
-        Pair candidate(Node a,Node b){Pair p=new Pair(a,b,width);return p.gap<=(double)gap*gap?p:null;}
+        Pair betterCandidate(Node a,Node b,Pair best){
+            long dx=Math.abs((long)a.x()-b.x()),dy=Math.abs((long)a.y()-b.y());
+            double gx=Math.max(0L,dx-width),gy=Math.max(0L,dy-width),distance=gx*gx+gy*gy;
+            if(distance>(double)gap*gap)return best;
+            double center=(double)dx*dx+(double)dy*dy;
+            if(best!=null){int c=Double.compare(distance,best.gap);if(c>0)return best;
+                if(c==0){c=Double.compare(center,best.center);if(c>0)return best;
+                    if(c==0){int first=Math.min(a.first,b.first),second=Math.max(a.first,b.first);
+                        int oldFirst=Math.min(best.a.first,best.b.first),oldSecond=Math.max(best.a.first,best.b.first);
+                        if(first>oldFirst||first==oldFirst&&second>=oldSecond)return best;}}}
+            return new Pair(a,b,width);
+        }
         void setBest(Node n,Node b){
             if(n.best!=null)n.best.followers.remove(n);
-            n.best=b;n.version++;
-            if(b!=null){b.followers.add(n);queue.add(new Pair(n,b,width));}
+            n.best=b;n.version++;n.bestPair=null;
+            if(b!=null){b.followers.add(n);n.bestPair=new Pair(n,b,width);queue.add(n.bestPair);}
         }
         void recompute(Node n){
-            Pair best=null;Cell k=fineKey(n);int maxRadius=(int)(((long)cell+fineCell-1)/fineCell)+1;
+            Pair best=null;Cell k=fineKey(n);int maxRadius=(int)(((long)width+gap+fineCell-1)/fineCell)+1;
             for(int radius=0;radius<=maxRadius;radius++){
                 for(int dx=-radius;dx<=radius;dx++)for(int dy=-radius;dy<=radius;dy++){
                     if(radius>0&&Math.abs(dx)!=radius&&Math.abs(dy)!=radius)continue;
                     Set<Node> bucket=fineGrid.get(new Cell(k.x+dx,k.y+dy));
                     if(bucket!=null)for(Node other:bucket){check();if(other==n||!other.alive)continue;
-                        Pair p=candidate(n,other);if(p!=null&&(best==null||p.compareTo(best)<0))best=p;}
+                        best=betterCandidate(n,other,best);}
                 }
                 // With zero rectangle gap, only centre distance can improve the winner.
                 // Points outside this square are at least 'outside' pixels away.
@@ -83,19 +111,26 @@ final class ScreenClusters {
             setBest(n,best==null?null:best.b);
         }
         void consider(Node n,Node other){
-            Pair p=candidate(n,other);if(p==null)return;
-            Pair old=n.best==null?null:new Pair(n,n.best,width);
-            if(old==null||p.compareTo(old)<0)setBest(n,other);
+            Pair old=n.bestPair;
+            if(betterCandidate(n,other,old)!=old)setBest(n,other);
         }
-        List<Cluster> run(int[] xs,int[] ys){
-            // Coordinate coalescing happens before neighbour search, including very large piles.
-            Map<Long,Node> exact=new LinkedHashMap<>();
+        List<Cluster> run(int[] xs,int[] ys,int[] gaps,int softLimit){
+            // Large views seed tiny, overlapping screen regions before collision merging.
+            // The grid is not the final grouping rule: all resulting centres still go
+            // through the same neighbour search, including across cell boundaries.
+            Map<Long,Seed> exact=new LinkedHashMap<>();
+            // Every pair in a seed cell overlaps: its side is only one quarter
+            // of the marker width. Cross-cell collision checks remain mandatory.
+            int seedCell=xs.length>=10000?Math.max(1,width/4):1;
             for(int i=0;i<xs.length;i++){
-                check(); long key=((long)xs[i]<<32) ^ (ys[i]&0xffffffffL);Node prior=exact.get(key);
-                Node item=new Node(xs[i],ys[i],i);exact.put(key,prior==null?item:new Node(prior,item));
+                check(); long key=((long)(xs[i]/seedCell)<<32) ^ ((ys[i]/seedCell)&0xffffffffL);
+                Seed seed=exact.get(key);if(seed==null){seed=new Seed();exact.put(key,seed);}seed.add(xs[i],ys[i],i);
             }
-            for(Node n:exact.values())add(n);
-            for(Node n:exact.values())recompute(n);
+            for(Seed seed:exact.values()){check();add(new Node(seed));}
+            exact.clear();
+            for(int stage=0;stage<gaps.length;stage++){
+            gap=gaps[stage];
+            for(Set<Node> bucket:grid.values())for(Node n:bucket)recompute(n);
             while(!queue.isEmpty()){
                 check();Pair p=queue.poll();Node a=p.a,b=p.b;
                 if(!a.alive||!b.alive||a.version!=p.version||a.best!=b)continue;
@@ -112,22 +147,39 @@ final class ScreenClusters {
                     queue.clear();for(Set<Node> bucket:grid.values())for(Node n:bucket)if(n.best!=null)queue.add(new Pair(n,n.best,width));
                 }
             }
+            if(live<=softLimit)break;
+            }
             List<Node> nodes=new ArrayList<>();for(Set<Node> bucket:grid.values())nodes.addAll(bucket);
             nodes.sort(Comparator.comparingInt(n->n.first));List<Cluster> out=new ArrayList<>();
             for(Node n:nodes){int[] members=new int[n.count];int at=0;ArrayDeque<Node> stack=new ArrayDeque<>();stack.push(n);
-                while(!stack.isEmpty()){Node v=stack.pop();if(v.left==null)members[at++]=v.first;else{stack.push(v.left);stack.push(v.right);}}
+                while(!stack.isEmpty()){check();Node v=stack.pop();if(v.left==null){System.arraycopy(v.initialMembers,0,members,at,v.initialMembers.length);at+=v.initialMembers.length;}else{stack.push(v.left);stack.push(v.right);}}
                 Arrays.sort(members);out.add(new Cluster(n.x(),n.y(),members));}
             return out;
         }
     }
+    /** Returns a uniform translation only when every projected source still matches. */
+    static long[] translation(int[] oldX,int[] oldY,int[] oldSources,int[] x,int[] y,int[] sources,int size){
+        if(oldX.length!=size||oldY.length!=size||oldSources.length!=size||x.length<size||y.length<size||sources.length<size)return null;
+        long dx=size==0?0:(long)x[0]-oldX[0],dy=size==0?0:(long)y[0]-oldY[0];
+        for(int i=0;i<size;i++)if(oldSources[i]!=sources[i]||(long)x[i]-oldX[i]!=dx||(long)y[i]-oldY[i]!=dy)return null;
+        return new long[]{dx,dy};
+    }
+    static boolean canReusePan(int width,int height,int previousWidth,int previousHeight,
+            float zoom,float previousZoom,float rotate,float previousRotate,float tilt,float previousTilt,
+            int anchorX,int anchorY,int originalX,int originalY,int marginX,int marginY,int clearance){
+        return width==previousWidth&&height==previousHeight&&Float.compare(zoom,previousZoom)==0
+            &&Float.compare(rotate,previousRotate)==0&&Float.compare(tilt,previousTilt)==0&&tilt==0f
+            &&marginX>=clearance&&marginY>=clearance
+            &&Math.abs((long)anchorX-originalX)<=marginX-clearance
+            &&Math.abs((long)anchorY-originalY)<=marginY-clearance;
+    }
     static List<Cluster> group(int[] xs,int[] ys,int markerPixels,int[] gaps,int softLimit,BooleanSupplier cancelled){
         if(xs==null||ys==null||xs.length!=ys.length||markerPixels<1||gaps==null||gaps.length==0||softLimit<1||cancelled==null)throw new IllegalArgumentException();
         for(int i=0;i<xs.length;i++)if(xs[i]<0||ys[i]<0)throw new IllegalArgumentException("points must be in viewport");
-        List<Cluster> result=null;
-        for(int gap:gaps){if(gap<0||markerPixels>Integer.MAX_VALUE-gap)throw new IllegalArgumentException();
-            if(cancelled.getAsBoolean())throw new java.util.concurrent.CancellationException();
-            result=new Engine(markerPixels,gap,cancelled).run(xs,ys);if(result.size()<=softLimit)break;}
-        return result;
+        int previous=-1;
+        for(int gap:gaps){if(gap<0||gap<previous||markerPixels>Integer.MAX_VALUE-gap)throw new IllegalArgumentException();previous=gap;}
+        if(cancelled.getAsBoolean())throw new java.util.concurrent.CancellationException();
+        return new Engine(markerPixels,gaps[0],cancelled).run(xs,ys,gaps,softLimit);
     }
     private ScreenClusters(){}
 }
