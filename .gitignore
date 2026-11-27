@@ -1,0 +1,6 @@
+# Local preview and test output; existing tracked evidence remains tracked.
+/artifacts/
+
+# Android Studio workspace files.
+.idea/
+*.iml

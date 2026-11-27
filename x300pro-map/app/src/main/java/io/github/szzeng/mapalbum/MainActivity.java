@@ -455,7 +455,15 @@ public class MainActivity extends Activity {
         galleryBars=groupMode;
     }
     private void closePhotoPanel(){cancelPhotoLoad();clearVisibleImages();groupMode=false;group=null;renderList();loadMarkerCovers();}
-    @Override public void onBackPressed(){if(placeSearch!=null&&placeSearch.isOpen()){placeSearch.close();return;}if(groupMode){closePhotoPanel();return;}super.onBackPressed();}
+    private long lastExitBack=-1;
+    @Override public void onBackPressed(){
+        if(placeSearch!=null&&placeSearch.isOpen()){placeSearch.close();return;}
+        if(groupMode){closePhotoPanel();return;}
+        long now=SystemClock.elapsedRealtime();
+        if(lastExitBack>=0&&now-lastExitBack<=2000){lastExitBack=-1;super.onBackPressed();return;}
+        lastExitBack=now;
+        Toast.makeText(this,"再按一次退出应用",Toast.LENGTH_SHORT).show();
+    }
     private void renderList(){
         if(panel==null)return;
         panel.setPhotos(group,oldestFirst);
@@ -872,6 +880,7 @@ public class MainActivity extends Activity {
     private void resumeMapView(){if(active&&view!=null&&!mapResumed){view.onResume();mapResumed=true;}}
     @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();}}
     @Override protected void onPause(){
+        lastExitBack=-1;
         active=false;
         if(placeSearch!=null)placeSearch.close();
         if(displayedScope>=0)showScopeCover();

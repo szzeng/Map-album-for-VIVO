@@ -35,7 +35,7 @@ import org.example.map002probe.PhotoTimeline;
 final class PhotoGalleryView extends LinearLayout {
     private static final int COLUMNS=4, TILE_GAP_DP=5, SIDE_PADDING_DP=14, GRID_PADDING_DP=5;
     private static final int RAIL_WIDTH_DP=24, RAIL_EDGE_DP=1;
-    private static final int SCROLL_MONTH_HEIGHT_DP=38;
+    private static final int SCROLL_MONTH_HEIGHT_DP=46;
     private final int primary, secondary, controlText, control, ripple, placeholder;
     private final NumberFormat number=NumberFormat.getIntegerInstance(Locale.CHINA);
     private final ThumbnailLoader thumbnails;
@@ -131,9 +131,9 @@ final class PhotoGalleryView extends LinearLayout {
         loading.setGravity(Gravity.CENTER);
         loading.setVisibility(View.GONE);
         listArea.addView(loading,new FrameLayout.LayoutParams(-1,-1));
-        scrollMonth=text(15,controlText,true);
-        scrollMonth.setPadding(dp(13),0,dp(13),0);
-        scrollMonth.setBackground(rounded(control,17));
+        scrollMonth=text(18,controlText,true);
+        scrollMonth.setPadding(dp(16),0,dp(16),0);
+        scrollMonth.setBackground(rounded(control,20));
         scrollMonth.setVisibility(View.GONE);
         scrollMonth.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         FrameLayout.LayoutParams bubble=new FrameLayout.LayoutParams(-2,dp(SCROLL_MONTH_HEIGHT_DP),Gravity.TOP|Gravity.END);
@@ -465,7 +465,8 @@ final class PhotoGalleryView extends LinearLayout {
             scrollMonth.setText(adapter.monthAt(row));
             FrameLayout.LayoutParams bubble=(FrameLayout.LayoutParams)scrollMonth.getLayoutParams();
             int height=dp(SCROLL_MONTH_HEIGHT_DP);
-            bubble.topMargin=Math.max(0,Math.min(getHeight()-height,Math.round(y-height/2f)));
+            int parentHeight=((View)getParent()).getHeight();
+            bubble.topMargin=Math.max(0,Math.min(Math.max(0,parentHeight-height),Math.round(getTop()+y-height-dp(24))));
             scrollMonth.setLayoutParams(bubble);
             scrollMonth.setVisibility(VISIBLE);
         }
