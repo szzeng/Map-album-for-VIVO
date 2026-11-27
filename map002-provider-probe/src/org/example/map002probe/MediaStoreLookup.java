@@ -53,7 +53,13 @@ public final class MediaStoreLookup {
         cancel.throwIfCanceled();if(!primaryOnly())throw new PrimaryPhotoSource.UnsupportedVolumeException();
         Metadata[] result=new Metadata[ids.length];if(ids.length==0)return result;
         if(MediaIdentity.isVideo(ids[ids.length-1])){
-            for(int i=0;i<ids.length;i++){cancel.throwIfCanceled();result[i]=lookup(ids[i],cancel);if(result[i]==null)throw new MapDataRepository.MediaScopeChangedException();}
+            for(int i=0;i<ids.length;i++){
+                cancel.throwIfCanceled();
+                if(!MediaIdentity.isVideo(ids[i])){result[i]=lookup(ids[i],cancel);if(result[i]==null)throw new MapDataRepository.MediaScopeChangedException();continue;}
+                try{result[i]=lookup(ids[i],cancel);if(result[i]==null)throw new IllegalStateException("video unavailable");}
+                catch(android.os.OperationCanceledException canceled){throw canceled;}
+                catch(RuntimeException unavailable){cancel.throwIfCanceled();throw new MapDataRepository.VideoReadException(unavailable);}
+            }
             return result;
         }
         StringBuilder where=new StringBuilder("_id IN (");String[] args=new String[ids.length];
@@ -79,7 +85,11 @@ public final class MediaStoreLookup {
         if(!primaryOnly())throw new PrimaryPhotoSource.UnsupportedVolumeException();
         int split=from;while(split<to&&!MediaIdentity.isVideo(ids[split]))split++;
         if(split>from)lookupTimelineType(ids,from,split,dates,versions,cancel,false);
-        if(split<to)lookupTimelineType(ids,split,to,dates,versions,cancel,true);
+        if(split<to){
+            try{lookupTimelineType(ids,split,to,dates,versions,cancel,true);}
+            catch(android.os.OperationCanceledException canceled){throw canceled;}
+            catch(RuntimeException unavailable){cancel.throwIfCanceled();throw new MapDataRepository.VideoReadException(unavailable);}
+        }
     }
     private void lookupTimelineType(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal cancel,boolean video){
         StringBuilder where=new StringBuilder("_id IN (");

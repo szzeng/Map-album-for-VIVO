@@ -52,11 +52,44 @@ public final class RepositoryLifecycleTest {
   Backend mismatch=new Backend();mismatch.wrongMetadata=true;MapDataRepository badMetadata=MapDataRepository.forSyntheticFixture(mismatch);badMetadata.foreground();waitState(badMetadata,MapDataRepository.State.READY);CountDownLatch invalidBatch=new CountDownLatch(1);badMetadata.query(22,24,112,114,w->{check(badMetadata.metadataBatchNow(new long[]{1,2})==null);invalidBatch.countDown();});check(invalidBatch.await(4,TimeUnit.SECONDS));check(badMetadata.state()==MapDataRepository.State.FAILED);badMetadata.close();
   checkSelectionCancellationAndRecovery();
   checkTimelineCancellationAndOrdering();
+  checkVideoFailureIsolation();
+  checkVideoMetadataFailure();
   checkMixedMediaScope();
   checkSinglePreviewScope();
   int[] across=ViewportFilter.queryIndexes(new double[]{0,0,0},new double[]{179.5,-179.5,0},3,-1,1,179,-179,new CancellationSignal());
   check(java.util.Arrays.equals(across,new int[]{0,1}));
   System.out.println("RepositoryLifecycleTest: passed");
+ }
+ private static void checkVideoFailureIsolation(){
+  long photo=io.github.szzeng.mapalbum.MediaIdentity.photo(7),video=io.github.szzeng.mapalbum.MediaIdentity.video(7);
+  PrimaryPhotoSource.ids=new long[]{photo};PrimaryVideoSource.ids=new long[]{video};
+  MapDataRepository.DeviceBackend backend=new MapDataRepository.DeviceBackend(new android.content.Context());
+  try{
+   java.lang.reflect.Field mode=MapDataRepository.DeviceBackend.class.getDeclaredField("mode");mode.setAccessible(true);mode.setInt(backend,1);
+   CancellationSignal signal=new CancellationSignal();
+   PrimaryVideoSource.listFailure=new SecurityException();
+   check(java.util.Arrays.equals(backend.visibleIds(10,signal),new long[]{photo}));
+   PrimaryVideoSource.listFailure=new IllegalStateException();
+   check(java.util.Arrays.equals(backend.visibleIds(10,signal),new long[]{photo}));
+   PrimaryVideoSource.listFailure=null;
+   long[] ids=backend.visibleIds(10,signal);check(ids.length==2);
+   PrimaryVideoSource.batchFailure=new PrimaryPhotoSource.ProviderException(new IllegalStateException());
+   PrimitiveLocationSet output=new PrimitiveLocationSet(2);backend.appendBatch(ids,0,2,output,signal);output.seal();
+   check(output.size()==1&&output.idAt(0)==photo);output.close();
+   signal.cancel();try{backend.visibleIds(10,signal);throw new AssertionError();}catch(android.os.OperationCanceledException expected){}
+  }catch(ReflectiveOperationException e){throw new AssertionError(e);}
+  finally{PrimaryPhotoSource.ids=new long[0];PrimaryVideoSource.ids=new long[0];PrimaryVideoSource.listFailure=null;PrimaryVideoSource.batchFailure=null;}
+ }
+ private static void checkVideoMetadataFailure()throws Exception {
+  long photo=io.github.szzeng.mapalbum.MediaIdentity.photo(7),video=io.github.szzeng.mapalbum.MediaIdentity.video(7);
+  Backend source=new Backend(){@Override public void timelineBatch(long[] ids,int from,int to,long[] dates,long[] versions,CancellationSignal signal){throw new MapDataRepository.VideoReadException(new SecurityException());}};
+  source.ids=new long[]{photo,video};
+  try(MapDataRepository repository=MapDataRepository.forSyntheticFixture(source)){
+   repository.foreground();waitState(repository,MapDataRepository.State.READY);
+   CountDownLatch done=new CountDownLatch(1);
+   check(repository.loadPhotoTimeline(source.ids,result->{check(result==null);done.countDown();})!=null);
+   check(done.await(4,TimeUnit.SECONDS));check(repository.state()==MapDataRepository.State.READY&&repository.validCount()==2);
+  }
  }
  private static void checkMixedMediaScope()throws Exception {
   long photo=io.github.szzeng.mapalbum.MediaIdentity.photo(7),video=io.github.szzeng.mapalbum.MediaIdentity.video(7);

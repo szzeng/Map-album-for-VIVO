@@ -465,6 +465,9 @@ public class MainActivity extends Activity {
             Toast.makeText(this,"视频访问不可用，已切回照片",Toast.LENGTH_SHORT).show();applyMediaMode(0);return;
         }
         if(state==MapDataRepository.State.READY){
+            if(mediaMode!=0&&!hasVideoAccess()){
+                Toast.makeText(this,"视频访问不可用，已切回照片",Toast.LENGTH_SHORT).show();applyMediaMode(0);return;
+            }
             if(mediaMode!=0&&android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission("android.permission.READ_MEDIA_VIDEO")!=android.content.pm.PackageManager.PERMISSION_GRANTED&&experiment.visibleVideoCount()==0){
                 Toast.makeText(this,"没有可访问的视频，已切回照片",Toast.LENGTH_SHORT).show();applyMediaMode(0);return;
             }

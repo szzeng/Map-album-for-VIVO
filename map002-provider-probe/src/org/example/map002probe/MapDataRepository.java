@@ -15,6 +15,7 @@ import io.github.szzeng.mapalbum.MediaIdentity;
 public final class MapDataRepository implements AutoCloseable {
     public enum State { INACTIVE, IDLE, LOADING, READY, IDENTITY_UNVERIFIED, VOLUME_UNSUPPORTED, CAPACITY_EXCEEDED, ACCESS_DENIED, PROVIDER_INCOMPATIBLE, SCOPE_CHANGED, FAILED, CLOSED }
     static final class MediaScopeChangedException extends IllegalStateException { }
+    static final class VideoReadException extends IllegalStateException { VideoReadException(Throwable cause){super(cause);} }
     public interface Callback<T> { void complete(T value); }
     interface Backend {
         int batchPauseMillis();
@@ -129,10 +130,10 @@ public final class MapDataRepository implements AutoCloseable {
         synchronized(data){if(!data.contains(id))return null;}
         try {
             MediaStoreLookup.Metadata value=backend.metadata(id,signal);
-            if(value==null || value.id!=id){failIfCurrent(ticket,signal);return null;}
+            if(value==null || value.id!=id){if(!MediaIdentity.isVideo(id))failIfCurrent(ticket,signal);return null;}
             return current(ticket,signal)?value:null;
         } catch(android.os.OperationCanceledException canceled){return null;}
-          catch(RuntimeException failure){failIfCurrent(ticket,signal);return null;}
+          catch(RuntimeException failure){if(!MediaIdentity.isVideo(id))failIfCurrent(ticket,signal);return null;}
     }
     /** Called only inside a viewport callback; canceled when its viewport becomes stale. */
     public MediaStoreLookup.Metadata[] metadataBatchNow(long[] ids) {
@@ -150,6 +151,7 @@ public final class MapDataRepository implements AutoCloseable {
             for(int i=0;i<ids.length;i++)if(result[i]==null||result[i].id!=ids[i])throw new IllegalStateException("metadata identity mismatch");
             return currentQuery(ticket,signal,queryTicket,query)?result:null;
         } catch(android.os.OperationCanceledException canceled){return null;}
+          catch(VideoReadException unavailable){return null;}
           catch(MediaScopeChangedException missing){failIfCurrent(ticket,signal,queryTicket,query,State.SCOPE_CHANGED);return null;}
           catch(SecurityException denied){failIfCurrent(ticket,signal,queryTicket,query,State.ACCESS_DENIED);return null;}
           catch(RuntimeException failure){failIfCurrent(ticket,signal,queryTicket,query,State.FAILED);return null;}
@@ -203,6 +205,8 @@ public final class MapDataRepository implements AutoCloseable {
                 if(current(ticket,scopeSignal)&&!request.signal.isCanceled())result=new PhotoTimeline(ids,dates,versions,request.signal);
             }catch(android.os.OperationCanceledException canceled){
                 return;
+            }catch(VideoReadException unavailable){
+                // Keep the verified map available when video metadata cannot be read.
             }catch(MediaScopeChangedException missing){
                 if(!request.signal.isCanceled())failIfCurrent(ticket,scopeSignal,0,null,State.SCOPE_CHANGED);
             }catch(SecurityException denied){
@@ -460,9 +464,9 @@ public final class MapDataRepository implements AutoCloseable {
         final long ticket;final CancellationSignal signal;final PrimitiveLocationSet data;
         synchronized(this){if(!foreground||state!=State.READY||cache==null)return false;ticket=epoch;signal=current;data=cache;}
         try {worker.execute(new Runnable(){public void run(){
-            try {boolean present;synchronized(data){present=data.contains(id);}if(!present){if(current(ticket,signal))callback.complete(null);return;}MediaStoreLookup.Metadata result=backend.metadata(id,signal);if(result!=null && result.id!=id){failIfCurrent(ticket,signal);return;}if(current(ticket,signal))callback.complete(result);}
+            try {boolean present;synchronized(data){present=data.contains(id);}if(!present){if(current(ticket,signal))callback.complete(null);return;}MediaStoreLookup.Metadata result=backend.metadata(id,signal);if(result!=null && result.id!=id){if(!MediaIdentity.isVideo(id))failIfCurrent(ticket,signal);else if(current(ticket,signal))callback.complete(null);return;}if(current(ticket,signal))callback.complete(result);}
             catch(android.os.OperationCanceledException ignored) { }
-            catch(RuntimeException failure){failIfCurrent(ticket,signal);}
+            catch(RuntimeException failure){if(MediaIdentity.isVideo(id)){if(current(ticket,signal))callback.complete(null);}else failIfCurrent(ticket,signal);}
         }});return true;}catch(RejectedExecutionException e){return false;}
     }
     boolean thumbnail(final long id,final Callback<Bitmap> callback){
@@ -473,11 +477,11 @@ public final class MapDataRepository implements AutoCloseable {
             Bitmap result=null;
             try {boolean present;synchronized(data){present=data.contains(id);}if(!present){if(current(ticket,signal))callback.complete(null);return;}result=backend.thumbnail(id,signal);if(current(ticket,signal)){callback.complete(result);result=null;}}
             catch(android.os.OperationCanceledException ignored) { }
-            catch(RuntimeException failure){failIfCurrent(ticket,signal);}
+            catch(RuntimeException failure){if(MediaIdentity.isVideo(id)){if(current(ticket,signal))callback.complete(null);}else failIfCurrent(ticket,signal);}
             finally {if(result!=null)result.recycle();}
         }});return true;}catch(RejectedExecutionException e){return false;}
     }
-    private static final class DeviceBackend implements Backend {
+    static final class DeviceBackend implements Backend {
         private final PrimaryPhotoSource source;private final PrimaryVideoSource video;private final MediaStoreLookup media;
         private volatile int mode,videoCount;
         DeviceBackend(Context context){source=new PrimaryPhotoSource(context);video=new PrimaryVideoSource(context);media=new MediaStoreLookup(context);}
@@ -487,7 +491,10 @@ public final class MapDataRepository implements AutoCloseable {
         public long[] visibleIds(int capacity,CancellationSignal signal){
             long[] photos=mode==2?new long[0]:source.visibleIds(capacity,signal);
             if(mode==0){videoCount=0;return photos;}
-            long[] videos=video.visibleIds(capacity-photos.length,signal);
+            long[] videos;
+            try {videos=video.visibleIds(capacity-photos.length,signal);}
+            catch(android.os.OperationCanceledException canceled){throw canceled;}
+            catch(RuntimeException unavailable){signal.throwIfCanceled();videos=new long[0];}
             videoCount=videos.length;
             long[] both=Arrays.copyOf(photos,photos.length+videos.length);
             System.arraycopy(videos,0,both,photos.length,videos.length);return both;
@@ -495,7 +502,11 @@ public final class MapDataRepository implements AutoCloseable {
         public void appendBatch(long[] ids,int from,int to,PrimitiveLocationSet output,CancellationSignal signal){
             int split=from;while(split<to&&!MediaIdentity.isVideo(ids[split]))split++;
             if(split>from)source.appendBatch(ids,from,split,output,signal);
-            for(int start=split;start<to;start+=512)video.appendBatch(ids,start,Math.min(to,start+512),output,signal);
+            for(int start=split;start<to;start+=512){
+                try {video.appendBatch(ids,start,Math.min(to,start+512),output,signal);}
+                catch(android.os.OperationCanceledException canceled){throw canceled;}
+                catch(RuntimeException unavailable){signal.throwIfCanceled();}
+            }
         }
         public boolean scopeUnchanged(long[] ids,CancellationSignal signal){return source.primaryOnly() && Arrays.equals(ids,visibleIds(CAPACITY,signal));}
         public MediaStoreLookup.Metadata metadata(long id,CancellationSignal signal){return media.lookup(id,signal);}
