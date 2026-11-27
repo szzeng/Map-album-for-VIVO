@@ -1,6 +1,6 @@
 # Android 工程说明
 
-本目录是「图迹 for VIVO」Android 应用工程。面向 vivo 手机，复用 vivo 图库 Provider 与 Android MediaStore 的已有照片索引，在百度地图上展示照片位置。
+本目录是「图迹 for VIVO」Android 应用工程。面向 vivo 手机，复用 vivo 图库 Provider 与 Android MediaStore 的已有媒体索引，在百度地图上展示照片和视频位置。
 
 项目总览、功能介绍、设备支持、隐私边界和已知限制请先阅读仓库根目录的 [中文 README](../README.md)。
 
@@ -19,12 +19,12 @@
 
 ## 主要实现
 
-- `MainActivity`：地图主界面、地图类型切换、定位、照片聚合和菜单。
+- `MainActivity`：地图主界面、地图类型切换、定位、照片与视频聚合、模式切换和菜单。
 - `PlaceSearch`：地点联想、POI 搜索、搜索历史和地图定位。
-- `PhotoGalleryView`：地图照片列表与交互。
-- `PhotoPreviewActivity`：全屏照片预览、切换和进度条选图。
+- `PhotoGalleryView`：地图媒体列表与交互。
+- `PhotoPreviewActivity`：照片预览、媒体切换和通过系统播放器播放视频。
 - `ThumbnailLoader`：系统缩略图按需加载，32 MiB 有界内存 LRU 缓存，两个后台线程和有界任务队列。
-- `ScreenClusters`：基于屏幕距离的照片标记聚合。
+- `ScreenClusters`：基于屏幕距离的媒体标记聚合。
 - `Appearance`：系统深浅色跟随和手动暗夜模式。
 - `../map002-provider-probe/src`：复用的只读图库数据读取、位置索引和视野筛选实现。
 
@@ -34,9 +34,9 @@
 
 - 仅在用户确认并授予权限后启用图库地图。
 - 当前只支持 Android MediaStore 主卷；位置索引仅保存在进程内存中。
-- 当前可见照片 ID 上限为 100,000；超限、权限异常、卷不受支持或 vivo Provider 不兼容时停止读取并报告状态。
-- 通过 MediaStore 当前可见照片 ID 与 vivo Provider 记录关联已有 GPS；不重新扫描 EXIF、不写入 Provider、不建立持久化照片或 GPS 数据库。
-- 照片元数据与系统缩略图按视野和用户操作读取；缩略图缓存仅在内存中，受 32 MiB 上限约束。
+- 可见媒体 ID 容量上限为 100,000；视频不可用时隔离视频读取，照片仍按原有权限及安全检查处理。
+- 通过 MediaStore 当前可见媒体 ID 与 vivo Provider 记录关联已有 GPS；视频必须通过类型、路径及有效坐标校验；不重新扫描 EXIF、不写入 Provider、不建立持久化照片或 GPS 数据库。
+- 照片和视频元数据与系统缩略图按视野和用户操作读取；缩略图缓存仅在内存中，受 32 MiB 上限约束。
 - 不后台持续定位，不保存位置历史。
 - 地图位置支持全球视野，但当前境内外坐标转换使用近似区域判断，不能视为已完成全球坐标验证。边境附近和海外照片需结合实际地点核对。
 - 百度地图、POI 搜索和定位服务需要网络与有效 AK。境外底图可能按请求网格计费，详见 [百度境外地图服务说明](https://lbsyun.baidu.com/docs/android?title=androidsdk/guide/create-map/showmap/abroad)。
