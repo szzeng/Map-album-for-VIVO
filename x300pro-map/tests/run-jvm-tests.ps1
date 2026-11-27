@@ -19,6 +19,10 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & java -cp $out io.github.szzeng.mapalbum.ViewportBoundsTest
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& javac -encoding UTF-8 -d $out (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/PrivacyConsent.java') (Join-Path $PSScriptRoot 'io/github/szzeng/mapalbum/PrivacyConsentTest.java')
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& java -cp $out io.github.szzeng.mapalbum.PrivacyConsentTest
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & javac -encoding UTF-8 -d $out (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/MarkerCount.java') (Join-Path $PSScriptRoot 'io/github/szzeng/mapalbum/MarkerCountTest.java')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & java -cp $out io.github.szzeng.mapalbum.MarkerCountTest

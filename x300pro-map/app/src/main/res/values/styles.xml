@@ -2,4 +2,7 @@
     <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowActionModeOverlay">true</item>
     </style>
+    <style name="PreviewTheme" parent="AppTheme">
+        <item name="android:windowBackground">@color/preview_background</item>
+    </style>
 </resources>

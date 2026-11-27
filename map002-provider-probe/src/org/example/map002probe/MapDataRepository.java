@@ -146,9 +146,9 @@ public final class MapDataRepository implements AutoCloseable {
                 catch (RuntimeException ignored) { }
                 synchronized(MapDataRepository.this) {
                     if(!current(ticket,signal)) return;
-                    if(same) { state=State.READY; callback.complete(state); return; }
+                    if(same) { querySignal=new CancellationSignal();queryEpoch++;state=State.READY; callback.complete(state); return; }
+                    cancelAndRelease(State.IDLE); load(); callback.complete(state());
                 }
-                cancelAndRelease(State.IDLE); load(); callback.complete(state());
             }); } catch(RejectedExecutionException e) { cancelAndRelease(State.FAILED); callback.complete(state()); }
         }
     }
@@ -160,15 +160,24 @@ public final class MapDataRepository implements AutoCloseable {
             foreground=true; snapshot=scope;signal=current;ticket=epoch;state=State.LOADING;
             try {worker.execute(()->{
                 boolean same=false;try{same=backend.scopeUnchanged(snapshot,signal);}catch(RuntimeException ignored){}
-                synchronized(MapDataRepository.this){if(!current(ticket,signal))return;if(same){state=State.READY;callback.complete(true);return;}}
-                cancelAndRelease(State.SCOPE_CHANGED);callback.complete(false);
+                synchronized(MapDataRepository.this){if(!current(ticket,signal))return;if(same){querySignal=new CancellationSignal();queryEpoch++;state=State.READY;callback.complete(true);return;}
+                    cancelAndRelease(State.SCOPE_CHANGED);callback.complete(false);}
             });} catch(RejectedExecutionException e){cancelAndRelease(State.FAILED);callback.complete(false);}
         }
     }
     public void suspend() {
-        boolean release;
-        synchronized(this){foreground=false; release=state!=State.READY; if(querySignal!=null)querySignal.cancel();querySignal=null;queryEpoch++;worker.getQueue().clear();pendingQuery=null;}
-        if(release)cancelAndRelease(State.INACTIVE);
+        CancellationSignal old=null;
+        synchronized(this){
+            if(state==State.CLOSED)return;
+            foreground=false;
+            if(querySignal!=null)querySignal.cancel();querySignal=null;queryEpoch++;
+            worker.getQueue().clear();pendingQuery=null;
+            if(cache!=null && scope!=null && (state==State.READY || state==State.LOADING)){
+                // Invalidate any running scope verification without invalidating the snapshot token.
+                old=current;current=new CancellationSignal();state=State.READY;
+            }else{cancelAndRelease(State.INACTIVE);}
+        }
+        if(old!=null)old.cancel();
     }
     public void stopAndClear(){background();}
     public void start(){foreground();}

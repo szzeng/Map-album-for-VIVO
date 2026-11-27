@@ -57,7 +57,9 @@ public class MainActivity extends Activity {
             this.repository=repository;this.scopeToken=scopeToken;this.photos=new ArrayList<>(photos);this.oldestFirst=oldestFirst;this.scroll=scroll;this.offset=offset;
         }
     }
-    private boolean active;
+    private boolean active, mapResumed, viewportDirty=true;
+    private long displayedScope=-1;
+    private View scopeCover;
     private long viewportGeneration;
     private final Runnable checkLoad=this::checkRepository;
     private String scopeLabel="未授权";
@@ -89,16 +91,16 @@ public class MainActivity extends Activity {
         TEXT=getColor(R.color.app_text);SECONDARY=getColor(R.color.app_secondary);ACCENT=getColor(R.color.app_accent);PLACEHOLDER=getColor(R.color.app_placeholder);SURFACE=getColor(R.color.app_surface);FLOATING=getColor(R.color.app_floating);CHIP=getColor(R.color.app_chip);DIVIDER=getColor(R.color.app_divider);MAP_BACKGROUND=getColor(R.color.app_map_background);MENU_ICON=getColor(R.color.app_menu_icon);
         thumbnails=new ThumbnailLoader(getContentResolver());
         TextView waiting=label("等待隐私选择",14,TEXT);setContentView(waiting);
-        if(state!=null && state.getBoolean("privacyAccepted")){privacyAccepted=true;initializeMap();return;}
+        if(PrivacyConsent.isCurrent(getPreferences(MODE_PRIVATE).getInt(PrivacyConsent.KEY,0))){privacyAccepted=true;initializeMap();return;}
         new AlertDialog.Builder(this).setTitle("百度地图与定位隐私说明").setMessage("图迹使用百度地图 SDK。点击当前位置后，图迹会请求前台位置权限，并使用百度定位 SDK 获取当前位置，SDK 可能读取 Wi-Fi 状态辅助定位；百度按其隐私政策处理定位请求。图迹不进行后台持续定位、不建立位置历史、不上传位置到图迹自有服务。拒绝定位权限不影响地图和照片浏览。请先阅读百度隐私政策；不同意时不初始化 SDK。")
             .setNeutralButton("查看隐私政策",(d,w)->{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://map.baidu.com/zt/client/privacy/index.html")));finish();})
-            .setNegativeButton("不同意",(d,w)->finish()).setPositiveButton("同意并打开",(d,w)->{privacyAccepted=true;initializeMap();}).setOnCancelListener(d->finish()).show();
+            .setNegativeButton("不同意",(d,w)->finish()).setPositiveButton("同意并打开",(d,w)->{if(!getPreferences(MODE_PRIVATE).edit().putInt(PrivacyConsent.KEY,PrivacyConsent.VERSION).commit()){Toast.makeText(this,"无法保存隐私选择，请重试",Toast.LENGTH_LONG).show();finish();return;}privacyAccepted=true;initializeMap();}).setOnCancelListener(d->finish()).show();
     }
     private void initializeMap(){try {
         SDKInitializer.setAgreePrivacy(getApplicationContext(),true);SDKInitializer.initialize(getApplicationContext());SDKInitializer.setCoordType(CoordType.BD09LL);
         BaiduMapOptions options=new BaiduMapOptions();
         if(saved!=null&&transientMapStatus!=null)options.mapStatus(transientMapStatus);
-        root=new FrameLayout(this);root.setBackgroundColor(MAP_BACKGROUND);view=new MapView(this,options);view.showZoomControls(false);root.addView(view);setContentView(root);view.onResume();map=view.getMap();map.setMapType(BaiduMap.MAP_TYPE_NORMAL);map.setMapThemeMode(darkMode?BMThemeMode.MapThemeModeDark:BMThemeMode.MapThemeModeDefault);view.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(r-l!=or-ol||b-t!=ob-ot)schedule();});
+        root=new FrameLayout(this);root.setBackgroundColor(MAP_BACKGROUND);view=new MapView(this,options);view.showZoomControls(false);root.addView(view);setContentView(root);resumeMapView();map=view.getMap();map.setMapType(BaiduMap.MAP_TYPE_NORMAL);map.setMapThemeMode(darkMode?BMThemeMode.MapThemeModeDark:BMThemeMode.MapThemeModeDefault);view.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(r-l!=or-ol||b-t!=ob-ot)schedule();});
         map.setOnMarkerClickListener(m->{Bundle b=m.getExtraInfo();if(b!=null&&b.getBoolean("overview")){int[] members=overviewMembers.get(b.getString("overviewKey"));if(members!=null&&members.length<=10000)openOverviewGroup(members);else{float zoom=map.getMapStatus().zoom;if(zoom>=20.5f)Toast.makeText(this,"此处照片超过一万张，请移动地图缩小范围",Toast.LENGTH_LONG).show();else map.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(m.getPosition(),Math.min(21f,zoom+2)));}return true;}int[] ids=b==null?null:b.getIntArray("samples");if(ids!=null)showCluster(ids);return true;});
         map.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener(){public void onMapStatusChangeStart(MapStatus s){cancelRequests();}public void onMapStatusChangeStart(MapStatus s,int reason){cancelRequests();}public void onMapStatusChange(MapStatus s){}public void onMapStatusChangeFinish(MapStatus s){schedule();}});
         buildUi();
@@ -109,7 +111,7 @@ public class MainActivity extends Activity {
     }catch(RuntimeException e){TextView failure=label("地图加载失败，请重新打开图迹",14,SECONDARY);failure.setGravity(Gravity.CENTER);setContentView(failure);}}
     private void buildUi(){
         LinearLayout brand=new LinearLayout(this);brand.setGravity(Gravity.CENTER_VERTICAL);brand.setPadding(dp(9),0,dp(4),0);brand.setBackground(shape(FLOATING,15));brand.setElevation(dp(3));
-        ImageView icon=new ImageView(this);icon.setImageDrawable(new PinIcon());icon.setPadding(dp(6),dp(6),dp(6),dp(6));icon.setBackground(shape(ACCENT,11));brand.addView(icon,new LinearLayout.LayoutParams(dp(36),dp(36)));
+        ImageView icon=new ImageView(this);icon.setImageResource(R.drawable.brand_logo);icon.setScaleType(ImageView.ScaleType.FIT_CENTER);brand.addView(icon,new LinearLayout.LayoutParams(dp(36),dp(36)));
         LinearLayout names=new LinearLayout(this);names.setOrientation(LinearLayout.VERTICAL);names.setPadding(dp(8),0,0,0);TextView name=label("图迹",17,TEXT);name.setTypeface(null,Typeface.BOLD);names.addView(name);TextView sub=label("MAP ALBUM",8,SECONDARY);names.addView(sub);brand.addView(names,new LinearLayout.LayoutParams(0,-2,1));
         count=label("实验模式未启用",12,ACCENT);count.setGravity(Gravity.CENTER);count.setPadding(dp(8),0,dp(8),0);count.setBackground(shape(CHIP,14));brand.addView(count,new LinearLayout.LayoutParams(-2,dp(28)));
         TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");brand.addView(menu,new LinearLayout.LayoutParams(dp(48),dp(48)));menu.setOnClickListener(v->showMenu(menu));
@@ -164,25 +166,25 @@ public class MainActivity extends Activity {
     }
     private void resumeExperiment(){
         if(!active||map==null||experiment==null)return;
-        clearData();
-        if(!hasPhotoAccess()){pendingPhotoReturn=null;experiment.stopAndClear();scopeLabel="未授权";loadError="照片权限未授予，请在菜单中启用实验模式并授权";count.setText("实验模式 · 无权限");renderList();return;}
+        if(!hasPhotoAccess()){pendingPhotoReturn=null;experiment.stopAndClear();clearData();hideScopeCover();scopeLabel="未授权";loadError="照片权限未授予，请在菜单中启用实验模式并授权";count.setText("实验模式 · 无权限");renderList();return;}
         scopeLabel=android.os.Build.VERSION.SDK_INT>=34 && checkSelfPermission("android.permission.READ_MEDIA_IMAGES")!=android.content.pm.PackageManager.PERMISSION_GRANTED?"部分照片":"完整照片";
-        loading=true;count.setText("正在检查授权范围");renderList();
+        showScopeCover();loading=true;count.setText("正在检查授权范围");
         experiment.resumeChecked(state->handler.post(()->{if(active)checkRepository();}));
         handler.removeCallbacks(checkLoad);handler.postDelayed(checkLoad,200);
     }
     private void checkRepository(){
         if(!active||experiment==null||count==null)return;
         MapDataRepository.State state=experiment.state();
-        if(state==MapDataRepository.State.READY){loading=false;loadError=null;count.setText("实验模式 · "+experiment.validCount()+" 张有位置");restorePreviewReturn();schedule();}
+        if(state==MapDataRepository.State.READY){long token=experiment.scopeToken();if(token<0)return;boolean changed=displayedScope!=token;if(changed){clearData();displayedScope=token;viewportDirty=true;}loading=false;loadError=null;count.setText("实验模式 · "+experiment.validCount()+" 张有位置");restorePreviewReturn();hideScopeCover();if(viewportDirty||cachedViewport==null){viewportDirty=false;schedule();}}
         else if(state==MapDataRepository.State.LOADING||state==MapDataRepository.State.IDLE){loading=true;count.setText("正在读取照片位置");handler.removeCallbacks(checkLoad);handler.postDelayed(checkLoad,300);}
-        else {pendingPhotoReturn=null;clearData();loading=false;loadError=state==MapDataRepository.State.CAPACITY_EXCEEDED?"照片超过 100,000 张容量限制":state==MapDataRepository.State.ACCESS_DENIED?"照片访问被拒绝":state==MapDataRepository.State.VOLUME_UNSUPPORTED?"当前存储卷不符合主卷限制":state==MapDataRepository.State.SCOPE_CHANGED?"授权范围发生变化，请刷新":state==MapDataRepository.State.IDENTITY_UNVERIFIED?"设备身份未验证":"照片位置读取失败，请刷新";count.setText("实验模式 · 读取失败");renderList();}
+        else {pendingPhotoReturn=null;clearData();hideScopeCover();loading=false;loadError=state==MapDataRepository.State.CAPACITY_EXCEEDED?"照片超过 100,000 张容量限制":state==MapDataRepository.State.ACCESS_DENIED?"照片访问被拒绝":state==MapDataRepository.State.VOLUME_UNSUPPORTED?"当前存储卷不符合主卷限制":state==MapDataRepository.State.SCOPE_CHANGED?"授权范围发生变化，请刷新":state==MapDataRepository.State.IDENTITY_UNVERIFIED?"设备身份未验证":"照片位置读取失败，请刷新";count.setText("实验模式 · 读取失败");renderList();}
     }
     private void restorePreviewReturn(){
         PendingPhotoReturn pending=pendingPhotoReturn;if(pending==null)return;pendingPhotoReturn=null;
         if(pending.repository!=experiment||pending.scopeToken<0||pending.scopeToken!=experiment.scopeToken()){
             Toast.makeText(this,"照片授权范围已变化，请重新选择照片",Toast.LENGTH_LONG).show();return;
         }
+        if(groupMode)return;
         group.clear();group.addAll(pending.photos);oldestFirst=pending.oldestFirst;groupMode=true;expanded=true;
         restorePosition=pending.scroll;restoreOffset=pending.offset;renderList();
     }
@@ -213,7 +215,7 @@ public class MainActivity extends Activity {
     }
     private void stopLocation(){handler.removeCallbacks(locationTimeout);LocationClient client=locationClient;locationClient=null;if(client!=null){if(locationListener!=null)client.unRegisterLocationListener(locationListener);client.stop();}locationListener=null;}
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] grants){super.onRequestPermissionsResult(request,permissions,grants);if(request==103){resumeExperiment();return;}if(request==102){if(checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED||checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)==android.content.pm.PackageManager.PERMISSION_GRANTED)requestCurrentLocation();else Toast.makeText(this,"未授予位置权限，仍可浏览照片地图",Toast.LENGTH_LONG).show();}}
-    private void schedule(){handler.removeCallbacks(viewportRefresh);if(experiment!=null && experiment.state()==MapDataRepository.State.READY)handler.postDelayed(viewportRefresh,200);}
+    private void schedule(){if(!active)return;viewportDirty=true;handler.removeCallbacks(viewportRefresh);if(experiment!=null && experiment.state()==MapDataRepository.State.READY){viewportDirty=false;handler.postDelayed(viewportRefresh,200);}}
     private void queryViewport(){
         if(!active||experiment==null||map==null||view.getWidth()==0||view.getHeight()==0)return;
         int width=view.getWidth(),height=view.getHeight();
@@ -287,7 +289,7 @@ public class MainActivity extends Activity {
                 String key="overview:"+Arrays.toString(members);retained.add(key);nextMembers.put(key,members);
                 LatLng position=members.length==1?CoordinateAdapter.adapt(data.latitudes[members[0]],data.longitudes[members[0]]):map.getProjection().fromScreenLocation(new Point(c.x,c.y));if(position==null)continue;
                 MarkerResource marker=markers.get(key);
-                if(marker==null){Bitmap bitmap=markerBitmap(null,members.length);BitmapDescriptor descriptor=BitmapDescriptorFactory.fromBitmap(bitmap);Bundle info=new Bundle();info.putBoolean("overview",true);info.putString("overviewKey",key);Marker overlay=(Marker)map.addOverlay(new MarkerOptions().position(position).icon(descriptor).anchor(.5f,.5f).extraInfo(info));marker=new MarkerResource(overlay,descriptor,bitmap);markers.put(key,marker);}else marker.marker.setPosition(position);
+                if(marker==null){Bitmap bitmap=markerBitmap(null,members.length);BitmapDescriptor descriptor=BitmapDescriptorFactory.fromBitmap(bitmap);Bundle info=new Bundle();info.putBoolean("overview",true);info.putString("overviewKey",key);Marker overlay=(Marker)map.addOverlay(new MarkerOptions().position(position).icon(descriptor).anchor(.5f,.5f).zIndex(members.length).extraInfo(info));marker=new MarkerResource(overlay,descriptor,bitmap);markers.put(key,marker);}else marker.marker.setPosition(position);
                 if(!marker.hasCover&&!marker.requested){int first=members[0];Uri uri=android.content.ContentUris.withAppendedId(android.provider.MediaStore.Images.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY),data.ids[first]);PhotoItem cover=new PhotoItem(uri,data.latitudes[first],data.longitudes[first],null,false,0,null);loadCover(key,marker,Collections.singletonList(cover),0,members.length,generation);}
             }
             Iterator<Map.Entry<String,MarkerResource>> it=markers.entrySet().iterator();while(it.hasNext()){Map.Entry<String,MarkerResource> entry=it.next();if(!retained.contains(entry.getKey())){entry.getValue().release();it.remove();}}
@@ -316,7 +318,7 @@ public class MainActivity extends Activity {
         area.clear();for(int i:visible)area.add(samples.get(i));Collections.sort(area,NEWEST);if(groupMode&&restorePosition<0){restorePosition=grid.getFirstVisiblePosition();View first=grid.getChildAt(0);restoreOffset=first==null?0:first.getTop()-grid.getPaddingTop();}renderList();int[] xs=new int[pts.size()],ys=new int[pts.size()];for(int i=0;i<pts.size();i++){xs[i]=pts.get(i).x;ys[i]=pts.get(i).y;}
         Point gridOrigin=map.getProjection().toScreenLocation(new LatLng(23.0,113.0));int originX=gridOrigin==null?0:gridOrigin.x,originY=gridOrigin==null?0:gridOrigin.y;
         int cellPixels=ScreenClusters.stableCellPixels(view.getWidth(),view.getHeight(),Math.max(1,dp(72)),100);
-        Set<String> retained=new HashSet<>();for(ScreenClusters.Cluster c:ScreenClusters.group(xs,ys,originX,originY,cellPixels,100)){int[] ids=new int[c.members.length];for(int i=0;i<ids.length;i++)ids[i]=visible.get(c.members[i]);String key=Arrays.toString(ids);retained.add(key);LatLng center=ids.length==1?positions.get(samples.get(ids[0])):map.getProjection().fromScreenLocation(new Point(c.x,c.y));if(center==null)continue;MarkerResource r=markers.get(key);if(r==null){Bitmap bm=markerBitmap(null,ids.length);BitmapDescriptor desc=BitmapDescriptorFactory.fromBitmap(bm);Bundle info=new Bundle();info.putIntArray("samples",ids);Marker m=(Marker)map.addOverlay(new MarkerOptions().position(center).icon(desc).anchor(.5f,.5f).extraInfo(info));r=new MarkerResource(m,desc,bm);markers.put(key,r);}else r.marker.setPosition(center);if(!r.hasCover&&!r.requested){ArrayList<PhotoItem> covers=new ArrayList<>();for(int id:ids)covers.add(samples.get(id));Collections.sort(covers,NEWEST);loadCover(key,r,covers,0,ids.length,generation);}}
+        Set<String> retained=new HashSet<>();for(ScreenClusters.Cluster c:ScreenClusters.group(xs,ys,originX,originY,cellPixels,100)){int[] ids=new int[c.members.length];for(int i=0;i<ids.length;i++)ids[i]=visible.get(c.members[i]);String key=Arrays.toString(ids);retained.add(key);LatLng center=ids.length==1?positions.get(samples.get(ids[0])):map.getProjection().fromScreenLocation(new Point(c.x,c.y));if(center==null)continue;MarkerResource r=markers.get(key);if(r==null){Bitmap bm=markerBitmap(null,ids.length);BitmapDescriptor desc=BitmapDescriptorFactory.fromBitmap(bm);Bundle info=new Bundle();info.putIntArray("samples",ids);Marker m=(Marker)map.addOverlay(new MarkerOptions().position(center).icon(desc).anchor(.5f,.5f).zIndex(ids.length).extraInfo(info));r=new MarkerResource(m,desc,bm);markers.put(key,r);}else r.marker.setPosition(center);if(!r.hasCover&&!r.requested){ArrayList<PhotoItem> covers=new ArrayList<>();for(int id:ids)covers.add(samples.get(id));Collections.sort(covers,NEWEST);loadCover(key,r,covers,0,ids.length,generation);}}
         Iterator<Map.Entry<String,MarkerResource>> it=markers.entrySet().iterator();while(it.hasNext()){Map.Entry<String,MarkerResource> e=it.next();if(!retained.contains(e.getKey())){e.getValue().release();it.remove();}}}
     private void loadCover(String key,MarkerResource target,List<PhotoItem> covers,int index,int total,long ticket){if(index>=covers.size()){target.requested=false;return;}target.requested=true;PhotoItem s=covers.get(index);thumbnails.load(s.uri,s.mediaVersion,160,b->{if(ticket!=generation||markers.get(key)!=target)return;if(b==null){loadCover(key,target,covers,index+1,total,ticket);return;}Bitmap bm=markerBitmap(b,total);BitmapDescriptor desc=BitmapDescriptorFactory.fromBitmap(bm);target.marker.setIcon(desc);target.descriptor.recycle();target.bitmap.recycle();target.descriptor=desc;target.bitmap=bm;target.hasCover=true;target.requested=false;});}
     private Bitmap markerBitmap(Bitmap original,int count){int n=dp(48),border=dp(2);Bitmap out=Bitmap.createBitmap(n,n,Bitmap.Config.ARGB_8888);Canvas c=new Canvas(out);Paint p=new Paint(3);p.setColor(SURFACE);c.drawRoundRect(0,0,n,n,dp(9),dp(9),p);p.setColor(PLACEHOLDER);c.drawRoundRect(border,border,n-border,n-border,dp(7),dp(7),p);if(original!=null){float scale=Math.max((float)(n-2*border)/original.getWidth(),(float)(n-2*border)/original.getHeight());Matrix m=new Matrix();m.setScale(scale,scale);m.postTranslate((n-original.getWidth()*scale)/2,(n-original.getHeight()*scale)/2);BitmapShader shader=new BitmapShader(original,Shader.TileMode.CLAMP,Shader.TileMode.CLAMP);shader.setLocalMatrix(m);p.setShader(shader);c.drawRoundRect(border,border,n-border,n-border,dp(7),dp(7),p);p.setShader(null);}if(count>1){String text=MarkerCount.format(count);p.setTextSize(dp(10));p.setTypeface(Typeface.DEFAULT_BOLD);float w=Math.max(dp(19),p.measureText(text)+dp(8));p.setColor(0xe6263a49);c.drawRoundRect(n-w-dp(1),n-dp(17),n-dp(1),n-dp(1),dp(8),dp(8),p);p.setColor(-1);p.setTextAlign(Paint.Align.CENTER);c.drawText(text,n-w/2-dp(1),n-dp(5),p);}return out;}
@@ -368,7 +370,7 @@ public class MainActivity extends Activity {
         public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
     }
     private void clearMarkers(){overviewMembers.clear();handler.removeCallbacks(refresh);for(MarkerResource r:markers.values())r.release();markers.clear();positions.clear();}
-    private void clearData(){cachedViewport=null;overview=null;viewportGeneration++;handler.removeCallbacks(viewportRefresh);viewportPhase="尚未筛选";viewportMatches=viewportLoaded=0;generation++;if(pending!=null){pending.cancel();pending=null;}clearMarkers();thumbnails.clear();samples.clear();area.clear();group.clear();groupMode=false;loading=false;loadError=null;unmapped=withoutGps=unavailable=excluded=0;restorePosition=-1;restoreOffset=0;if(count!=null)count.setText("实验模式未启用");renderList();}
+    private void clearData(){displayedScope=-1;viewportDirty=true;cachedViewport=null;overview=null;viewportGeneration++;handler.removeCallbacks(viewportRefresh);viewportPhase="尚未筛选";viewportMatches=viewportLoaded=0;generation++;if(pending!=null){pending.cancel();pending=null;}clearMarkers();thumbnails.clear();samples.clear();area.clear();group.clear();groupMode=false;loading=false;loadError=null;unmapped=withoutGps=unavailable=excluded=0;restorePosition=-1;restoreOffset=0;if(count!=null)count.setText("实验模式未启用");renderList();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);if(map!=null)transientMapStatus=map.getMapStatus();out.putBoolean("privacyAccepted",privacyAccepted);out.putBoolean("expanded",expanded);out.putBoolean("oldestFirst",oldestFirst);}
     private void updateNetworkStatus(){
         if(networkStatus==null)return;
@@ -379,20 +381,11 @@ public class MainActivity extends Activity {
     }
     @Override protected void onStart(){super.onStart();ConnectivityManager manager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);if(manager!=null){manager.registerDefaultNetworkCallback(networkCallback);networkCallbackRegistered=true;}updateNetworkStatus();}
     @Override protected void onStop(){stopLocation();if(networkCallbackRegistered){ConnectivityManager manager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);if(manager!=null)manager.unregisterNetworkCallback(networkCallback);networkCallbackRegistered=false;}super.onStop();}
-    @Override protected void onResume(){super.onResume();active=true;if(view!=null){view.onResume();resumeExperiment();}}
-    @Override protected void onPause(){active=false;viewportGeneration++;handler.removeCallbacks(checkLoad);handler.removeCallbacks(viewportRefresh);if(experiment!=null)experiment.suspend();if(view!=null){clearData();view.onPause();}super.onPause();}
+    private void showScopeCover(){if(root==null||scopeCover!=null)return;TextView cover=label("正在检查照片授权",14,SECONDARY);cover.setGravity(Gravity.CENTER);cover.setBackgroundColor(MAP_BACKGROUND);cover.setClickable(true);scopeCover=cover;root.addView(cover,new FrameLayout.LayoutParams(-1,-1));}
+    private void hideScopeCover(){if(scopeCover!=null){root.removeView(scopeCover);scopeCover=null;}}
+    private void resumeMapView(){if(active&&view!=null&&!mapResumed){view.onResume();mapResumed=true;}}
+    @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();}}
+    @Override protected void onPause(){if(experiment!=null)showScopeCover();if(handler.hasCallbacks(viewportRefresh)||handler.hasCallbacks(refresh))viewportDirty=true;active=false;cancelRequests();handler.removeCallbacks(checkLoad);stopLocation();if(experiment!=null)experiment.suspend();if(view!=null&&mapResumed){view.onPause();mapResumed=false;}super.onPause();}
     @Override protected void onDestroy(){clearData();thumbnails.close();worker.shutdownNow();if(view!=null)view.onDestroy();super.onDestroy();}
-    private final class PinIcon extends android.graphics.drawable.Drawable {
-        private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
-        public void draw(Canvas canvas){
-            android.graphics.Rect bounds=getBounds();float x=bounds.exactCenterX(),top=bounds.top,w=bounds.width(),h=bounds.height();
-            paint.setColor(darkMode?0xff18272d:0xffffffff);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.8f));
-            Path pin=new Path();pin.moveTo(x,top+h*.94f);pin.cubicTo(x-w*.12f,top+h*.84f,x-w*.42f,top+h*.61f,x-w*.42f,top+h*.36f);
-            pin.cubicTo(x-w*.42f,top-h*.10f,x+w*.42f,top-h*.10f,x+w*.42f,top+h*.36f);
-            pin.cubicTo(x+w*.42f,top+h*.61f,x+w*.12f,top+h*.84f,x,top+h*.94f);pin.close();canvas.drawPath(pin,paint);
-            paint.setStyle(Paint.Style.FILL);canvas.drawCircle(x,top+h*.36f,w*.11f,paint);
-        }
-        public void setAlpha(int alpha){} public void setColorFilter(android.graphics.ColorFilter filter){} public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
-    }
     private final class FitIcon extends android.graphics.drawable.Drawable{private final Paint p=new Paint(3);public void draw(Canvas c){android.graphics.Rect b=getBounds();float x=b.exactCenterX(),y=b.exactCenterY(),r=Math.min(b.width(),b.height())*.32f;p.setColor(ACCENT);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));p.setStrokeCap(Paint.Cap.ROUND);c.drawCircle(x,y,r,p);c.drawLine(x,b.top,x,y-r,p);c.drawLine(x,y+r,x,b.bottom,p);c.drawLine(b.left,y,x-r,y,p);c.drawLine(x+r,y,b.right,y,p);p.setStyle(Paint.Style.FILL);c.drawCircle(x,y,dp(2),p);}public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}}
 }

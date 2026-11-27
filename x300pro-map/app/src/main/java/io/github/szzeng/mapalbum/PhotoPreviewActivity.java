@@ -41,7 +41,8 @@ public final class PhotoPreviewActivity extends Activity {
     private ZoomablePreview image;
     private FrameLayout page, photoArea;
     private LinearLayout card, topControls;
-    private View topShade;
+    private View topShade, scopeCover;
+    private boolean photoShown;
     private TextView number, navNumber, date, path, error, previous, next;
     private SeekBar progress;
 
@@ -59,7 +60,7 @@ public final class PhotoPreviewActivity extends Activity {
         index=Math.max(0,Math.min(photos.size()-1,state==null?getIntent().getIntExtra("index",0):state.getInt("index")));
         controlsVisible=state==null||state.getBoolean("controlsVisible",true);
         loader=new ThumbnailLoader(getContentResolver());
-        getWindow().setStatusBarColor(Color.TRANSPARENT);getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        getWindow().setBackgroundDrawableResource(R.color.preview_background);getWindow().setStatusBarColor(Color.TRANSPARENT);getWindow().setNavigationBarColor(Color.TRANSPARENT);
         getWindow().getDecorView().setSystemUiVisibility(systemUiFlags(false));
 
         page=new FrameLayout(this);page.setBackgroundColor(BACKGROUND);setContentView(page);
@@ -96,7 +97,7 @@ public final class PhotoPreviewActivity extends Activity {
         FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM);cp.leftMargin=dp(12);cp.rightMargin=dp(12);page.addView(card,cp);
         card.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{if(b-t!=ob-ot)updatePhotoBounds();});
         page.setOnApplyWindowInsetsListener((v,insets)->{topInset=insets.getSystemWindowInsetTop();bottomInset=Build.VERSION.SDK_INT>=30?Math.max(insets.getInsets(WindowInsets.Type.navigationBars()).bottom,insets.getInsets(WindowInsets.Type.systemGestures()).bottom):insets.getSystemWindowInsetBottom();updateInsets();return insets;});
-        updateControls();page.setVisibility(View.INVISIBLE);
+        updateControls();showScopeCover();
     }
 
     private TextView arrow(String symbol,String description){TextView button=text(symbol,30,PRIMARY);button.setGravity(Gravity.CENTER);button.setContentDescription(description);button.setBackground(shape(CONTROL,24));return button;}
@@ -114,6 +115,7 @@ public final class PhotoPreviewActivity extends Activity {
     private void selectIndex(int target,boolean animate){if(target<0||target>=photos.size()||target==index)return;direction=animate?Integer.compare(target,index):0;index=target;showPhoto();}
     private Bundle itemAt(int position){PhotoItem photo=photos.get(position);Bundle item=new Bundle();item.putParcelable("uri",photo.uri);item.putParcelable("document",photo.documentUri);item.putLong("version",photo.mediaVersion);item.putLong("date",photo.dateTaken==null?0:photo.dateTaken);item.putBoolean("fallback",photo.dateFallback);item.putString("path",photo.relativePath);return item;}
     private void showPhoto(){
+        photoShown=true;
         loader.cancelPending();int ticket=++request;Bundle item=itemAt(index);String position=(index+1)+" / "+photos.size();number.setText(position);navNumber.setText(position);progress.setProgress(index);
         previous.setEnabled(index>0);next.setEnabled(index+1<photos.size());previous.setAlpha(previous.isEnabled()?1f:.35f);next.setAlpha(next.isEnabled()?1f:.35f);
         long time=item.getLong("date",0);date.setText(time<=0?"拍摄时间未知":new SimpleDateFormat("yyyy年M月d日 HH:mm",Locale.CHINA).format(new Date(time))+(item.getBoolean("fallback")?"（系统时间）":""));
@@ -144,11 +146,13 @@ public final class PhotoPreviewActivity extends Activity {
     }
     private void displayThumbnail(Bitmap bitmap,boolean animate){error.setVisibility(View.GONE);if(image.getDrawable()!=null)image.replacePreview(bitmap);else{image.setImageBitmap(bitmap);image.resetPreview();}if(animate&&direction!=0){image.setAlpha(0f);image.setTranslationX(dp(20)*direction);image.animate().alpha(1f).translationX(0).setDuration(180).start();}}
     private void openOriginal(){Uri uri=photos.get(index).documentUri;if(uri==null){Toast.makeText(this,"照片不可用",Toast.LENGTH_SHORT).show();return;}Intent standard=new Intent(Intent.ACTION_VIEW).setDataAndType(uri,"image/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);try{for(String packageName:new String[]{"com.vivo.gallery","com.android.gallery3d"}){Intent gallery=new Intent(standard).setPackage(packageName);if(gallery.resolveActivity(getPackageManager())!=null){try{startActivity(gallery);return;}catch(android.content.ActivityNotFoundException|SecurityException ignored){}}}startActivity(standard);}catch(Exception e){Toast.makeText(this,"无法打开原生相册",Toast.LENGTH_SHORT).show();}}
+    private void showScopeCover(){if(page==null||scopeCover!=null)return;TextView cover=text("正在检查照片授权",14,SECONDARY);cover.setGravity(Gravity.CENTER);cover.setBackgroundColor(BACKGROUND);cover.setClickable(true);scopeCover=cover;page.addView(cover,new FrameLayout.LayoutParams(-1,-1));}
+    private void hideScopeCover(){if(scopeCover!=null){page.removeView(scopeCover);scopeCover=null;}}
     @Override protected void onResume(){
-        super.onResume();activePreview=true;if(page==null)return;page.setVisibility(View.INVISIBLE);
-        MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}page.setVisibility(View.VISIBLE);showPhoto();}));
+        super.onResume();activePreview=true;if(page==null)return;showScopeCover();
+        MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||image.getDrawable()==null)showPhoto();hideScopeCover();}));
     }
-    @Override protected void onPause(){activePreview=false;request++;if(loader!=null)loader.clear();if(page!=null)page.setVisibility(View.INVISIBLE);MainActivity.suspendPreviewScope();super.onPause();}
+    @Override protected void onPause(){showScopeCover();activePreview=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("controlsVisible",controlsVisible);}
     @Override protected void onDestroy(){request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }
