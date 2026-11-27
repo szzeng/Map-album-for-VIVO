@@ -11,7 +11,7 @@ def sideBySideDebug = providers.gradleProperty('mapAlbumSideBySideDebug').map { 
 android {
     namespace 'io.github.szzeng.mapalbum'
     compileSdk 34
-    defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 3; versionName '0.2.1' }
+    defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 4; versionName '0.3.0' }
     buildFeatures { buildConfig true }
     signingConfigs {
         personalRelease {
