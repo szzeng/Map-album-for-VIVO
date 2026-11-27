@@ -52,6 +52,7 @@ public final class PhotoPreviewActivity extends Activity {
     @Override protected void attachBaseContext(Context base){super.attachBaseContext(base);Appearance.applyOverride(this,base);}
     @Override public void onCreate(Bundle state){
         super.onCreate(state);
+        openingOriginal=state!=null&&state.getBoolean("openingOriginal",false);
         darkMode=(getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES;
         BACKGROUND=getColor(R.color.preview_background);CARD=getColor(R.color.preview_card);CONTROL=getColor(R.color.preview_control);PRIMARY=getColor(R.color.preview_primary);SECONDARY=getColor(R.color.preview_secondary);ACCENT=getColor(R.color.app_accent);SHADE=getColor(R.color.preview_shade);
         photos=PreviewSessionStore.get(getIntent().getStringExtra("session"));
@@ -212,10 +213,12 @@ public final class PhotoPreviewActivity extends Activity {
     private void showScopeCover(){if(page==null||scopeCover!=null)return;TextView cover=text("正在检查照片授权",14,SECONDARY);cover.setGravity(Gravity.CENTER);cover.setBackgroundColor(BACKGROUND);cover.setClickable(true);scopeCover=cover;page.addView(cover,new FrameLayout.LayoutParams(-1,-1));}
     private void hideScopeCover(){if(scopeCover!=null){page.removeView(scopeCover);scopeCover=null;}}
     @Override protected void onResume(){
-        super.onResume();activePreview=true;openingOriginal=false;if(page==null)return;showScopeCover();
+        super.onResume();
+        if(openingOriginal){openingOriginal=false;finish();return;}
+        activePreview=true;if(page==null)return;showScopeCover();
         MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||image.getDrawable()==null)showPhoto(false);hideScopeCover();}));
     }
     @Override protected void onPause(){showScopeCover();activePreview=false;request++;cancelPreviewLoad();if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
-    @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);}
+    @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("openingOriginal",openingOriginal);}
     @Override protected void onDestroy(){request++;cancelPreviewLoad();if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }
