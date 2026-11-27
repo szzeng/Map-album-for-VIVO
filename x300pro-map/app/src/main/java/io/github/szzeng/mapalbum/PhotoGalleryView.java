@@ -21,7 +21,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.text.NumberFormat;
@@ -96,12 +95,12 @@ final class PhotoGalleryView extends LinearLayout {
         title.setEllipsize(TextUtils.TruncateAt.END);
         title.setAccessibilityHeading(true);
         identity.addView(title,new LayoutParams(-1,-2));
-        total=text(11,secondary,false);
+        total=text(12,secondary,false);
         LayoutParams totalParams=new LayoutParams(-1,-2);
         totalParams.topMargin=dp(3);
         identity.addView(total,totalParams);
 
-        sort=text(12,controlText,true);
+        sort=text(13,controlText,true);
         sort.setSingleLine();
         sort.setPadding(dp(10),0,dp(10),0);
         sort.setGravity(Gravity.CENTER);
@@ -109,7 +108,7 @@ final class PhotoGalleryView extends LinearLayout {
         sort.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         sortTarget=new FrameLayout(context);
         sortTarget.addView(sort,new FrameLayout.LayoutParams(-2,dp(30),Gravity.CENTER));
-        sortTarget.setOnClickListener(v->showSortMenu(changeSort));
+        sortTarget.setOnClickListener(v->changeSort.accept(!oldestFirst));
         bar.addView(sortTarget,new LayoutParams(-2,dp(48)));
 
         View line=new View(context);
@@ -153,19 +152,9 @@ final class PhotoGalleryView extends LinearLayout {
         oldestFirst=oldest;
         total.setText(number.format(photos.size())+" 张照片");
         String order=oldest?"最早优先":"最新优先";
-        sort.setText(order+"  ▾");
-        sortTarget.setContentDescription("照片排序，当前"+order);
+        sort.setText(order+"  ⇅");
+        sortTarget.setContentDescription("照片排序，当前"+order+"，点击切换");
         adapter.setPhotos(photos);
-    }
-
-    private void showSortMenu(Consumer<Boolean> changeSort){
-        PopupMenu menu=new PopupMenu(getContext(),sort,Gravity.END);
-        menu.getMenu().add(0,1,0,"最新优先");
-        menu.getMenu().add(0,2,1,"最早优先");
-        menu.getMenu().setGroupCheckable(0,true,true);
-        menu.getMenu().findItem(oldestFirst?2:1).setChecked(true);
-        menu.setOnMenuItemClickListener(item->{changeSort.accept(item.getItemId()==2);return true;});
-        menu.show();
     }
 
     int firstVisiblePhoto(){
@@ -307,13 +296,13 @@ final class PhotoGalleryView extends LinearLayout {
             Context context=getContext();
             dayHeading=new LinearLayout(context);
             dayHeading.setGravity(Gravity.BOTTOM);
-            dayHeading.setPadding(dp(1),dp(15),dp(1),dp(9));
+            dayHeading.setPaddingRelative(dp(1),dp(15),dp(RAIL_WIDTH_DP+RAIL_EDGE_DP),dp(9));
             dayHeading.setAccessibilityHeading(true);
             dayHeading.setScreenReaderFocusable(true);
             addView(dayHeading,new LayoutParams(-1,-2));
-            date=text(17,primary,true);
+            date=text(16,primary,true);
             dayHeading.addView(date,new LayoutParams(-2,-2));
-            year=text(11,secondary,false);
+            year=text(12,secondary,false);
             LayoutParams yearParams=new LayoutParams(0,-2,1);
             yearParams.setMarginStart(dp(7));
             dayHeading.addView(year,yearParams);
@@ -408,18 +397,19 @@ final class PhotoGalleryView extends LinearLayout {
             first=firstRow;
             visible=visibleRows;
             total=totalRows;
-            setVisibility(total>=40&&visible>0&&total>visible?VISIBLE:INVISIBLE);
+            setVisibility(visible>0&&(dragging||grid.canScrollVertically(-1)||grid.canScrollVertically(1))?VISIBLE:INVISIBLE);
             invalidate();
         }
 
         private float thumbLength(){
-            return Math.min(getHeight(),Math.max(dp(56),getHeight()*(float)visible/total));
+            return Math.min(getHeight()*.85f,Math.max(dp(56),getHeight()*(float)visible/total));
         }
 
         @Override protected void onDraw(Canvas canvas){
-            if(total<=visible||getHeight()==0)return;
+            if(total==0||getHeight()==0)return;
             float length=thumbLength();
-            float top=(getHeight()-length)*Math.min(1,first/(float)(total-visible));
+            float fraction=!grid.canScrollVertically(1)&&grid.canScrollVertically(-1)?1f:Math.min(1,first/(float)Math.max(1,total-visible));
+            float top=(getHeight()-length)*fraction;
             float x=getWidth()/2f,radius=dp(dragging?5:3);
             paint.setColor(controlText);
             paint.setAlpha(dragging?200:132);
@@ -427,7 +417,7 @@ final class PhotoGalleryView extends LinearLayout {
         }
 
         @Override public boolean onTouchEvent(MotionEvent event){
-            if(total<=visible||getHeight()==0)return false;
+            if(total==0||getHeight()==0)return false;
             switch(event.getActionMasked()){
                 case MotionEvent.ACTION_DOWN:
                     dragging=true;
@@ -453,7 +443,7 @@ final class PhotoGalleryView extends LinearLayout {
         private void scrollTo(float y){
             float length=thumbLength();
             float fraction=Math.max(0,Math.min(1,(y-length/2)/Math.max(1,getHeight()-length)));
-            int row=Math.round(fraction*(total-visible));
+            int row=Math.min(total-1,Math.round(fraction*Math.max(1,total-visible)));
             grid.setSelection(row);
             scrollMonth.setText(adapter.monthAt(row));
             FrameLayout.LayoutParams bubble=(FrameLayout.LayoutParams)scrollMonth.getLayoutParams();
@@ -467,7 +457,7 @@ final class PhotoGalleryView extends LinearLayout {
             dragging=false;
             getParent().requestDisallowInterceptTouchEvent(false);
             scrollMonth.setVisibility(GONE);
-            invalidate();
+            update(grid.getFirstVisiblePosition(),grid.getChildCount(),adapter.getCount());
         }
 
         @Override public boolean performClick(){return super.performClick();}

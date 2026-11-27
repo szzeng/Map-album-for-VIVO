@@ -10,7 +10,7 @@ def arm64DebugOnly = providers.gradleProperty('mapAlbumArm64Only').map { it.toBo
 android {
     namespace 'io.github.szzeng.mapalbum'
     compileSdk 34
-    defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 2; versionName '0.2.0' }
+    defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 3; versionName '0.2.1' }
     buildFeatures { buildConfig true }
     signingConfigs {
         personalRelease {

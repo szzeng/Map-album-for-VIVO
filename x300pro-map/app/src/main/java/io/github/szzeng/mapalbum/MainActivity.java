@@ -68,6 +68,7 @@ public class MainActivity extends Activity {
     private long displayedScope=-1;
     private TextView scopeCover;
     private volatile long viewportGeneration;
+    private int projectionRetries;
     private Runnable projectionTask;
     private final Runnable checkLoad=this::checkRepository;
     private String scopeLabel="未授权";
@@ -444,25 +445,36 @@ public class MainActivity extends Activity {
     private void schedule(){
         if(!active)return;
         cancelRequests();
+        projectionRetries=0;
         if(experiment!=null && experiment.state()==MapDataRepository.State.READY){
             handler.postDelayed(viewportRefresh,40);
         }
+    }
+
+    private void retryProjection(){
+        if(!active)return;
+        viewportDirty=true;
+        handler.removeCallbacks(viewportRefresh);
+        if(++projectionRetries<=20)handler.postDelayed(viewportRefresh,250);
+        else showViewportFailure(viewportGeneration);
     }
 
     private void queryViewport(){
         if(!active||experiment==null||map==null||view.getWidth()==0||view.getHeight()==0)return;
         int width=view.getWidth(),height=view.getHeight();
         Projection projection=map.getProjection();
+        if(projection==null){retryProjection();return;}
         Point[] corners={new Point(0,0),new Point(width,0),new Point(0,height),new Point(width,height)};
         double[] latitudes=new double[corners.length],longitudes=new double[corners.length];
         for(int i=0;i<corners.length;i++){
             LatLng point=projection.fromScreenLocation(corners[i]);
-            if(point==null)return;
+            if(point==null){retryProjection();return;}
             latitudes[i]=point.latitude;
             longitudes[i]=point.longitude;
         }
         LatLng center=projection.fromScreenLocation(new Point(width/2,height/2));
-        if(center==null)return;
+        if(center==null){retryProjection();return;}
+        projectionRetries=0;
         final ViewportBounds visibleBounds,requestedBounds;
         try{
             visibleBounds=GeographicViewport.fromCorners(latitudes,longitudes,center.longitude,.03);
@@ -526,6 +538,7 @@ public class MainActivity extends Activity {
         viewportPhase="正在生成地图标记";
         int width=view.getWidth(),height=view.getHeight();
         Projection projection=map.getProjection();
+        if(projection==null){retryProjection();return;}
         Point origin=projection.toScreenLocation(new LatLng(23,113));
         int originX=origin==null?0:origin.x,originY=origin==null?0:origin.y;
         int cell=ScreenClusters.stableCellPixels(width,height,Math.max(1,dp(72)),100);
@@ -576,6 +589,7 @@ public class MainActivity extends Activity {
         if(!active||ticket!=viewportGeneration||experiment==null||experiment.scopeToken()!=displayedScope)return;
         Set<ClusterKey> retained=new HashSet<>();
         Projection projection=map.getProjection();
+        if(projection==null){retryProjection();return;}
         for(RenderCluster cluster:clusters){
             LatLng center=cluster.singleton!=null?cluster.singleton:projection.fromScreenLocation(cluster.center);
             if(center==null)continue;

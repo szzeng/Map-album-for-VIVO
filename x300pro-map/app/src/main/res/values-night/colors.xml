@@ -9,15 +9,15 @@
     <color name="app_divider">#3A484F</color>
     <color name="app_map_background">#172027</color>
     <color name="app_menu_icon">#D7E0E4</color>
-    <color name="gallery_background">#151D21</color>
-    <color name="gallery_header">#1E282D</color>
-    <color name="gallery_control">#2E4343</color>
-    <color name="gallery_control_text">#BCE0D7</color>
-    <color name="gallery_ripple">#38BCE0D7</color>
+    <color name="gallery_background">@color/preview_background</color>
+    <color name="gallery_header">@color/app_surface</color>
+    <color name="gallery_control">@color/app_chip</color>
+    <color name="gallery_control_text">@color/app_text</color>
+    <color name="gallery_ripple">#389EC8D9</color>
     <color name="preview_background">#101419</color>
-    <color name="preview_card">#252D34</color>
-    <color name="preview_control">#39434C</color>
-    <color name="preview_primary">#F5F7F8</color>
-    <color name="preview_secondary">#A7B3BD</color>
+    <color name="preview_card">@color/app_surface</color>
+    <color name="preview_control">@color/app_chip</color>
+    <color name="preview_primary">@color/app_text</color>
+    <color name="preview_secondary">@color/app_secondary</color>
     <color name="preview_shade">#99000000</color>
 </resources>

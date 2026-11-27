@@ -39,8 +39,8 @@ public final class PhotoPreviewActivity extends Activity {
     private FrameLayout page, photoArea;
     private LinearLayout card, topControls;
     private View topShade, scopeCover;
-    private boolean photoShown;
-    private Runnable pendingPreview;
+    private boolean photoShown, scrubbing, scrubLoading;
+    private int scrubDisplayedIndex=-1;
     private TextView number,error;
     private ImageView previous,next;
     private SeekBar progress;
@@ -96,11 +96,13 @@ public final class PhotoPreviewActivity extends Activity {
         progress=new SeekBar(this);progress.setMax(photos.size()-1);progress.setEnabled(multiple);progress.setContentDescription("拖动选择照片");
         progress.setProgressTintList(ColorStateList.valueOf(ACCENT));progress.setProgressBackgroundTintList(ColorStateList.valueOf(CONTROL));progress.setThumbTintList(ColorStateList.valueOf(ACCENT));
         progress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){
-            @Override public void onStartTrackingTouch(SeekBar bar){}
-            @Override public void onProgressChanged(SeekBar bar,int value,boolean fromUser){if(fromUser)selectIndex(value,false);}
+            @Override public void onStartTrackingTouch(SeekBar bar){
+                scrubbing=true;scrubLoading=false;scrubDisplayedIndex=index;request++;loader.cancelPending();
+            }
+            @Override public void onProgressChanged(SeekBar bar,int value,boolean fromUser){if(fromUser)selectScrubIndex(value);}
             @Override public void onStopTrackingTouch(SeekBar bar){
-                Runnable preview=pendingPreview;
-                if(preview!=null){cancelPreviewLoad();preview.run();}
+                scrubbing=false;request++;loader.cancelPending();scrubLoading=false;
+                showPhoto(scrubDisplayedIndex==index);
             }
         });
         LinearLayout.LayoutParams sliderParams=new LinearLayout.LayoutParams(0,dp(48),1);
@@ -158,25 +160,41 @@ public final class PhotoPreviewActivity extends Activity {
         if(target<0||target>=photos.size()||target==index)return;
         direction=animate?Integer.compare(target,index):0;
         index=target;
-        showPhoto(!animate);
+        showPhoto(false);
     }
-    private void showPhoto(boolean scrubbing){
+    private void selectScrubIndex(int target){
+        if(target<0||target>=photos.size()||target==index)return;
+        index=target;direction=0;
+        updateNavigation();
+        if(!scrubLoading)loadScrubPreview();
+    }
+    private void loadScrubPreview(){
+        if(!scrubbing||!activePreview||isFinishing())return;
+        final int selected=index,ticket=request;
+        PhotoItem item=photos.get(selected);
+        if(item.uri==null)return;
+        scrubLoading=true;
+        loader.load(item.uri,item.mediaVersion,480,bitmap->{
+            if(ticket!=request||!scrubbing||!activePreview||isFinishing())return;
+            scrubLoading=false;
+            if(bitmap!=null){
+                image.setImageBitmap(bitmap);image.resetPreview();error.setVisibility(View.GONE);
+                scrubDisplayedIndex=selected;
+            }
+            if(selected!=index)loadScrubPreview();
+        });
+    }
+    private void updateNavigation(){
+        number.setText((index+1)+" / "+photos.size());progress.setProgress(index);
+        previous.setEnabled(index>0);next.setEnabled(index+1<photos.size());previous.setImageAlpha(previous.isEnabled()?255:90);next.setImageAlpha(next.isEnabled()?255:90);
+    }
+    private void showPhoto(boolean keepPreview){
         photoShown=true;
-        cancelPreviewLoad();
-        loader.cancelPending();int ticket=++request;PhotoItem item=photos.get(index);number.setText((index+1)+" / "+photos.size());progress.setProgress(index);
-        previous.setEnabled(index>0);next.setEnabled(index+1<photos.size());previous.setAlpha(previous.isEnabled()?1f:.35f);next.setAlpha(next.isEnabled()?1f:.35f);
-        image.animate().cancel();image.setAlpha(1f);image.setTranslationX(0);image.setImageDrawable(null);image.resetPreview();error.setVisibility(View.GONE);
+        loader.cancelPending();int ticket=++request;PhotoItem item=photos.get(index);updateNavigation();
+        image.animate().cancel();image.setAlpha(1f);image.setTranslationX(0);if(!keepPreview)image.setImageDrawable(null);image.resetPreview();error.setVisibility(View.GONE);
         if(item.uri==null){error.setText("照片不可用");error.setVisibility(View.VISIBLE);return;}
         int size=Math.min(1440,Math.max(getResources().getDisplayMetrics().widthPixels,getResources().getDisplayMetrics().heightPixels));
-        if(scrubbing){
-            pendingPreview=()->{pendingPreview=null;loadPreview(item,size,ticket);};
-            image.postDelayed(pendingPreview,90);
-        }else loadPreview(item,size,ticket);
-    }
-    private void cancelPreviewLoad(){
-        if(pendingPreview==null)return;
-        image.removeCallbacks(pendingPreview);
-        pendingPreview=null;
+        loadPreview(item,size,ticket);
     }
     private void loadPreview(PhotoItem item,int size,int ticket){
         if(!activePreview||ticket!=request||isFinishing())return;
@@ -218,7 +236,7 @@ public final class PhotoPreviewActivity extends Activity {
         activePreview=true;if(page==null)return;showScopeCover();
         MainActivity.verifyPreviewScope(ok->runOnUiThread(()->{if(!activePreview||isFinishing())return;if(!ok){Toast.makeText(this,"照片授权范围已变化，请返回地图重新加载",Toast.LENGTH_LONG).show();finish();return;}if(!photoShown||image.getDrawable()==null)showPhoto(false);hideScopeCover();}));
     }
-    @Override protected void onPause(){showScopeCover();activePreview=false;request++;cancelPreviewLoad();if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
+    @Override protected void onPause(){showScopeCover();activePreview=false;scrubbing=false;scrubLoading=false;request++;if(loader!=null)loader.cancelPending();MainActivity.suspendPreviewScope();super.onPause();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);out.putInt("index",index);out.putBoolean("openingOriginal",openingOriginal);}
-    @Override protected void onDestroy(){request++;cancelPreviewLoad();if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
+    @Override protected void onDestroy(){request++;if(image!=null)image.animate().cancel();if(loader!=null)loader.close();if(isFinishing())PreviewSessionStore.clear(getIntent().getStringExtra("session"));super.onDestroy();}
 }
