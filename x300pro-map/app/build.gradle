@@ -3,10 +3,34 @@ def localConfig = new Properties()
 def localConfigFile = rootProject.file('local.properties')
 if (localConfigFile.exists()) localConfigFile.withInputStream { localConfig.load(it) }
 def baiduAk = localConfig.getProperty('baidu.map.ak', '').trim()
+def signingProperties = new Properties()
+def signingFile = rootProject.file('keystore.properties')
+if (signingFile.exists()) signingFile.withInputStream { signingProperties.load(it) }
 android {
     namespace 'io.github.szzeng.mapalbum'
     compileSdk 34
-    defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 1; versionName '0.1' }
+    defaultConfig { applicationId 'io.github.szzeng.mapalbum'; minSdk 29; targetSdk 34; versionCode 2; versionName '0.2.0' }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        personalRelease {
+            if (signingFile.exists()) {
+                storeFile file(signingProperties.getProperty('storeFile'))
+                storePassword signingProperties.getProperty('storePassword')
+                keyAlias signingProperties.getProperty('keyAlias')
+                keyPassword signingProperties.getProperty('keyPassword')
+            }
+        }
+    }
+    buildTypes {
+        debug { buildConfigField 'boolean', 'PERSONAL_DEVICE_RELEASE', 'false' }
+        release {
+            debuggable false
+            minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.personalRelease
+            buildConfigField 'boolean', 'PERSONAL_DEVICE_RELEASE', 'true'
+        }
+    }
     defaultConfig.manifestPlaceholders.baiduMapAk = baiduAk
     sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/map002')
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }

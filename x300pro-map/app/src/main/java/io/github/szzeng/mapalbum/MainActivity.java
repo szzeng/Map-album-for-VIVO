@@ -104,18 +104,15 @@ public class MainActivity extends Activity {
         map.setOnMarkerClickListener(m->{Bundle b=m.getExtraInfo();if(b!=null&&b.getBoolean("overview")){int[] members=overviewMembers.get(b.getString("overviewKey"));if(members!=null&&members.length<=10000)openOverviewGroup(members);else{float zoom=map.getMapStatus().zoom;if(zoom>=20.5f)Toast.makeText(this,"此处照片超过一万张，请移动地图缩小范围",Toast.LENGTH_LONG).show();else map.animateMapStatus(MapStatusUpdateFactory.newLatLngZoom(m.getPosition(),Math.min(21f,zoom+2)));}return true;}int[] ids=b==null?null:b.getIntArray("samples");if(ids!=null)showCluster(ids);return true;});
         map.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener(){public void onMapStatusChangeStart(MapStatus s){cancelRequests();}public void onMapStatusChangeStart(MapStatus s,int reason){cancelRequests();}public void onMapStatusChange(MapStatus s){}public void onMapStatusChangeFinish(MapStatus s){schedule();}});
         buildUi();
-        if(experiment==null && getPreferences(MODE_PRIVATE).getBoolean("experiment_confirmed",false) && MapDataRepository.isSupportedDevice(this))experiment=MapDataRepository.forConfirmedExperiment(getApplicationContext(),true);
+        if(experiment==null && getPreferences(MODE_PRIVATE).getBoolean(confirmationKey(),false) && supportedGallery())experiment=createGallery();
         if(saved!=null){expanded=saved.getBoolean("expanded");oldestFirst=saved.getBoolean("oldestFirst");restorePosition=saved.getInt("scroll",0);restoreOffset=saved.getInt("scrollOffset",0);updatePanel();}
         if(active)resumeExperiment();
         schedule();
     }catch(RuntimeException e){TextView failure=label("地图加载失败，请重新打开图迹",14,SECONDARY);failure.setGravity(Gravity.CENTER);setContentView(failure);}}
     private void buildUi(){
-        LinearLayout brand=new LinearLayout(this);brand.setGravity(Gravity.CENTER_VERTICAL);brand.setPadding(dp(9),0,dp(4),0);brand.setBackground(shape(FLOATING,15));brand.setElevation(dp(3));
-        ImageView icon=new ImageView(this);icon.setImageResource(R.drawable.brand_logo);icon.setScaleType(ImageView.ScaleType.FIT_CENTER);brand.addView(icon,new LinearLayout.LayoutParams(dp(36),dp(36)));
-        LinearLayout names=new LinearLayout(this);names.setOrientation(LinearLayout.VERTICAL);names.setPadding(dp(8),0,0,0);TextView name=label("图迹",17,TEXT);name.setTypeface(null,Typeface.BOLD);names.addView(name);TextView sub=label("MAP ALBUM",8,SECONDARY);names.addView(sub);brand.addView(names,new LinearLayout.LayoutParams(0,-2,1));
-        count=label("实验模式未启用",12,ACCENT);count.setGravity(Gravity.CENTER);count.setPadding(dp(8),0,dp(8),0);count.setBackground(shape(CHIP,14));brand.addView(count,new LinearLayout.LayoutParams(-2,dp(28)));
-        TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");brand.addView(menu,new LinearLayout.LayoutParams(dp(48),dp(48)));menu.setOnClickListener(v->showMenu(menu));
-        FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(-1,dp(56),Gravity.TOP);bp.setMargins(dp(16),dp(12),dp(16),0);root.addView(brand,bp);
+        count=label(galleryStatus("未启用"),12,ACCENT);
+        TextView menu=label("•••",18,MENU_ICON);menu.setGravity(Gravity.CENTER);menu.setContentDescription("更多菜单");menu.setBackground(shape(FLOATING,24));menu.setElevation(dp(3));menu.setOnClickListener(v->showMenu(menu));
+        FrameLayout.LayoutParams bp=new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.TOP|Gravity.RIGHT);bp.setMargins(0,dp(12),dp(16),0);root.addView(menu,bp);
         networkStatus=label("网络不可用，地图可能无法加载",12,SECONDARY);networkStatus.setPadding(dp(12),0,dp(12),0);networkStatus.setBackground(shape(FLOATING,12));
         FrameLayout.LayoutParams np=new FrameLayout.LayoutParams(-2,dp(36),Gravity.TOP|Gravity.LEFT);np.setMargins(dp(16),dp(76),0,0);root.addView(networkStatus,np);updateNetworkStatus();
         fit=new ImageView(this);fit.setImageDrawable(new FitIcon());fit.setPadding(dp(12),dp(12),dp(12),dp(12));fit.setBackground(shape(SURFACE,24));fit.setElevation(dp(3));fit.setContentDescription("定位当前位置");fit.setOnClickListener(v->requestCurrentLocation());root.addView(fit,new FrameLayout.LayoutParams(dp(48),dp(48),Gravity.RIGHT|Gravity.BOTTOM));
@@ -127,7 +124,7 @@ public class MainActivity extends Activity {
         quantity=label("0 张照片",13,SECONDARY);quantity.setPadding(dp(16),0,dp(16),0);panel.addView(quantity,new LinearLayout.LayoutParams(-1,dp(36)));
         View divider=new View(this);divider.setBackgroundColor(DIVIDER);LinearLayout.LayoutParams line=new LinearLayout.LayoutParams(-1,dp(1));line.leftMargin=dp(16);line.rightMargin=dp(16);panel.addView(divider,line);
         empty=label("暂无照片",13,SECONDARY);empty.setGravity(Gravity.CENTER);empty.setPadding(dp(16),0,dp(16),0);panel.addView(empty,new LinearLayout.LayoutParams(-1,dp(64)));
-        grid=new ListView(this);grid.setDivider(null);grid.setDividerHeight(0);grid.setPadding(dp(16),0,dp(16),dp(16));grid.setClipToPadding(false);adapter=new AreaAdapter();grid.setAdapter(adapter);panel.addView(grid,new LinearLayout.LayoutParams(-1,0,1));
+        grid=new DraggableScrollList();grid.setDivider(null);grid.setDividerHeight(0);grid.setPadding(dp(16),0,dp(16),dp(16));grid.setClipToPadding(false);adapter=new AreaAdapter();grid.setAdapter(adapter);panel.addView(grid,new LinearLayout.LayoutParams(-1,0,1));
         root.addView(panel,new FrameLayout.LayoutParams(-1,-1));root.setOnApplyWindowInsetsListener((v,insets)->{int safe=android.os.Build.VERSION.SDK_INT>=30?insets.getInsets(WindowInsets.Type.systemGestures()).bottom:insets.getSystemWindowInsetBottom();if(bottomInset!=safe){bottomInset=safe;panel.setPadding(0,0,0,safe);updatePanel();}return insets;});renderList();updatePanel();
     }
     private void showSortMenu(View anchor){PopupMenu menu=new PopupMenu(this,anchor);android.view.MenuItem latest=menu.getMenu().add("拍摄时间：最新在前");android.view.MenuItem earliest=menu.getMenu().add("拍摄时间：最早在前");latest.setCheckable(true);earliest.setCheckable(true);latest.setChecked(!oldestFirst);earliest.setChecked(oldestFirst);latest.setOnMenuItemClickListener(item->{setPhotoOrder(false);return true;});earliest.setOnMenuItemClickListener(item->{setPhotoOrder(true);return true;});menu.show();}
@@ -136,22 +133,40 @@ public class MainActivity extends Activity {
     private void showMenu(View anchor){
         PopupMenu p=new PopupMenu(this,anchor);
         android.view.MenuItem night=p.getMenu().add("暗夜模式");night.setCheckable(true);night.setChecked(darkMode);night.setOnMenuItemClickListener(i->{Appearance.setManual(this,!darkMode);recreate();return true;});
-        android.view.MenuItem follow=p.getMenu().add("跟随系统外观");follow.setCheckable(true);follow.setChecked(Appearance.followsSystem(this));follow.setOnMenuItemClickListener(i->{if(!Appearance.followsSystem(this)){Appearance.followSystem(this);recreate();}return true;});
         p.getMenu().add("刷新照片数据").setOnMenuItemClickListener(i->{if(experiment!=null){experiment.stopAndClear();resumeExperiment();}return true;});
-        p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片和位置仅在设备内存中处理。点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。实验模式仅限 V2502A / PD2502 当前授权主卷。照片位置已开放全球；跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
+        p.getMenu().add("照片 GPS 情况").setOnMenuItemClickListener(i->{showPhotoLocationSummary();return true;});
+        p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片和位置仅在设备内存中处理。点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。图库仅限 V2502A / PD2502 当前授权主卷。照片位置已开放全球；跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
+        p.getMenu().add("关于图迹").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setTitle("关于图迹").setMessage("图迹 0.2.0\n个人使用版").setPositiveButton("知道了",null).show();return true;});
+        if(BuildConfig.PERSONAL_DEVICE_RELEASE){
+            p.getMenu().add("启用个人图库（仅支持指定设备）").setOnMenuItemClickListener(i->{enableExperiment();return true;});
+            p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{openPhotoPermissionSettings();return true;});
+        }
         if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0){
             p.getMenu().add("主卷全图库实验模式").setOnMenuItemClickListener(i->{enableExperiment();return true;});
             p.getMenu().add("关闭全图库实验模式").setOnMenuItemClickListener(i->{getPreferences(MODE_PRIVATE).edit().remove("experiment_confirmed").apply();if(experiment!=null){experiment.close();experiment=null;}pendingPhotoReturn=null;clearData();return true;});
-            p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{if(android.os.Build.VERSION.SDK_INT>=34)requestPermissions(new String[]{"android.permission.READ_MEDIA_IMAGES","android.permission.READ_MEDIA_VISUAL_USER_SELECTED"},103);else startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+getPackageName())));return true;});
+            p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{openPhotoPermissionSettings();return true;});
             p.getMenu().add("数据诊断").setOnMenuItemClickListener(i->{showDiagnostics();return true;});
         }
         p.show();
     }
+    private void showPhotoLocationSummary(){
+        String summary=experiment==null?null:experiment.photoLocationSummary();
+        if(summary==null)summary=count==null?"请先启用个人图库并授权照片访问。":count.getText().toString()+"\n请在照片数据读取完成后查看。";
+        new AlertDialog.Builder(this).setTitle("照片 GPS 情况").setMessage(summary).setPositiveButton("知道了",null).show();
+    }
+    private void openPhotoPermissionSettings(){
+        new AlertDialog.Builder(this).setTitle("修改照片授权").setMessage("在系统设置的权限页面中，可以调整图迹可访问的照片范围。返回后图迹会重新检查授权。")
+            .setNegativeButton("取消",null).setPositiveButton("打开设置",(d,w)->startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+getPackageName())))).show();
+    }
+    private String confirmationKey(){return BuildConfig.PERSONAL_DEVICE_RELEASE?"personal_gallery_confirmed":"experiment_confirmed";}
+    private boolean supportedGallery(){return BuildConfig.PERSONAL_DEVICE_RELEASE?MapDataRepository.isSupportedPersonalRelease(this):MapDataRepository.isSupportedDevice(this);}
+    private MapDataRepository createGallery(){return BuildConfig.PERSONAL_DEVICE_RELEASE?MapDataRepository.forConfirmedPersonalRelease(getApplicationContext(),true):MapDataRepository.forConfirmedExperiment(getApplicationContext(),true);}
+    private String galleryStatus(String status){return (BuildConfig.PERSONAL_DEVICE_RELEASE?"照片数据 · ":"实验模式 · ")+status;}
     private void enableExperiment(){
-        if(!MapDataRepository.isSupportedDevice(this)){new AlertDialog.Builder(this).setMessage("此实验仅支持 vivo V2502A / PD2502 的 Debug 版本，当前设备不符合限制。").setPositiveButton("知道了",null).show();return;}
-        new AlertDialog.Builder(this).setTitle("启用主卷全图库实验模式")
+        if(!supportedGallery()){new AlertDialog.Builder(this).setMessage("此功能仅支持指定的 vivo V2502A / PD2502 设备，当前设备或构建不符合限制。").setPositiveButton("知道了",null).show();return;}
+        new AlertDialog.Builder(this).setTitle(BuildConfig.PERSONAL_DEVICE_RELEASE?"启用个人图库":"启用主卷全图库实验模式")
             .setMessage("当前设备：V2502A / PD2502。仅访问当前授权的主卷照片及其图库位置，读取结果保存在内存中。此功能仍是个人设备实验版本，身份和坐标并非对所有照片或其他设备得到保证。授权范围变化时会重新检查。")
-            .setNegativeButton("取消",null).setPositiveButton("确认启用",(d,w)->{getPreferences(MODE_PRIVATE).edit().putBoolean("experiment_confirmed",true).apply();if(experiment!=null)experiment.close();experiment=MapDataRepository.forConfirmedExperiment(getApplicationContext(),true);requestPhotoAccess();}).show();
+            .setNegativeButton("取消",null).setPositiveButton("确认启用",(d,w)->{getPreferences(MODE_PRIVATE).edit().putBoolean(confirmationKey(),true).apply();if(experiment!=null)experiment.close();experiment=createGallery();requestPhotoAccess();}).show();
     }
     private boolean hasPhotoAccess(){
         if(android.os.Build.VERSION.SDK_INT>=34)return checkSelfPermission("android.permission.READ_MEDIA_IMAGES")==android.content.pm.PackageManager.PERMISSION_GRANTED || checkSelfPermission("android.permission.READ_MEDIA_VISUAL_USER_SELECTED")==android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -166,7 +181,7 @@ public class MainActivity extends Activity {
     }
     private void resumeExperiment(){
         if(!active||map==null||experiment==null)return;
-        if(!hasPhotoAccess()){pendingPhotoReturn=null;experiment.stopAndClear();clearData();hideScopeCover();scopeLabel="未授权";loadError="照片权限未授予，请在菜单中启用实验模式并授权";count.setText("实验模式 · 无权限");renderList();return;}
+        if(!hasPhotoAccess()){pendingPhotoReturn=null;experiment.stopAndClear();clearData();hideScopeCover();scopeLabel="未授权";loadError="照片权限未授予，请在菜单中启用图库并授权";count.setText(galleryStatus("无权限"));renderList();return;}
         scopeLabel=android.os.Build.VERSION.SDK_INT>=34 && checkSelfPermission("android.permission.READ_MEDIA_IMAGES")!=android.content.pm.PackageManager.PERMISSION_GRANTED?"部分照片":"完整照片";
         showScopeCover();loading=true;count.setText("正在检查授权范围");
         experiment.resumeChecked(state->handler.post(()->{if(active)checkRepository();}));
@@ -175,9 +190,9 @@ public class MainActivity extends Activity {
     private void checkRepository(){
         if(!active||experiment==null||count==null)return;
         MapDataRepository.State state=experiment.state();
-        if(state==MapDataRepository.State.READY){long token=experiment.scopeToken();if(token<0)return;boolean changed=displayedScope!=token;if(changed){clearData();displayedScope=token;viewportDirty=true;}loading=false;loadError=null;count.setText("实验模式 · "+experiment.validCount()+" 张有位置");restorePreviewReturn();hideScopeCover();if(viewportDirty||cachedViewport==null){viewportDirty=false;schedule();}}
+        if(state==MapDataRepository.State.READY){long token=experiment.scopeToken();if(token<0)return;boolean changed=displayedScope!=token;if(changed){clearData();displayedScope=token;viewportDirty=true;}loading=false;loadError=null;count.setText(galleryStatus(experiment.validCount()+" 张有位置"));restorePreviewReturn();hideScopeCover();if(viewportDirty||cachedViewport==null){viewportDirty=false;schedule();}}
         else if(state==MapDataRepository.State.LOADING||state==MapDataRepository.State.IDLE){loading=true;count.setText("正在读取照片位置");handler.removeCallbacks(checkLoad);handler.postDelayed(checkLoad,300);}
-        else {pendingPhotoReturn=null;clearData();hideScopeCover();loading=false;loadError=state==MapDataRepository.State.CAPACITY_EXCEEDED?"照片超过 100,000 张容量限制":state==MapDataRepository.State.ACCESS_DENIED?"照片访问被拒绝":state==MapDataRepository.State.VOLUME_UNSUPPORTED?"当前存储卷不符合主卷限制":state==MapDataRepository.State.SCOPE_CHANGED?"授权范围发生变化，请刷新":state==MapDataRepository.State.IDENTITY_UNVERIFIED?"设备身份未验证":"照片位置读取失败，请刷新";count.setText("实验模式 · 读取失败");renderList();}
+        else {pendingPhotoReturn=null;clearData();hideScopeCover();loading=false;loadError=state==MapDataRepository.State.CAPACITY_EXCEEDED?"照片超过 100,000 张容量限制":state==MapDataRepository.State.ACCESS_DENIED?"照片访问被拒绝":state==MapDataRepository.State.VOLUME_UNSUPPORTED?"当前存储卷不符合主卷限制":state==MapDataRepository.State.SCOPE_CHANGED?"授权范围发生变化，请刷新":state==MapDataRepository.State.IDENTITY_UNVERIFIED?"设备身份未验证":"照片位置读取失败，请刷新";count.setText(galleryStatus("读取失败"));renderList();}
     }
     private void restorePreviewReturn(){
         PendingPhotoReturn pending=pendingPhotoReturn;if(pending==null)return;pendingPhotoReturn=null;
@@ -241,10 +256,10 @@ public class MainActivity extends Activity {
             if(total>10000){
                 OverviewData data=new OverviewData(total);
                 for(int i=0;i<total;i++){MapDataRepository.Point point=window.pointAt(i);if(point==null)return;data.ids[i]=point.id;data.latitudes[i]=point.latitude;data.longitudes[i]=point.longitude;}
-                handler.post(()->{if(active&&ticket==viewportGeneration&&experiment==repository&&repository.state()==MapDataRepository.State.READY){overview=data;cachedViewport=requestedBounds;viewportMatches=viewportLoaded=total;viewportPhase="全球概览";count.setText("实验模式 · "+repository.validCount()+" 张有位置");renderOverview(ticket,data);}});
+                handler.post(()->{if(active&&ticket==viewportGeneration&&experiment==repository&&repository.state()==MapDataRepository.State.READY){overview=data;cachedViewport=requestedBounds;viewportMatches=viewportLoaded=total;viewportPhase="全球概览";count.setText(galleryStatus(repository.validCount()+" 张有位置"));renderOverview(ticket,data);}});
                 return;
             }
-            handler.post(()->{if(active&&ticket==viewportGeneration){viewportMatches=total;viewportPhase=total==0?"当前视野无匹配照片":"正在读取视野照片";count.setText("实验模式 · "+repository.validCount()+" 张有位置");if(total==0)cachedViewport=requestedBounds;}});
+            handler.post(()->{if(active&&ticket==viewportGeneration){viewportMatches=total;viewportPhase=total==0?"当前视野无匹配照片":"正在读取视野照片";count.setText(galleryStatus(repository.validCount()+" 张有位置"));if(total==0)cachedViewport=requestedBounds;}});
             for(int from=0;from<total;from+=512){
                 int n=Math.min(512,total-from);MapDataRepository.Point[] points=new MapDataRepository.Point[n];long[] ids=new long[n];
                 for(int i=0;i<n;i++){points[i]=window.pointAt(from+i);if(points[i]==null)return;ids[i]=points[i].id;}
@@ -335,6 +350,41 @@ public class MainActivity extends Activity {
         pendingPhotoReturn=source.size()>1?new PendingPhotoReturn(experiment,experiment.scopeToken(),source,oldestFirst,scroll,offset):null;
         startActivity(new Intent(this,PhotoPreviewActivity.class).putExtra("session",PreviewSessionStore.put(source)).putExtra("index",index));
     }
+    private final class DraggableScrollList extends ListView {
+        private boolean dragging;
+        private float startY, startFraction, travel;
+        DraggableScrollList(){super(MainActivity.this);}
+        @Override public boolean onInterceptTouchEvent(MotionEvent event){
+            if(event.getActionMasked()==MotionEvent.ACTION_DOWN && event.getX()>=getWidth()-dp(24)){
+                int range=computeVerticalScrollRange(), extent=computeVerticalScrollExtent(), offset=computeVerticalScrollOffset();
+                int track=getHeight()-getPaddingTop()-getPaddingBottom();
+                if(range>extent && extent>0 && track>0){
+                    float thumb=Math.max(dp(24),track*(float)extent/range);
+                    travel=Math.max(1,track-thumb);
+                    startFraction=Math.max(0,Math.min(1,offset/(float)(range-extent)));
+                    float top=getPaddingTop()+travel*startFraction;
+                    if(event.getY()>=top-dp(16)&&event.getY()<=top+thumb+dp(16)){
+                        dragging=true;startY=event.getY();awakenScrollBars();return true;
+                    }
+                }
+            }
+            return super.onInterceptTouchEvent(event);
+        }
+        @Override public boolean onTouchEvent(MotionEvent event){
+            if(!dragging)return super.onTouchEvent(event);
+            switch(event.getActionMasked()){
+                case MotionEvent.ACTION_MOVE:
+                    float fraction=Math.max(0,Math.min(1,startFraction+(event.getY()-startY)/travel));
+                    int last=Math.max(0,getCount()-1);
+                    if(fraction>=1)setSelection(last);
+                    else setSelection(Math.round(fraction*Math.max(0,getCount()-getChildCount())));
+                    awakenScrollBars();return true;
+                case MotionEvent.ACTION_UP: case MotionEvent.ACTION_CANCEL:
+                    dragging=false;awakenScrollBars();return true;
+                default:return true;
+            }
+        }
+    }
     private final class AreaAdapter extends BaseAdapter {
         final ArrayList<PhotoItem> items=new ArrayList<>();
         final ArrayList<PhotoRow> rows=new ArrayList<>();
@@ -370,7 +420,7 @@ public class MainActivity extends Activity {
         public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}
     }
     private void clearMarkers(){overviewMembers.clear();handler.removeCallbacks(refresh);for(MarkerResource r:markers.values())r.release();markers.clear();positions.clear();}
-    private void clearData(){displayedScope=-1;viewportDirty=true;cachedViewport=null;overview=null;viewportGeneration++;handler.removeCallbacks(viewportRefresh);viewportPhase="尚未筛选";viewportMatches=viewportLoaded=0;generation++;if(pending!=null){pending.cancel();pending=null;}clearMarkers();thumbnails.clear();samples.clear();area.clear();group.clear();groupMode=false;loading=false;loadError=null;unmapped=withoutGps=unavailable=excluded=0;restorePosition=-1;restoreOffset=0;if(count!=null)count.setText("实验模式未启用");renderList();}
+    private void clearData(){displayedScope=-1;viewportDirty=true;cachedViewport=null;overview=null;viewportGeneration++;handler.removeCallbacks(viewportRefresh);viewportPhase="尚未筛选";viewportMatches=viewportLoaded=0;generation++;if(pending!=null){pending.cancel();pending=null;}clearMarkers();thumbnails.clear();samples.clear();area.clear();group.clear();groupMode=false;loading=false;loadError=null;unmapped=withoutGps=unavailable=excluded=0;restorePosition=-1;restoreOffset=0;if(count!=null)count.setText(galleryStatus("未启用"));renderList();}
     @Override protected void onSaveInstanceState(Bundle out){super.onSaveInstanceState(out);if(map!=null)transientMapStatus=map.getMapStatus();out.putBoolean("privacyAccepted",privacyAccepted);out.putBoolean("expanded",expanded);out.putBoolean("oldestFirst",oldestFirst);}
     private void updateNetworkStatus(){
         if(networkStatus==null)return;
@@ -386,6 +436,6 @@ public class MainActivity extends Activity {
     private void resumeMapView(){if(active&&view!=null&&!mapResumed){view.onResume();mapResumed=true;}}
     @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();}}
     @Override protected void onPause(){if(experiment!=null)showScopeCover();if(handler.hasCallbacks(viewportRefresh)||handler.hasCallbacks(refresh))viewportDirty=true;active=false;cancelRequests();handler.removeCallbacks(checkLoad);stopLocation();if(experiment!=null)experiment.suspend();if(view!=null&&mapResumed){view.onPause();mapResumed=false;}super.onPause();}
-    @Override protected void onDestroy(){clearData();thumbnails.close();worker.shutdownNow();if(view!=null)view.onDestroy();super.onDestroy();}
+    @Override protected void onDestroy(){clearData();thumbnails.close();worker.shutdownNow();if(view!=null)view.onDestroy();if(!isChangingConfigurations()&&isFinishing()&&experiment!=null){experiment.close();experiment=null;pendingPhotoReturn=null;}super.onDestroy();}
     private final class FitIcon extends android.graphics.drawable.Drawable{private final Paint p=new Paint(3);public void draw(Canvas c){android.graphics.Rect b=getBounds();float x=b.exactCenterX(),y=b.exactCenterY(),r=Math.min(b.width(),b.height())*.32f;p.setColor(ACCENT);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));p.setStrokeCap(Paint.Cap.ROUND);c.drawCircle(x,y,r,p);c.drawLine(x,b.top,x,y-r,p);c.drawLine(x,y+r,x,b.bottom,p);c.drawLine(b.left,y,x-r,y,p);c.drawLine(x+r,y,b.right,y,p);p.setStyle(Paint.Style.FILL);c.drawCircle(x,y,dp(2),p);}public void setAlpha(int a){}public void setColorFilter(android.graphics.ColorFilter f){}public int getOpacity(){return android.graphics.PixelFormat.TRANSLUCENT;}}
 }

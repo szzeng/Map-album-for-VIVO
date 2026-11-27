@@ -8,6 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import io.github.szzeng.mapalbum.BuildConfig;
 
 /** Read-only, process-local index. Device access requires the explicit, debug-only experiment gate. */
 public final class MapDataRepository implements AutoCloseable {
@@ -75,6 +76,16 @@ public final class MapDataRepository implements AutoCloseable {
             && "V2502A".equalsIgnoreCase(android.os.Build.MODEL)
             && "PD2502".equalsIgnoreCase(android.os.Build.DEVICE);
     }
+    public static boolean isSupportedPersonalRelease(Context context) {
+        return BuildConfig.PERSONAL_DEVICE_RELEASE
+            && (context.getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)==0
+            && "vivo".equalsIgnoreCase(android.os.Build.MANUFACTURER)
+            && "V2502A".equalsIgnoreCase(android.os.Build.MODEL)
+            && "PD2502".equalsIgnoreCase(android.os.Build.DEVICE);
+    }
+    public static MapDataRepository forConfirmedPersonalRelease(Context context, boolean confirmed) {
+        return new MapDataRepository(new DeviceBackend(context),null,confirmed && isSupportedPersonalRelease(context));
+    }
     public synchronized String diagnostics() {
         return "身份："+(deviceEnabled?"V2502A / PD2502 实验配置":"未验证")+" · 状态："+state
             +"\n可见照片 "+visibleCount+" · 有效 GPS "+validCount
@@ -84,6 +95,11 @@ public final class MapDataRepository implements AutoCloseable {
     public synchronized long scopeToken(){return foreground && state==State.READY && cache!=null?epoch:-1;}
     public synchronized int visibleCount(){return visibleCount;}
     public synchronized int validCount(){return validCount;}
+    public synchronized String photoLocationSummary(){
+        if(state!=State.READY || !(backend instanceof DeviceBackend))return null;
+        PrimaryPhotoSource source=((DeviceBackend)backend).source;
+        return "已授权照片："+visibleCount+" 张\n有有效位置："+validCount+" 张\n坐标为空："+source.noGpsCount+" 张\n坐标无效："+source.invalidCount+" 张\n图库未返回记录："+source.missingCount+" 张\n\n未返回记录不代表照片没有 GPS。";
+    }
     /** Called from a query callback, on the repository worker. */
     public MediaStoreLookup.Metadata metadataNow(long id) {
         final PrimitiveLocationSet data; final CancellationSignal signal; final long ticket;
