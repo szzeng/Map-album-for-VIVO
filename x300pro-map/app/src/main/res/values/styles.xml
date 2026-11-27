@@ -3,6 +3,20 @@
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:colorAccent">@color/app_accent</item>
         <item name="android:fontFamily">sans</item>
+        <item name="android:alertDialogTheme">@style/RoundedAlertDialog</item>
+        <item name="android:popupMenuStyle">@style/RoundedPopupMenu</item>
+        <item name="android:popupWindowStyle">@style/RoundedPopupWindow</item>
+    </style>
+    <style name="RoundedAlertDialog" parent="@android:style/Theme.Material.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="android:colorAccent">@color/app_accent</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+    <style name="RoundedPopupMenu" parent="@android:style/Widget.Material.PopupMenu">
+        <item name="android:popupBackground">@drawable/menu_background</item>
+    </style>
+    <style name="RoundedPopupWindow" parent="@android:style/Widget.Material.PopupWindow">
+        <item name="android:popupBackground">@drawable/menu_background</item>
     </style>
     <style name="PreviewTheme" parent="AppTheme">
         <item name="android:windowBackground">@color/preview_background</item>
