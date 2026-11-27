@@ -595,9 +595,8 @@ public class MainActivity extends Activity {
         int width=view.getWidth(),height=view.getHeight();
         Projection projection=map.getProjection();
         if(projection==null){retryProjection();return;}
-        Point origin=projection.toScreenLocation(new LatLng(23,113));
-        int originX=origin==null?0:origin.x,originY=origin==null?0:origin.y;
-        int cell=ScreenClusters.stableCellPixels(width,height,Math.max(1,dp(72)),100);
+        int markerPixels=Math.max(1,dp(48));
+        int[] gaps={dp(8),dp(12),dp(16),dp(24)};
         projectionTask=new Runnable(){
             final int[] xs=new int[data.ids.length],ys=new int[data.ids.length],sources=new int[data.ids.length];
             int cursor,size;
@@ -625,8 +624,11 @@ public class MainActivity extends Activity {
                 int visible=size;
                 clusterWorker.execute(()->{
                     if(ticket!=viewportGeneration)return;
-                    List<ScreenClusters.Cluster> cells=ScreenClusters.group(
-                        Arrays.copyOf(xs,visible),Arrays.copyOf(ys,visible),originX,originY,cell,100);
+                    List<ScreenClusters.Cluster> cells;
+                    try {
+                        cells=ScreenClusters.group(Arrays.copyOf(xs,visible),Arrays.copyOf(ys,visible),
+                            markerPixels,gaps,100,()->ticket!=viewportGeneration||Thread.currentThread().isInterrupted());
+                    } catch(java.util.concurrent.CancellationException cancelled){return;}
                     List<RenderCluster> result=new ArrayList<>(cells.size());
                     for(ScreenClusters.Cluster item:cells){
                         long[] ids=new long[item.members.length];

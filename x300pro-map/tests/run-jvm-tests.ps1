@@ -1,3 +1,4 @@
+param([switch]$Performance)
 $ErrorActionPreference = 'Stop'
 $project = Split-Path -Parent $PSScriptRoot
 $repo = Split-Path -Parent $project
@@ -26,4 +27,11 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & javac -encoding UTF-8 -d $out (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/MarkerCount.java') (Join-Path $PSScriptRoot 'io/github/szzeng/mapalbum/MarkerCountTest.java')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & java -cp $out io.github.szzeng.mapalbum.MarkerCountTest
-exit $LASTEXITCODE
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+if ($Performance) {
+    & javac -encoding UTF-8 -d $out (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/ScreenClusters.java') (Join-Path $PSScriptRoot 'io/github/szzeng/mapalbum/ScreenClustersPerformanceTest.java')
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & java -Xmx1g -cp $out io.github.szzeng.mapalbum.ScreenClustersPerformanceTest
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+exit 0
