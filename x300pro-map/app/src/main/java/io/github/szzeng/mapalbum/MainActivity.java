@@ -411,7 +411,7 @@ public class MainActivity extends Activity {
         }
         galleryBars=groupMode;
     }
-    private void closePhotoPanel(){clearVisibleImages();groupMode=false;group.clear();renderList();loadMarkerCovers();}
+    private void closePhotoPanel(){if(openingCluster){photoSelection++;openingCluster=false;}clearVisibleImages();groupMode=false;group.clear();renderList();loadMarkerCovers();}
     @Override public void onBackPressed(){if(groupMode){closePhotoPanel();return;}super.onBackPressed();}
     private void renderList(){
         if(panel==null)return;
@@ -645,7 +645,10 @@ public class MainActivity extends Activity {
         }
         long selection=++photoSelection;
         openingCluster=true;
-        showGalleryStatus("正在打开照片",null);
+        if(ids.length>1){
+            cancelMarkerCovers();group.clear();groupMode=true;oldestFirst=false;
+            panel.showLoading();updatePanel();
+        }else showGalleryStatus("正在打开照片",null);
         boolean accepted=repository.metadataForViewport(ids,metadata->{
             List<PhotoItem> items=null;
             if(metadata!=null){
@@ -661,6 +664,7 @@ public class MainActivity extends Activity {
         });
         if(!accepted){
             openingCluster=false;
+            if(groupMode){groupMode=false;renderList();}
             showGalleryStatus("照片暂时无法打开 · 重试",()->openCluster(resource));
         }
     }
@@ -669,6 +673,7 @@ public class MainActivity extends Activity {
         if(!active||selection!=photoSelection||experiment!=repository)return;
         openingCluster=false;
         if(items==null||repository.scopeToken()!=displayedScope){
+            if(groupMode){groupMode=false;renderList();}
             checkRepository();
             Toast.makeText(this,"照片已变化，请重新选择",Toast.LENGTH_SHORT).show();
             return;
@@ -687,6 +692,7 @@ public class MainActivity extends Activity {
     }
 
     private void cancelRequests(){
+        if(openingCluster&&groupMode){groupMode=false;group.clear();renderList();}
         viewportDirty=true;
         viewportGeneration++;
         photoSelection++;

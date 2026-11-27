@@ -43,7 +43,7 @@ final class PhotoGalleryView extends LinearLayout {
     private final Consumer<PhotoItem> openPhoto;
     private final TextView total, sort;
     private final FrameLayout sortTarget;
-    private final TextView scrollMonth;
+    private final TextView scrollMonth, loading;
     private final ListView grid;
     private final PhotoRows adapter;
     private boolean oldestFirst;
@@ -126,6 +126,11 @@ final class PhotoGalleryView extends LinearLayout {
         grid.setRecyclerListener(view->{if(view instanceof PhotoGridRow)((PhotoGridRow)view).clearImages();});
         FrameLayout listArea=new FrameLayout(context);
         listArea.addView(grid,new FrameLayout.LayoutParams(-1,-1));
+        loading=text(14,secondary,false);
+        loading.setText("正在读取照片…");
+        loading.setGravity(Gravity.CENTER);
+        loading.setVisibility(View.GONE);
+        listArea.addView(loading,new FrameLayout.LayoutParams(-1,-1));
         scrollMonth=text(15,controlText,true);
         scrollMonth.setPadding(dp(13),0,dp(13),0);
         scrollMonth.setBackground(rounded(control,17));
@@ -149,12 +154,21 @@ final class PhotoGalleryView extends LinearLayout {
     }
 
     void setPhotos(List<PhotoItem> photos,boolean oldest){
+        loading.setVisibility(View.GONE);
+        sortTarget.setVisibility(View.VISIBLE);
         oldestFirst=oldest;
         total.setText(number.format(photos.size())+" 张照片");
         String order=oldest?"最早优先":"最新优先";
         sort.setText(order+"  ⇅");
         sortTarget.setContentDescription("照片排序，当前"+order+"，点击切换");
         adapter.setPhotos(photos);
+    }
+
+    void showLoading(){
+        adapter.setPhotos(Collections.emptyList());
+        total.setText("正在读取照片…");
+        sortTarget.setVisibility(View.INVISIBLE);
+        loading.setVisibility(View.VISIBLE);
     }
 
     int firstVisiblePhoto(){
