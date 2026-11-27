@@ -47,6 +47,8 @@
 
 ## 本地配置
 
+百度地图 AK 的注册、申请和应用内设置步骤，请参阅[项目 README 中的获取指南](../README.md#获取和设置百度地图-ak)及[百度官方教程](https://lbsyun.baidu.com/docs/guide?title=android-guide%2Fcreate-project%2Fak)。
+
 在本目录的 `local.properties` 中设置：
 
 ```properties

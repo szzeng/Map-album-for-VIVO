@@ -236,17 +236,22 @@ public final class PhotoPreviewActivity extends Activity {
         PhotoItem item=photos.get(shown);
         String time=item.dateTaken==null||item.dateTaken<=0?"拍摄时间未知":new SimpleDateFormat("yyyy年M月d日 HH:mm",Locale.getDefault()).format(new Date(item.dateTaken));
         photoDate.setText(time);
+        photoSize.setText(item.video?"时长 --:--":"文件大小未知");
         if(item.uri==null){photoSize.setText("文件大小未知");return;}
         metadataWorker.execute(()->{
-            long bytes=-1;
-            try(Cursor cursor=getContentResolver().query(item.uri,new String[]{MediaStore.MediaColumns.SIZE},null,null,null)){
-                if(cursor!=null&&cursor.moveToFirst()&&!cursor.isNull(0))bytes=cursor.getLong(0);
+            long bytes=-1,duration=-1;
+            String[] columns=item.video?new String[]{MediaStore.MediaColumns.SIZE,MediaStore.Video.VideoColumns.DURATION}:new String[]{MediaStore.MediaColumns.SIZE};
+            try(Cursor cursor=getContentResolver().query(item.uri,columns,null,null,null)){
+                if(cursor!=null&&cursor.moveToFirst()){
+                    if(!cursor.isNull(0))bytes=cursor.getLong(0);
+                    if(item.video&&!cursor.isNull(1))duration=cursor.getLong(1);
+                }
             }catch(RuntimeException ignored){}
-            final long result=bytes;
+            final long result=bytes,videoDuration=duration;
             runOnUiThread(()->{
                 if(!activePreview||isFinishing()||isDestroyed()||ticket!=metadataGeneration||metadataIndex!=shown)return;
                 String size=result>=0?"文件大小 · "+android.text.format.Formatter.formatShortFileSize(this,result):"文件大小未知";
-                photoSize.setText(size);
+                photoSize.setText(item.video?size+"  ·  时长 "+VideoDuration.format(videoDuration):size);
             });
         });
     }

@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 final class ThumbnailLoader implements AutoCloseable {
     interface Callback { void complete(Bitmap bitmap); }
     interface Request { void cancel(); }
+    interface DurationCallback { void complete(long duration); }
     private static final Request COMPLETE = () -> {};
     private static final int LIMIT_BYTES=32*1024*1024;
     private final ContentResolver resolver;
@@ -30,6 +31,8 @@ final class ThumbnailLoader implements AutoCloseable {
         @Override protected int sizeOf(String key,Bitmap value){return value.getAllocationByteCount();}
     };
     private final Map<String,Pending> pending=new HashMap<>();
+    private final LruCache<String,Long> durationCache=new LruCache<>(512);
+    private final Map<android.os.CancellationSignal,Runnable> durationJobs=new HashMap<>();
     private boolean closed;
     private int startedCount, canceledCount, hitCount;
     private static final class Pending {
@@ -97,10 +100,34 @@ final class ThumbnailLoader implements AutoCloseable {
             for(Callback callback:callbacks)callback.complete(ready);
         });
     }
+    Request tryLoadDuration(Uri uri,long version,DurationCallback callback){
+        if(uri==null||callback==null)throw new IllegalArgumentException();
+        String key=uri.toString()+"|"+version;
+        synchronized(this){
+            if(closed)return null;
+            Long cached=durationCache.get(key);
+            if(cached!=null){main.post(()->callback.complete(cached));return COMPLETE;}
+            CancellationSignal signal=new CancellationSignal();
+            Runnable task=()->{
+                long duration=-1;
+                try(android.database.Cursor cursor=resolver.query(uri,new String[]{android.provider.MediaStore.Video.VideoColumns.DURATION},null,null,null,signal)){
+                    if(cursor!=null&&cursor.moveToFirst()&&!cursor.isNull(0))duration=cursor.getLong(0);
+                }catch(RuntimeException ignored){}
+                final long result=duration;
+                main.post(()->{
+                    synchronized(ThumbnailLoader.this){if(closed||durationJobs.remove(signal)==null||signal.isCanceled())return;if(result>=0)durationCache.put(key,result);}
+                    callback.complete(result);
+                });
+            };
+            durationJobs.put(signal,task);
+            try{workers.execute(task);}catch(RejectedExecutionException busy){durationJobs.remove(signal);return null;}
+            return ()->{synchronized(ThumbnailLoader.this){Runnable job=durationJobs.remove(signal);if(job!=null){workers.remove(job);signal.cancel();}}};
+        }
+    }
     synchronized void cancelPending(){
-        canceledCount+=pending.size();for(Pending job:pending.values())job.signal.cancel();pending.clear();workers.getQueue().clear();
+        canceledCount+=pending.size();for(Pending job:pending.values())job.signal.cancel();pending.clear();for(CancellationSignal signal:durationJobs.keySet())signal.cancel();durationJobs.clear();workers.getQueue().clear();
     }
     synchronized String diagnosticCounts(){return "缩略图请求 "+startedCount+" · 已取消 "+canceledCount+" · 进行中 "+pending.size()+" · 缓存命中 "+hitCount+" · 缓存字节 "+cache.size();}
-    synchronized void clear(){cancelPending();cache.evictAll();}
+    synchronized void clear(){cancelPending();cache.evictAll();durationCache.evictAll();}
     @Override public synchronized void close(){if(closed)return;clear();closed=true;workers.shutdownNow();}
 }

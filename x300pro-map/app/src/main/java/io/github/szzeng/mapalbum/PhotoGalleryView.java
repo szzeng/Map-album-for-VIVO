@@ -349,16 +349,18 @@ final class PhotoGalleryView extends LinearLayout {
 
         void clearImages(){for(PhotoCell cell:cells)cell.bind(null,cell.tileSize,0);}
         void cancelImages(){for(PhotoCell cell:cells)cell.cancel();}
-        void restartImages(){for(PhotoCell cell:cells)cell.loadImage();}
+        void restartImages(){for(PhotoCell cell:cells){cell.loadImage();cell.loadDuration();}}
     }
 
     private final class PhotoCell extends ImageView {
         private PhotoItem photo;
         private int photoIndex;
         private int tileSize;
-        private ThumbnailLoader.Request request;
+        private ThumbnailLoader.Request request,durationRequest;
+        private long duration=-1;
+        private boolean durationLoaded;
         private boolean retryPending;
-        private final Runnable retry=()->{retryPending=false;loadImage();};
+        private final Runnable retry=()->{retryPending=false;loadImage();loadDuration();};
 
         PhotoCell(){
             super(PhotoGalleryView.this.getContext());
@@ -374,20 +376,22 @@ final class PhotoGalleryView extends LinearLayout {
                 cancel();
                 setImageDrawable(null);
                 photo=next;
+                duration=-1;durationLoaded=false;
                 tileSize=size;
                 setVisibility(photo==null?View.INVISIBLE:View.VISIBLE);
                 ViewGroup.LayoutParams params=getLayoutParams();
                 if(params.height!=size){params.height=size;setLayoutParams(params);}
             }
             setContentDescription(photo==null?null:"查看第 "+(index+1)+(photo.video?" 个视频":" 张照片"));
-            loadImage();
+            loadImage();loadDuration();
         }
         @Override protected void onDraw(Canvas canvas){
             super.onDraw(canvas);
             if(photo==null||!photo.video)return;
-            Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);float radius=dp(12),x=getWidth()-dp(16),y=getHeight()-dp(16);
-            p.setColor(0xaa000000);canvas.drawCircle(x,y,radius,p);p.setColor(android.graphics.Color.WHITE);
-            android.graphics.Path triangle=new android.graphics.Path();triangle.moveTo(x-dp(3),y-dp(6));triangle.lineTo(x+dp(6),y);triangle.lineTo(x-dp(3),y+dp(6));triangle.close();canvas.drawPath(triangle,p);
+            Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);p.setTextSize(dp(12));p.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            String value=VideoDuration.format(duration);float width=p.measureText(value),right=getWidth()-dp(5),bottom=getHeight()-dp(5);
+            p.setColor(0xaa000000);canvas.drawRoundRect(right-width-dp(10),bottom-dp(21),right,bottom,dp(4),dp(4),p);
+            p.setColor(android.graphics.Color.WHITE);canvas.drawText(value,right-width-dp(5),bottom-dp(5),p);
         }
         void loadImage(){
             if(photo==null||tileSize<=1||getDrawable()!=null||request!=null||retryPending||!canLoad.getAsBoolean())return;
@@ -398,8 +402,18 @@ final class PhotoGalleryView extends LinearLayout {
             });
             if(request==null){retryPending=true;postDelayed(retry,120);}
         }
+        void loadDuration(){
+            if(photo==null||!photo.video||durationLoaded||durationRequest!=null||!canLoad.getAsBoolean())return;
+            PhotoItem bound=photo;
+            durationRequest=thumbnails.tryLoadDuration(bound.uri,bound.mediaVersion,value->{
+                durationRequest=null;if(bound!=photo||!canLoad.getAsBoolean())return;
+                duration=value;durationLoaded=true;invalidate();
+            });
+            if(durationRequest==null&&!retryPending){retryPending=true;postDelayed(retry,120);}
+        }
         void cancel(){
             if(request!=null){request.cancel();request=null;}
+            if(durationRequest!=null){durationRequest.cancel();durationRequest=null;}
             if(retryPending){removeCallbacks(retry);retryPending=false;}
         }
         @Override protected void onDetachedFromWindow(){cancel();super.onDetachedFromWindow();}

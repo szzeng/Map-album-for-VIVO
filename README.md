@@ -57,9 +57,16 @@
 
 Android 应用工程位于 **x300pro-map/**。仓库当前未提交 Gradle Wrapper，请使用 Android Studio 配置的 Gradle 8.6 或本机 Gradle 8.6。
 
-### 百度地图 AK
+### 获取和设置百度地图 AK
 
-在 **x300pro-map/local.properties** 中配置本机 Android SDK 路径和百度地图 AK：
+1. 登录百度账号，按照[百度地图开放平台使用准备](https://lbsyun.baidu.com/docs/guide?title=android-guide%2Fprepare)完成开发者注册和认证。
+2. 打开[百度地图控制台](https://lbsyun.baidu.com/apiconsole/key)，在“我的应用”中选择“创建应用”，应用类型选择 **Android SDK**，并启用需要的地图、定位和地点搜索服务。
+3. 填写应用包名 `io.github.szzeng.mapalbum` 和安装包的签名证书 SHA-1。GitHub 发布的 **0.4.0 Release APK** 签名 SHA-1 为 `20:F5:A0:1B:2E:4C:CB:CE:49:0D:6B:1E:24:5A:65:F0:26:F6:86:0D`。自行编译、Debug 包或其他签名的 APK 请使用各自的包名和签名；可用 Android SDK 的 `apksigner verify --print-certs 路径/应用.apk` 查看证书 SHA-1。
+4. 提交后复制生成的 AK，在图迹右上角菜单选择“百度地图 AK”，粘贴并保存。也可以在该页面点击“如何获取百度地图 AK？”打开[百度官方申请教程](https://lbsyun.baidu.com/docs/guide?title=android-guide%2Fcreate-project%2Fak)。
+
+百度会校验包名与签名，只有两者与安装包一致，AK 才能正常鉴权。使用服务前请查看百度开放平台的服务条款和计费说明。
+
+如果自行构建应用，还需要在 **x300pro-map/local.properties** 中配置本机 Android SDK 路径和百度地图 AK：
 
 \`\`\`properties
 sdk.dir=/path/to/Android/Sdk

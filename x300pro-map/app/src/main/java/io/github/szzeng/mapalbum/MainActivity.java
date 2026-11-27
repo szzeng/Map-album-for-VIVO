@@ -350,6 +350,10 @@ public class MainActivity extends Activity {
         EditText input=new EditText(this);input.setSingleLine(true);input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);input.setHint("输入百度地图 AK");
         String custom=getSharedPreferences(MAP_SETTINGS,MODE_PRIVATE).getString(CUSTOM_BAIDU_AK,"");input.setText(custom);input.setSelection(input.length());
         LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(24),0,dp(24),0);TextView note=label("AK 用于地图和定位，需在百度控制台绑定图迹的包名和签名。",14,SECONDARY);box.addView(note);box.addView(input);
+        TextView guide=label("如何获取百度地图 AK？",14,ACCENT);guide.setMinHeight(dp(48));guide.setOnClickListener(v->{
+            try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://lbsyun.baidu.com/docs/guide?title=android-guide%2Fcreate-project%2Fak")));}
+            catch(android.content.ActivityNotFoundException unavailable){Toast.makeText(this,"找不到可打开教程的浏览器",Toast.LENGTH_SHORT).show();}
+        });box.addView(guide);
         AlertDialog dialog=new AlertDialog.Builder(this).setTitle("百度地图 AK").setView(box).setNegativeButton("取消",null).setNeutralButton("恢复内置 AK",null).setPositiveButton("保存",null).create();
         dialog.setOnShowListener(ignored->{
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{
