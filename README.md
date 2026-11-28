@@ -22,7 +22,7 @@
 - 项目面向 **vivo 手机**。非 vivo 设备不会开放图库地图功能。
 - **vivo X300 Pro（V2502A / PD2502，Android 17）** 是当前主要验证设备，已进行真实照片位置核对、地图浏览、权限和原生相册跳转等体验检查。
 - 其他 vivo 机型没有逐一验证，可以尝试使用；是否兼容取决于系统版本、图库 Provider 行为和照片索引对应关系，不作保证。
-- 当前工程版本为 **0.4.0（versionCode 5）**。项目仍处于个人使用版开发与实机验证阶段；已有体验结果不等于所有机型、照片和地区均已完成验收。
+- 当前工程版本为 **0.4.1（versionCode 6）**，Release APK 仅支持 ARM64。项目仍处于个人使用版开发与实机验证阶段；已有体验结果不等于所有机型、照片和地区均已完成验收。
 
 ## 数据读取与隐私边界
 
@@ -63,7 +63,7 @@ Android 应用工程位于 **x300pro-map/**。仓库当前未提交 Gradle Wrapp
 
 1. 登录百度账号，按照[百度地图开放平台使用准备](https://lbsyun.baidu.com/docs/guide?title=android-guide%2Fprepare)完成开发者注册和认证。
 2. 打开[百度地图控制台](https://lbsyun.baidu.com/apiconsole/key)，在“我的应用”中选择“创建应用”，应用类型选择 **Android SDK**，并启用需要的地图、定位和地点搜索服务。
-3. 填写应用包名 `io.github.szzeng.mapalbum` 和安装包的签名证书 SHA-1。GitHub 发布的 **0.4.0 Release APK** 签名 SHA-1 为 `20:F5:A0:1B:2E:4C:CB:CE:49:0D:6B:1E:24:5A:65:F0:26:F6:86:0D`。自行编译、Debug 包或其他签名的 APK 请使用各自的包名和签名；可用 Android SDK 的 `apksigner verify --print-certs 路径/应用.apk` 查看证书 SHA-1。
+3. 填写应用包名 `io.github.szzeng.mapalbum` 和安装包的签名证书 SHA-1。GitHub 发布的 **0.4.1 Release APK** 签名 SHA-1 为 `20:F5:A0:1B:2E:4C:CB:CE:49:0D:6B:1E:24:5A:65:F0:26:F6:86:0D`。自行编译、Debug 包或其他签名的 APK 请使用各自的包名和签名；可用 Android SDK 的 `apksigner verify --print-certs 路径/应用.apk` 查看证书 SHA-1。
 4. 提交后复制生成的 AK，在图迹右上角菜单选择“百度地图 AK”，粘贴并保存。也可以在该页面点击“如何获取百度地图 AK？”打开[百度官方申请教程](https://lbsyun.baidu.com/docs/guide?title=android-guide%2Fcreate-project%2Fak)。
 
 百度会校验包名与签名，只有两者与安装包一致，AK 才能正常鉴权。使用服务前请查看百度开放平台的服务条款和计费说明。

@@ -7,7 +7,7 @@
 ## 工程信息
 
 - applicationId / namespace：`io.github.szzeng.mapalbum`
-- 当前版本：`0.4.0`（versionCode `5`）
+- 当前版本：`0.4.1`（versionCode `6`），Release APK 仅支持 ARM64
 - minSdk：29（Android 10）
 - compileSdk：34
 - JDK：17
