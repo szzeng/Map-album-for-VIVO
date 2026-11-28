@@ -22,7 +22,8 @@
 - `MainActivity`：地图主界面、地图类型切换、定位、照片与视频聚合、模式切换和菜单。
 - `PlaceSearch`：地点联想、POI 搜索、搜索历史和地图定位。
 - `PhotoGalleryView`：地图媒体列表与交互。
-- `PhotoPreviewActivity`：照片预览、媒体切换和通过系统播放器播放视频。
+- `VivoNativeGalleryLauncher`：尝试按地图聚合顺序打开 vivo 原生相册；启动失败时回退到内置预览。
+- `PhotoPreviewActivity`：回退时的照片预览、媒体切换和通过系统播放器播放视频。
 - `ThumbnailLoader`：系统缩略图按需加载，32 MiB 有界内存 LRU 缓存，两个后台线程和有界任务队列。
 - `ScreenClusters`：基于屏幕距离的媒体标记聚合。
 - `Appearance`：系统深浅色跟随和手动暗夜模式。
@@ -43,7 +44,7 @@
 
 ## 设备适配
 
-图库地图功能面向 vivo 手机。X300 Pro（V2502A / PD2502，Android 17）是当前主要实机验证设备；其他 vivo 机型可尝试，但未逐一验证，兼容性取决于系统与图库 Provider 实现。非 vivo 设备不开放图库地图。
+图库地图功能面向 vivo 手机。X300 Pro（V2502A / PD2502，Android 17）是当前主要实机验证设备；其他 vivo 机型可尝试，但未逐一验证，兼容性取决于系统与图库 Provider 实现。非 vivo 设备不开放图库地图。原生相册队列依赖私有接口，主要在相册 11.0.6.8 上验证；启动后相册内部加载失败无法自动触发回退。超过一万项的聚合曾出现相册无响应，原因尚未确认。
 
 ## 本地配置
 
