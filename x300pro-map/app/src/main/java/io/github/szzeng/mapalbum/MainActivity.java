@@ -309,12 +309,10 @@ public class MainActivity extends Activity {
         p.getMenu().add("关于图迹 for VIVO").setOnMenuItemClickListener(i->{showAbout();return true;});
         if(BuildConfig.PERSONAL_DEVICE_RELEASE){
             p.getMenu().add("启用图库地图").setOnMenuItemClickListener(i->{enableExperiment();return true;});
-            p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{openPhotoPermissionSettings();return true;});
         }
         if((getApplicationInfo().flags&android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)!=0){
             p.getMenu().add("启用图库地图").setOnMenuItemClickListener(i->{enableExperiment();return true;});
             p.getMenu().add("关闭全图库实验模式").setOnMenuItemClickListener(i->{getPreferences(MODE_PRIVATE).edit().remove("experiment_confirmed").apply();if(experiment!=null){experiment.close();experiment=null;}pendingPhotoReturn=null;clearData();return true;});
-            p.getMenu().add("修改照片授权").setOnMenuItemClickListener(i->{openPhotoPermissionSettings();return true;});
             p.getMenu().add("数据诊断").setOnMenuItemClickListener(i->{showDiagnostics();return true;});
             p.getMenu().add("视频 GPS 验证").setOnMenuItemClickListener(i->{startActivity(new android.content.Intent().setClassName(this, "io.github.szzeng.mapalbum.VideoCheckActivity"));return true;});
         }
