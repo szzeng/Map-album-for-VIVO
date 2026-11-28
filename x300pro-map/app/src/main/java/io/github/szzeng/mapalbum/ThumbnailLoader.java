@@ -22,6 +22,7 @@ final class ThumbnailLoader implements AutoCloseable {
     interface Callback { void complete(Bitmap bitmap); }
     interface Request { void cancel(); }
     interface DurationCallback { void complete(long duration); }
+    interface OrientationCallback { void complete(Integer degrees); }
     private static final Request COMPLETE = () -> {};
     private static final int LIMIT_BYTES=32*1024*1024;
     private final ContentResolver resolver;
@@ -43,6 +44,22 @@ final class ThumbnailLoader implements AutoCloseable {
     ThumbnailLoader(ContentResolver resolver){this.resolver=resolver;}
     synchronized Bitmap cachedThumbnail(Uri uri,long version,int size){
         return closed||uri==null?null:cache.get(uri.toString()+"|"+version+"|"+size+"|thumbnail");
+    }
+    boolean tryReadOrientation(Uri uri,OrientationCallback callback){
+        try{
+            workers.execute(()->{
+                Integer result=null;
+                try(android.database.Cursor cursor=resolver.query(uri,new String[]{android.provider.MediaStore.Images.ImageColumns.ORIENTATION},null,null,null)){
+                    if(cursor!=null&&cursor.moveToFirst()&&!cursor.isNull(0)){
+                        int value=cursor.getInt(0);
+                        if(value==0||value==90||value==180||value==270)result=value;
+                    }
+                }catch(RuntimeException ignored){}
+                final Integer ready=result;
+                main.post(()->callback.complete(ready));
+            });
+            return true;
+        }catch(RejectedExecutionException ignored){return false;}
     }
     void load(Uri uri,long version,int size,Callback callback){
         if(enqueue(uri,version,size,false,callback)==null)main.post(()->callback.complete(null));

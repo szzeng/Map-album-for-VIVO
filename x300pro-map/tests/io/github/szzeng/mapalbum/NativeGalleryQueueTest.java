@@ -14,7 +14,7 @@ public final class NativeGalleryQueueTest {
         check(NativeGalleryQueue.create(1,0,i->MediaIdentity.video(1)).entryMimeType().equals("video/mp4"));
         check(NativeGalleryQueue.create(1,0,i->MediaIdentity.photo(Integer.MAX_VALUE))!=null);
         check(NativeGalleryQueue.create(1,0,i->MediaIdentity.video((long)Integer.MAX_VALUE+1))==null);
-        check(NativeGalleryQueue.create(129,0,i->1)==null);
+        check(NativeGalleryQueue.create(4096,4095,i->i)!=null);
         check(NativeGalleryQueue.create(128,127,i->i)!=null);
         check(NativeGalleryQueue.create(2,2,i->1)==null);
         check(NativeGalleryQueue.create(1,0,i->-1)==null);

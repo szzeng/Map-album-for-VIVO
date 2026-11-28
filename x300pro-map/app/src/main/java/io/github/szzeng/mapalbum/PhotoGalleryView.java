@@ -373,7 +373,7 @@ final class PhotoGalleryView extends LinearLayout {
             setOnClickListener(v->{
                 if(photo==null||!canLoad.getAsBoolean())return;
                 Drawable drawable=getDrawable();
-                Bitmap bitmap=photo.video&&drawable instanceof BitmapDrawable?((BitmapDrawable)drawable).getBitmap():null;
+                Bitmap bitmap=drawable instanceof BitmapDrawable?((BitmapDrawable)drawable).getBitmap():null;
                 openPhoto.accept(photoIndex,bitmap);
             });
         }

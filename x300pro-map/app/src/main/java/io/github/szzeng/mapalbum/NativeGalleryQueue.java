@@ -5,7 +5,6 @@ import java.util.function.IntToLongFunction;
 
 /** Validates an entire ordered queue before any native viewer is launched. */
 final class NativeGalleryQueue {
-    static final int MAX_ITEMS=128;
     final ArrayList<Integer> ids;
     final boolean hasPhotos,hasVideos;
 
@@ -18,7 +17,7 @@ final class NativeGalleryQueue {
     }
 
     static NativeGalleryQueue create(int count,int index,IntToLongFunction keyAt){
-        if(count<1||count>MAX_ITEMS||index<0||index>=count||keyAt==null)return null;
+        if(count<1||index<0||index>=count||keyAt==null)return null;
         ArrayList<Integer> ids=new ArrayList<>(count);
         boolean photos=false,videos=false;
         for(int i=0;i<count;i++){

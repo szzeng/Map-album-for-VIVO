@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
             this.repository=repository;this.scopeToken=scopeToken;this.photos=photos;this.oldestFirst=oldestFirst;this.scroll=scroll;this.offset=offset;
         }
     }
-    private boolean active, mapResumed, viewportDirty=true;
+    private boolean active, mapResumed, viewportDirty=true, launchingNativeViewer;
     private long displayedScope=-1;
     private TextView scopeCover;
     private final Runnable showScopeMessage=()->{
@@ -900,14 +900,17 @@ public class MainActivity extends Activity {
         if(ids.length==1){
             pendingPhotoReturn=null;
             Bitmap thumbnail=null;
-            if(MediaIdentity.isVideo(ids[0])){
+            {
                 ViewportData data=viewport;int at=data==null?-1:Arrays.binarySearch(data.ids,ids[0]);
                 if(at>=0){
-                    Uri uri=android.content.ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY),MediaIdentity.id(ids[0]));
+                    Uri collection=MediaIdentity.isVideo(ids[0])?android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY):android.provider.MediaStore.Images.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                    Uri uri=android.content.ContentUris.withAppendedId(collection,MediaIdentity.id(ids[0]));
                     thumbnail=thumbnails.cachedThumbnail(uri,data.versions[at],160);
                 }
             }
-            if(VivoNativeGalleryLauncher.launch(this,1,0,i->ids[0],thumbnail))return;
+            // A single photo's direction is not known here; omit its provisional cover.
+            if(!MediaIdentity.isVideo(ids[0]))thumbnail=null;
+            if(openNativeGallery(1,0,i->ids[0],thumbnail,0))return;
             if(MediaIdentity.isVideo(ids[0])){openVideo(ids[0]);return;}
             openingCluster=true;
             openPreviewSession(new PreviewSessionStore.Session(Collections.emptyList(),repository,displayedScope,ids[0]),0);
@@ -1030,19 +1033,36 @@ public class MainActivity extends Activity {
         if(!canLoadGalleryImages()||group==null)return;
         GalleryPhotoList selected=group;
         long selection=++nativeThumbnailSelection;
-        if(selected.isVideo(position)&&thumbnail==null){
+        if(thumbnail==null){
             PhotoItem item=selected.get(position);
             ThumbnailLoader.Request request=thumbnails.tryLoad(item.uri,item.mediaVersion,384,bitmap->{
-                if(selection==nativeThumbnailSelection&&group==selected&&canLoadGalleryImages())openSelectedMedia(selected,position,bitmap);
+                if(selection==nativeThumbnailSelection&&group==selected&&canLoadGalleryImages())prepareSelectedMedia(selected,position,bitmap,selection);
             });
             if(request!=null)return;
         }
-        openSelectedMedia(selected,position,thumbnail);
+        prepareSelectedMedia(selected,position,thumbnail,selection);
     }
-    private void openSelectedMedia(GalleryPhotoList selected,int position,Bitmap thumbnail){
+    private void prepareSelectedMedia(GalleryPhotoList selected,int position,Bitmap thumbnail,long selection){
+        if(!selected.isVideo(position)&&thumbnail!=null){
+            Bitmap preview=thumbnail;
+            if(thumbnails.tryReadOrientation(selected.get(position).uri,degrees->{
+                if(selection==nativeThumbnailSelection&&group==selected&&canLoadGalleryImages())
+                    openSelectedMedia(selected,position,degrees==null?null:preview,degrees==null?0:degrees);
+            }))return;
+            thumbnail=null;
+        }
+        openSelectedMedia(selected,position,thumbnail,0);
+    }
+    private void openSelectedMedia(GalleryPhotoList selected,int position,Bitmap thumbnail,int orientation){
         pendingPhotoReturn=snapshotGallery();
-        if(VivoNativeGalleryLauncher.launch(this,selected.size(),position,selected::mediaKeyAt,thumbnail))return;
+        if(openNativeGallery(selected.size(),position,selected::mediaKeyAt,thumbnail,orientation))return;
         openPreview(selected,position);
+    }
+    private boolean openNativeGallery(int count,int index,java.util.function.IntToLongFunction keyAt,Bitmap thumbnail,int orientation){
+        launchingNativeViewer=true;
+        if(VivoNativeGalleryLauncher.launch(this,count,index,keyAt,thumbnail,orientation))return true;
+        launchingNativeViewer=false;
+        return false;
     }
     private void openVideo(long key){Uri uri=android.content.ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY),MediaIdentity.id(key));openVideoUri(uri);}
     private void openVideoUri(Uri uri){
@@ -1101,7 +1121,7 @@ public class MainActivity extends Activity {
         networkStatus.setVisibility(online?View.GONE:View.VISIBLE);
     }
     @Override protected void onStart(){super.onStart();ConnectivityManager manager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);if(manager!=null){manager.registerDefaultNetworkCallback(networkCallback);networkCallbackRegistered=true;}updateNetworkStatus();}
-    @Override protected void onStop(){stopLocation();if(networkCallbackRegistered){ConnectivityManager manager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);if(manager!=null)manager.unregisterNetworkCallback(networkCallback);networkCallbackRegistered=false;}super.onStop();}
+    @Override protected void onStop(){stopLocation();if(launchingNativeViewer&&displayedScope>=0)showScopeCover();if(networkCallbackRegistered){ConnectivityManager manager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);if(manager!=null)manager.unregisterNetworkCallback(networkCallback);networkCallbackRegistered=false;}super.onStop();}
     private void showScopeCover(){
         if(root==null)return;
         if(scopeCover==null){
@@ -1122,12 +1142,12 @@ public class MainActivity extends Activity {
         if(scopeCover!=null){root.removeView(scopeCover);scopeCover=null;}
     }
     private void resumeMapView(){if(active&&view!=null&&!mapResumed){view.onResume();mapResumed=true;}}
-    @Override protected void onResume(){super.onResume();active=true;if(view!=null){resumeMapView();resumeExperiment();locateOnColdStart();}}
+    @Override protected void onResume(){super.onResume();active=true;if(launchingNativeViewer&&displayedScope>=0)showScopeCover();launchingNativeViewer=false;if(view!=null){resumeMapView();resumeExperiment();locateOnColdStart();}}
     @Override protected void onPause(){
         lastExitBack=-1;
         active=false;
         if(placeSearch!=null)placeSearch.close();
-        if(displayedScope>=0)showScopeCover();
+        if(displayedScope>=0&&!launchingNativeViewer)showScopeCover();
         boolean needsRedraw=viewportDirty;
         cancelRequests();
         viewportDirty=needsRedraw;
