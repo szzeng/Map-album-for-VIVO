@@ -132,10 +132,26 @@ public final class MapDataRepository implements AutoCloseable {
         ((DeviceBackend)backend).mode=mode;
     }
     public synchronized int validCount(){return validCount;}
-    public synchronized String photoLocationSummary(){
-        if(state!=State.READY || !(backend instanceof DeviceBackend))return null;
-        PrimaryPhotoSource source=((DeviceBackend)backend).source;
-        return "已授权照片："+visibleCount+" 张\n有有效位置："+validCount+" 张\n坐标为空："+source.noGpsCount+" 张\n坐标无效："+source.invalidCount+" 张\n图库未返回记录："+source.missingCount+" 张\n\n未返回记录不代表照片没有 GPS。";
+    public synchronized String galleryLocationSummary(){
+        if(state!=State.READY || cache==null || !(backend instanceof DeviceBackend))return null;
+        DeviceBackend device=(DeviceBackend)backend;
+        int validVideos=0;
+        synchronized(cache){for(int i=0;i<cache.size();i++)if(MediaIdentity.isVideo(cache.idAt(i)))validVideos++;}
+        int photos=visibleCount-device.videoCount,validPhotos=validCount-validVideos;
+        String scope=device.mode==0?"照片":device.mode==2?"视频":"全部";
+        StringBuilder summary=new StringBuilder("当前地图筛选：").append(scope).append("\n\n照片\n");
+        if(device.mode==2)summary.append("当前筛选未统计照片");
+        else {PrimaryPhotoSource source=device.source;
+            summary.append("读取到：").append(photos).append(" 张\n有有效位置：").append(validPhotos)
+                .append(" 张\n坐标为空：").append(source.noGpsCount).append(" 张\n坐标无效：").append(source.invalidCount)
+                .append(" 张\n图库未返回记录：").append(source.missingCount).append(" 张");}
+        summary.append("\n\n视频\n");
+        if(device.mode==0)summary.append("当前筛选未统计视频");
+        else summary.append("读取到：").append(device.videoCount).append(" 个\n可用于地图：").append(validVideos)
+            .append(" 个\n未计入地图：").append(device.videoCount-validVideos).append(" 个");
+        summary.append("\n\n统计仅包含当前授权及筛选范围。未计入地图可能是位置无效、身份未确认或读取失败，不代表一定没有 GPS。");
+        if(device.mode!=1)summary.append("\n切换地图筛选为“全部”可同时查看照片和视频。");
+        return summary.toString();
     }
     /** Called from a query callback, on the repository worker. */
     public MediaStoreLookup.Metadata metadataNow(long id) {
