@@ -1,11 +1,8 @@
 package io.github.szzeng.mapalbum;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
 import android.content.ContentUris;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
@@ -22,8 +19,6 @@ final class VivoNativeGalleryLauncher {
 
     static boolean launch(Activity activity,int count,int index,IntToLongFunction keyAt,Bitmap thumbnailBitmap,int orientation){
         try{
-            PackageInfo info=activity.getPackageManager().getPackageInfo(PACKAGE,0);
-            if(!NativeGalleryQueue.isSupportedVersion(info.getLongVersionCode(),info.versionName))return false;
             NativeGalleryQueue queue=NativeGalleryQueue.create(count,index,keyAt);
             if(queue==null)return false;
             long selectedKey=keyAt.applyAsLong(index);
@@ -41,11 +36,9 @@ final class VivoNativeGalleryLauncher {
             byte[] thumbnail=encodeThumbnail(thumbnailBitmap,orientation);
             if(thumbnail!=null)intent.putExtra("thumbnail_data",thumbnail);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            ActivityOptions animation=ActivityOptions.makeCustomAnimation(activity,
-                R.anim.native_gallery_fade_in,R.anim.native_gallery_hold);
-            activity.startActivity(intent,animation.toBundle());
+            activity.startActivity(intent);
             return true;
-        }catch(PackageManager.NameNotFoundException|RuntimeException unavailable){
+        }catch(RuntimeException unavailable){
             return false;
         }
     }

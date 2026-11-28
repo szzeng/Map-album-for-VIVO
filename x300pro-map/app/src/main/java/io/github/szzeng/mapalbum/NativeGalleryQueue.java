@@ -12,10 +12,6 @@ final class NativeGalleryQueue {
         this.ids=ids;hasPhotos=photos;hasVideos=videos;
     }
 
-    static boolean isSupportedVersion(long code,String name){
-        return code==110006008L&&"11.0.6.8".equals(name);
-    }
-
     static NativeGalleryQueue create(int count,int index,IntToLongFunction keyAt){
         if(count<1||index<0||index>=count||keyAt==null)return null;
         ArrayList<Integer> ids=new ArrayList<>(count);

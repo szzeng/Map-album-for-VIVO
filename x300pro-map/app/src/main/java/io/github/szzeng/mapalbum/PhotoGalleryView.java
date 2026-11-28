@@ -45,7 +45,7 @@ final class PhotoGalleryView extends LinearLayout {
     private final BiConsumer<Integer,Bitmap> openPhoto;
     private final TextView total, sort;
     private final FrameLayout sortTarget;
-    private final TextView scrollMonth, loading;
+    private final TextView scrollMonth;
     private final ListView grid;
     private final PhotoRows adapter;
     private boolean oldestFirst;
@@ -66,7 +66,7 @@ final class PhotoGalleryView extends LinearLayout {
         setBackgroundColor(context.getColor(R.color.gallery_background));
         setElevation(dp(8));
         setClickable(true);
-        setAccessibilityPaneTitle("此处媒体");
+        setAccessibilityPaneTitle("此处回忆");
 
         LinearLayout bar=new LinearLayout(context);
         bar.setGravity(Gravity.CENTER_VERTICAL);
@@ -92,7 +92,7 @@ final class PhotoGalleryView extends LinearLayout {
         identityParams.setMarginEnd(dp(8));
         bar.addView(identity,identityParams);
         TextView title=text(18,primary,true);
-        title.setText("此处媒体");
+        title.setText("此处回忆");
         title.setSingleLine();
         title.setEllipsize(TextUtils.TruncateAt.END);
         title.setAccessibilityHeading(true);
@@ -128,11 +128,6 @@ final class PhotoGalleryView extends LinearLayout {
         grid.setRecyclerListener(view->{if(view instanceof PhotoGridRow)((PhotoGridRow)view).clearImages();});
         FrameLayout listArea=new FrameLayout(context);
         listArea.addView(grid,new FrameLayout.LayoutParams(-1,-1));
-        loading=text(14,secondary,false);
-        loading.setText("正在读取媒体…");
-        loading.setGravity(Gravity.CENTER);
-        loading.setVisibility(View.GONE);
-        listArea.addView(loading,new FrameLayout.LayoutParams(-1,-1));
         scrollMonth=text(18,controlText,true);
         scrollMonth.setPadding(dp(16),0,dp(16),0);
         scrollMonth.setBackground(rounded(control,20));
@@ -156,7 +151,6 @@ final class PhotoGalleryView extends LinearLayout {
     }
 
     void setPhotos(GalleryPhotoList photos,boolean oldest){
-        loading.setVisibility(View.GONE);
         sortTarget.setVisibility(View.VISIBLE);
         oldestFirst=oldest;
         int videos=photos==null?0:photos.videoCount();
@@ -171,7 +165,6 @@ final class PhotoGalleryView extends LinearLayout {
         adapter.setPhotos(null);
         total.setText(number.format(totalPhotos)+" 项媒体");
         sortTarget.setVisibility(View.INVISIBLE);
-        loading.setVisibility(View.VISIBLE);
     }
 
     int firstVisiblePhoto(){
@@ -287,10 +280,10 @@ final class PhotoGalleryView extends LinearLayout {
             return new PhotoRow(day.first+offset,Math.min(COLUMNS,day.count-offset),heading);
         }
         @Override public long getItemId(int position){return position;}
-        String monthAt(int position){
+        String dateAt(int position){
             if(days.isEmpty())return "";
             PhotoTimeline.Day day=days.get(dayForRow(Math.min(position,rowCount-1)));
-            return day.date==null?"日期未知":day.date.getYear()+"年"+day.date.getMonthValue()+"月";
+            return day.date==null?"日期未知":day.date.getYear()+"年"+day.date.getMonthValue()+"月"+day.date.getDayOfMonth()+"日";
         }
         @Override public View getView(int position,View recycled,ViewGroup parent){
             PhotoGridRow row=recycled instanceof PhotoGridRow?(PhotoGridRow)recycled:new PhotoGridRow();
@@ -491,7 +484,7 @@ final class PhotoGalleryView extends LinearLayout {
             float fraction=Math.max(0,Math.min(1,(y-length/2)/Math.max(1,getHeight()-length)));
             int row=Math.min(total-1,Math.round(fraction*Math.max(1,total-visible)));
             grid.setSelection(row);
-            scrollMonth.setText(adapter.monthAt(row));
+            scrollMonth.setText(adapter.dateAt(row));
             FrameLayout.LayoutParams bubble=(FrameLayout.LayoutParams)scrollMonth.getLayoutParams();
             int height=dp(SCROLL_MONTH_HEIGHT_DP);
             int parentHeight=((View)getParent()).getHeight();
