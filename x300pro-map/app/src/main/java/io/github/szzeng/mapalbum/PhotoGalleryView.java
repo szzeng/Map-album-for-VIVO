@@ -3,11 +3,13 @@ package io.github.szzeng.mapalbum;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
+import android.graphics.Bitmap;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.text.TextUtils;
@@ -29,7 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.IntConsumer;
+import java.util.function.BiConsumer;
 import org.example.map002probe.PhotoTimeline;
 
 final class PhotoGalleryView extends LinearLayout {
@@ -40,7 +42,7 @@ final class PhotoGalleryView extends LinearLayout {
     private final NumberFormat number=NumberFormat.getIntegerInstance(Locale.CHINA);
     private final ThumbnailLoader thumbnails;
     private final BooleanSupplier canLoad;
-    private final IntConsumer openPhoto;
+    private final BiConsumer<Integer,Bitmap> openPhoto;
     private final TextView total, sort;
     private final FrameLayout sortTarget;
     private final TextView scrollMonth, loading;
@@ -49,7 +51,7 @@ final class PhotoGalleryView extends LinearLayout {
     private boolean oldestFirst;
 
     PhotoGalleryView(Context context,ThumbnailLoader thumbnails,BooleanSupplier canLoad,
-                     Runnable close,Consumer<Boolean> changeSort,IntConsumer openPhoto){
+                     Runnable close,Consumer<Boolean> changeSort,BiConsumer<Integer,Bitmap> openPhoto){
         super(context);
         this.thumbnails=thumbnails;
         this.canLoad=canLoad;
@@ -368,7 +370,12 @@ final class PhotoGalleryView extends LinearLayout {
             setBackground(rounded(placeholder,7));
             setForeground(new RippleDrawable(ColorStateList.valueOf(ripple),null,rounded(0xffffffff,7)));
             setClipToOutline(true);
-            setOnClickListener(v->{if(photo!=null&&canLoad.getAsBoolean())openPhoto.accept(photoIndex);});
+            setOnClickListener(v->{
+                if(photo==null||!canLoad.getAsBoolean())return;
+                Drawable drawable=getDrawable();
+                Bitmap bitmap=photo.video&&drawable instanceof BitmapDrawable?((BitmapDrawable)drawable).getBitmap():null;
+                openPhoto.accept(photoIndex,bitmap);
+            });
         }
         void bind(PhotoItem next,int size,int index){
             photoIndex=index;

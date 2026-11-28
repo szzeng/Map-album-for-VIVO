@@ -41,6 +41,9 @@ final class ThumbnailLoader implements AutoCloseable {
         Runnable task;
     }
     ThumbnailLoader(ContentResolver resolver){this.resolver=resolver;}
+    synchronized Bitmap cachedThumbnail(Uri uri,long version,int size){
+        return closed||uri==null?null:cache.get(uri.toString()+"|"+version+"|"+size+"|thumbnail");
+    }
     void load(Uri uri,long version,int size,Callback callback){
         if(enqueue(uri,version,size,false,callback)==null)main.post(()->callback.complete(null));
     }

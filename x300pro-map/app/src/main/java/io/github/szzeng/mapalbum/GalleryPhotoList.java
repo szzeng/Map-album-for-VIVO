@@ -26,6 +26,7 @@ final class GalleryPhotoList extends AbstractList<PhotoItem> implements RandomAc
     List<PhotoTimeline.Day> days(){return order.days();}
     int videoCount(){int n=0;for(int i=0;i<size();i++)if(MediaIdentity.isVideo(order.idAt(i)))n++;return n;}
     boolean isVideo(int index){return MediaIdentity.isVideo(order.idAt(index));}
+    long mediaKeyAt(int index){return order.idAt(index);}
     @Override public int size(){return order.size();}
     @Override public PhotoItem get(int index){
         if(index<0||index>=size())throw new IndexOutOfBoundsException(index+" / "+size());

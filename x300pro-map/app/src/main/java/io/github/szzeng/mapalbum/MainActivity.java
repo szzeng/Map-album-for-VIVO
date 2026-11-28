@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
     private MapDataRepository.PhotoRequest photoRequest;
     private final Map<ClusterKey,MarkerResource> markers=new HashMap<>();
     private final Map<Long,MarkerResource> markerClicks=new HashMap<>();
-    private long nextMarkerId, photoSelection;
+    private long nextMarkerId, photoSelection, nativeThumbnailSelection;
     private boolean groupMode, oldestFirst, rebuiltAfterMediaChange, openingCluster;
     private boolean galleryBars;
     private int mapBarFlags,mapStatusColor,mapNavigationColor;
@@ -898,9 +898,18 @@ public class MainActivity extends Activity {
         if(openingCluster)return;
         long[] ids=resource.key.ids;
         if(ids.length==1){
+            pendingPhotoReturn=null;
+            Bitmap thumbnail=null;
+            if(MediaIdentity.isVideo(ids[0])){
+                ViewportData data=viewport;int at=data==null?-1:Arrays.binarySearch(data.ids,ids[0]);
+                if(at>=0){
+                    Uri uri=android.content.ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY),MediaIdentity.id(ids[0]));
+                    thumbnail=thumbnails.cachedThumbnail(uri,data.versions[at],160);
+                }
+            }
+            if(VivoNativeGalleryLauncher.launch(this,1,0,i->ids[0],thumbnail))return;
             if(MediaIdentity.isVideo(ids[0])){openVideo(ids[0]);return;}
             openingCluster=true;
-            pendingPhotoReturn=null;
             openPreviewSession(new PreviewSessionStore.Session(Collections.emptyList(),repository,displayedScope,ids[0]),0);
             return;
         }
@@ -1017,9 +1026,23 @@ public class MainActivity extends Activity {
     static void suspendPreviewScope(PreviewSessionStore.Session session){
         if(experiment!=null&&session!=null&&session.repository==experiment)experiment.suspend();
     }
-    private void openPhoto(int position){
+    private void openPhoto(int position,Bitmap thumbnail){
         if(!canLoadGalleryImages()||group==null)return;
-        openPreview(group,position);
+        GalleryPhotoList selected=group;
+        long selection=++nativeThumbnailSelection;
+        if(selected.isVideo(position)&&thumbnail==null){
+            PhotoItem item=selected.get(position);
+            ThumbnailLoader.Request request=thumbnails.tryLoad(item.uri,item.mediaVersion,384,bitmap->{
+                if(selection==nativeThumbnailSelection&&group==selected&&canLoadGalleryImages())openSelectedMedia(selected,position,bitmap);
+            });
+            if(request!=null)return;
+        }
+        openSelectedMedia(selected,position,thumbnail);
+    }
+    private void openSelectedMedia(GalleryPhotoList selected,int position,Bitmap thumbnail){
+        pendingPhotoReturn=snapshotGallery();
+        if(VivoNativeGalleryLauncher.launch(this,selected.size(),position,selected::mediaKeyAt,thumbnail))return;
+        openPreview(selected,position);
     }
     private void openVideo(long key){Uri uri=android.content.ContentUris.withAppendedId(android.provider.MediaStore.Video.Media.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY),MediaIdentity.id(key));openVideoUri(uri);}
     private void openVideoUri(Uri uri){

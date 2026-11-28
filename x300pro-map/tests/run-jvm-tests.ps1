@@ -32,6 +32,10 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & java -cp $out io.github.szzeng.mapalbum.MediaIdentityTest
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& javac -encoding UTF-8 -d $out (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/MediaIdentity.java') (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/NativeGalleryQueue.java') (Join-Path $PSScriptRoot 'io/github/szzeng/mapalbum/NativeGalleryQueueTest.java')
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+& java -cp $out io.github.szzeng.mapalbum.NativeGalleryQueueTest
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if ($Performance) {
     & javac -encoding UTF-8 -d $out (Join-Path $project 'app/src/main/java/io/github/szzeng/mapalbum/ScreenClusters.java') (Join-Path $PSScriptRoot 'io/github/szzeng/mapalbum/ScreenClustersPerformanceTest.java')
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
