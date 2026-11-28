@@ -42,6 +42,25 @@ final class PrimaryPhotoSource {
         }
         signal.throwIfCanceled();return Arrays.copyOf(ids,count);
     }
+    private Cursor queryLocations(String where,String[] args,CancellationSignal signal) {
+        // Some gallery providers return null while starting. Retry only that case,
+        // before processing any rows, and remain responsive to cancellation.
+        for(int attempt=0;attempt<3;attempt++){
+            signal.throwIfCanceled();
+            Cursor cursor=resolver.query(VIVO,new String[]{"_id","latitude","longitude"},where,args,null,signal);
+            if(cursor!=null)return cursor;
+            if(attempt<2){
+                long until=android.os.SystemClock.elapsedRealtime()+(attempt==0?500:1000);
+                while(true){
+                    signal.throwIfCanceled();
+                    long remaining=until-android.os.SystemClock.elapsedRealtime();
+                    if(remaining<=0)break;
+                    android.os.SystemClock.sleep(Math.min(100,remaining));
+                }
+            }
+        }
+        return null;
+    }
     void appendBatch(long[] visible,int from,int to,PrimitiveLocationSet output,CancellationSignal signal) {
         if(visible==null||output==null||signal==null||from<0||to<from||to>visible.length||to-from>20000)throw new IllegalArgumentException();
         signal.throwIfCanceled();if(!primaryOnly())throw new UnsupportedVolumeException();
@@ -52,7 +71,7 @@ final class PrimaryPhotoSource {
             if(i>0)where.append(',');where.append('?');args[i]=Long.toString(id);
         }
         where.append(')');boolean[] seen=new boolean[n],valid=new boolean[n];double[] lat=new double[n],lon=new double[n];
-        try(Cursor c=resolver.query(VIVO,new String[]{"_id","latitude","longitude"},where.toString(),args,null,signal)) {
+        try(Cursor c=queryLocations(where.toString(),args,signal)) {
             if(c==null)throw new IllegalStateException("null provider cursor");
             while(c.moveToNext()){
                 signal.throwIfCanceled();long id=c.getLong(0);int pos=Arrays.binarySearch(visible,from,to,id);
