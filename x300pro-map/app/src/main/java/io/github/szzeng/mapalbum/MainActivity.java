@@ -303,7 +303,7 @@ public class MainActivity extends Activity {
         PopupMenu p=new PopupMenu(this,anchor);
         android.view.MenuItem night=p.getMenu().add("暗夜模式");night.setCheckable(true);night.setChecked(darkMode);night.setOnMenuItemClickListener(i->{Appearance.setManual(this,!darkMode);recreate();return true;});
         p.getMenu().add("刷新照片数据").setOnMenuItemClickListener(i->{if(experiment==null)enableExperiment();else reloadGallery();return true;});
-        p.getMenu().add("图库 GPS 情况").setOnMenuItemClickListener(i->{showGalleryLocationSummary();return true;});
+        p.getMenu().add("照片 GPS 情况").setOnMenuItemClickListener(i->{showPhotoLocationSummary();return true;});
         p.getMenu().add("百度地图 AK").setOnMenuItemClickListener(i->{showBaiduAkSettings();return true;});
         p.getMenu().add("隐私说明").setOnMenuItemClickListener(i->{new AlertDialog.Builder(this).setMessage("照片、视频及其已有位置仅在本机只读处理，媒体索引仅保存在内存中；图迹不上传照片、视频、GPS 或媒体索引。图库仅访问当前授权的主卷媒体。冷启动时及点击定位后使用百度定位 SDK，可能读取 Wi-Fi 状态；不后台持续定位、不保存位置历史。跨境地区及海外坐标尚待验证。").setPositiveButton("知道了",null).show();return true;});
         p.getMenu().add("关于图迹 for VIVO").setOnMenuItemClickListener(i->{showAbout();return true;});
@@ -372,10 +372,10 @@ public class MainActivity extends Activity {
         stopLocation();String ak=effectiveBaiduAk();if(ak!=null){SDKInitializer.setApiKey(ak);LocationClient.setKey(ak);}
         Toast.makeText(this,"已保存，正在重新加载地图；AK 能否使用取决于百度鉴权",Toast.LENGTH_LONG).show();recreate();
     }
-    private void showGalleryLocationSummary(){
-        String summary=experiment==null?null:experiment.galleryLocationSummary();
-        if(summary==null)summary=count==null?"请先启用图库地图并授权媒体访问。":count.getText().toString()+"\n请在媒体数据读取完成后查看。";
-        new AlertDialog.Builder(this).setTitle("图库 GPS 情况").setMessage(summary).setPositiveButton("知道了",null).show();
+    private void showPhotoLocationSummary(){
+        String summary=experiment==null?null:experiment.photoLocationSummary();
+        if(summary==null)summary=count==null?"请先启用图库地图并授权照片访问。":count.getText().toString()+"\n请在照片数据读取完成后查看。";
+        new AlertDialog.Builder(this).setTitle("照片 GPS 情况").setMessage(summary).setPositiveButton("知道了",null).show();
     }
     private void openPhotoPermissionSettings(){
         new AlertDialog.Builder(this).setTitle("修改照片授权").setMessage("在系统设置的权限页面中，可以调整图迹可访问的照片范围。返回后图迹会重新检查授权。")
@@ -535,7 +535,7 @@ public class MainActivity extends Activity {
     private void showViewportStatus(boolean emptyViewport){
         if(!emptyViewport)showGalleryStatus(null,null);
         else if(experiment.validCount()==0){
-            showGalleryStatus("授权媒体中没有可用的位置 · 查看详情",this::showGalleryLocationSummary);
+            showGalleryStatus(mediaMode==0?"授权照片中没有可用的位置 · 查看详情":"授权媒体中没有可用的位置",mediaMode==0?this::showPhotoLocationSummary:null);
         }else showGalleryStatus(mediaMode==0?"此范围没有照片":"此范围没有媒体",null);
     }
     private void restorePreviewReturn(){
